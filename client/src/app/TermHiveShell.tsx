@@ -2,15 +2,9 @@ import { useCallback } from 'react';
 
 import { AppShell, EmptyState, SidebarShell } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
-import {
-  AgentList,
-  CreateAgentModal,
-} from '@/features/agents';
-import {
-  CreateProjectModal,
-  DeleteProjectDialog,
-  ProjectList,
-} from '@/features/projects';
+import { AgentList, CreateAgentModal } from '@/features/agents';
+import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
+import { TerminalWorkspace } from '@/features/terminal';
 import { useLocalStorage } from '@/lib/hooks';
 
 import { useProjectAgentShell } from './hooks';
@@ -54,6 +48,17 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         sidebarWidth={sidebarWidth}
         main={
           vm.selectedProject ? (
+            <TerminalWorkspace
+              agents={vm.agents}
+              onSelectAgent={vm.selectAgent}
+              selectedAgentId={vm.selectedAgentId}
+            />
+          ) : (
+            <EmptyState title="Select a project" />
+          )
+        }
+        rightPanel={
+          vm.selectedProject ? (
             <AgentList
               agents={vm.agents}
               error={vm.agentsError}
@@ -68,10 +73,9 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               previews={vm.previews}
               selectedAgentId={vm.selectedAgentId}
             />
-          ) : (
-            <EmptyState title="Select a project" />
-          )
+          ) : undefined
         }
+        rightPanelWidth={360}
       />
       <CreateProjectModal
         loading={vm.createProjectLoading}

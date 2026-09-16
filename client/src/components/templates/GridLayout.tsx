@@ -532,7 +532,7 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   );
 
   const startCanvasDrag = useCallback(
-    (id: string) => (event: React.MouseEvent<HTMLDivElement>) => {
+    (id: string) => (event: React.MouseEvent<HTMLElement>) => {
       event.preventDefault();
       bringCanvasPaneForward(id);
 
@@ -704,7 +704,6 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
                   pane.id === focusedId && 'grid-layout__canvas-card--focused',
                 )}
                 key={pane.id}
-                onMouseDown={startCanvasDrag(pane.id)}
                 style={{
                   height: rect.height,
                   left: rect.x,
@@ -716,6 +715,12 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
                 <div className="grid-layout__canvas-card-body">
                   {renderPane(pane, pane.id === focusedId, onFocus)}
                 </div>
+                <button
+                  aria-label="Drag pane"
+                  className="grid-layout__canvas-drag-handle"
+                  onMouseDown={startCanvasDrag(pane.id)}
+                  type="button"
+                />
                 {CANVAS_RESIZE_DIRECTIONS.map((direction) => (
                   <div
                     className={classNames(

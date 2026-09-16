@@ -904,6 +904,23 @@
   top: 0;
 }
 
+.grid-layout__canvas-drag-handle {
+  background: color-mix(in oklch, var(--bg-4) 72%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: grab;
+  height: 16px;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 36px;
+  z-index: 6;
+}
+
+.grid-layout__canvas-drag-handle:active {
+  cursor: grabbing;
+}
+
 .grid-layout__canvas-handle {
   position: absolute;
   z-index: 5;

@@ -21,3 +21,11 @@ export const WS_SERVER_MESSAGE_TYPES = {
   ORG_CHANGED: 'org:changed',
   TERMINAL_OUTPUT: 'terminal:output',
 } as const;
+
+export const WS_RECONNECT = {
+  BASE_DELAY_MS: 500,
+  MAX_DELAY_MS: 30_000,
+  JITTER_MS: 350,
+} as const;
+
+export const WS_PATH = '/ws';
