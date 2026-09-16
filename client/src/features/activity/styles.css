@@ -1,0 +1,44 @@
+.activity-panel__viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.activity-panel__spacer {
+  position: relative;
+}
+
+.activity-event {
+  align-items: start;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  left: 0;
+  min-height: 64px;
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.activity-event__title {
+  color: var(--text-0);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.activity-event p {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.activity-event time {
+  color: var(--text-3);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+}
+

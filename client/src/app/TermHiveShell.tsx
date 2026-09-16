@@ -1,14 +1,46 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { AppShell, EmptyState, SidebarShell } from '@/components';
+import type { AgentStatus } from '@/types';
+
+import {
+  AppShell,
+  CommandPaletteShell,
+  EmptyState,
+  Icon,
+  NotificationHost,
+  SidebarShell,
+  TabBar,
+  Toolbar,
+  ToolbarGroup,
+  type CommandPaletteItem,
+  type GridLayoutMode,
+  type NotificationItem,
+} from '@/components';
 import { STORAGE_KEYS } from '@/constants';
+import { ActivityFeed } from '@/features/activity';
 import { AgentList, CreateAgentModal } from '@/features/agents';
 import { BrainPanel } from '@/features/brain';
+import { ContentPanel } from '@/features/content';
+import { MessagesPanel } from '@/features/messages';
 import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
-import { TerminalWorkspace } from '@/features/terminal';
+import { SettingsModal } from '@/features/settings';
+import { TerminalWorkspace, TERMINAL_LAYOUT_OPTIONS, useTerminalLayoutMode } from '@/features/terminal';
+import { WikiPanel } from '@/features/wiki';
 import { useLocalStorage } from '@/lib/hooks';
 
 import { useProjectAgentShell } from './hooks';
+
+type WorkspaceId = 'terminals' | 'messages' | 'content' | 'wiki' | 'activity';
+
+const WORKSPACES: Array<{ id: WorkspaceId; label: string; icon: ReactNode }> = [
+  { id: 'terminals', label: 'Terminals', icon: <Icon name="terminal" size={14} /> },
+  { id: 'messages', label: 'Messages', icon: <Icon name="message" size={14} /> },
+  { id: 'content', label: 'Content', icon: <Icon name="file" size={14} /> },
+  { id: 'wiki', label: 'Wiki', icon: <Icon name="book" size={14} /> },
+  { id: 'activity', label: 'Activity', icon: <Icon name="activity" size={14} /> },
+];
+
+const NOTIFICATION_LIMIT = 5;
 
 interface TermHiveShellProps {
   children?: never;
@@ -21,6 +53,13 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     false,
   );
   const [sidebarWidth, setSidebarWidth] = useLocalStorage(STORAGE_KEYS.SIDEBAR_WIDTH, 232);
+  const [, setLayoutMode] = useTerminalLayoutMode();
+  const [workspace, setWorkspace] = useState<WorkspaceId>('terminals');
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const previousAgentStatusRef = useRef<Map<string, AgentStatus>>(new Map());
+
   const onSidebarLayoutChange = useCallback(
     (layout: { collapsed: boolean; width: number }) => {
       setSidebarCollapsed(layout.collapsed);
@@ -28,6 +67,200 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     },
     [setSidebarCollapsed, setSidebarWidth],
   );
+  const openPalette = useCallback(() => setPaletteOpen(true), []);
+  const closePalette = useCallback(() => setPaletteOpen(false), []);
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
+  const onWorkspaceChange = useCallback((id: string) => setWorkspace(id as WorkspaceId), []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const previous = previousAgentStatusRef.current;
+
+    vm.agents.forEach((agent) => {
+      const priorStatus = previous.get(agent.id);
+      if (agent.status === 'awaiting_input' && priorStatus !== 'awaiting_input') {
+        setNotifications((current) =>
+          [
+            {
+              id: `${agent.id}:${Date.now()}`,
+              message: `${agent.name} is waiting for a human response.`,
+              title: 'Agent needs input',
+              tone: 'warning' as const,
+            },
+            ...current,
+          ].slice(0, NOTIFICATION_LIMIT),
+        );
+      }
+      previous.set(agent.id, agent.status);
+    });
+  }, [vm.agents]);
+
+  const workspaceTabs = useMemo(
+    () =>
+      WORKSPACES.map((item) => ({
+        ...item,
+        count:
+          item.id === 'messages'
+            ? vm.agents.filter((agent) => agent.status === 'awaiting_input').length
+            : undefined,
+      })),
+    [vm.agents],
+  );
+
+  const commandItems = useMemo<CommandPaletteItem[]>(() => {
+    const workspaceCommands = WORKSPACES.map((item) => ({
+      description: 'Switch workspace',
+      group: 'Workspace',
+      icon: item.icon,
+      id: `workspace:${item.id}`,
+      label: `Open ${item.label}`,
+    }));
+    const projectCommands = vm.projects.map((project) => ({
+      description: project.cwd,
+      group: 'Projects',
+      icon: <Icon name="folder" size={14} />,
+      id: `project:${project.id}`,
+      label: project.name,
+    }));
+    const agentCommands = vm.agents.flatMap((agent) => [
+      {
+        description: agent.role ?? agent.cli,
+        group: 'Agents',
+        icon: <Icon name="terminal" size={14} />,
+        id: `agent:${agent.id}`,
+        label: `Focus ${agent.name}`,
+      },
+      {
+        description: agent.name,
+        disabled: vm.lifecycleBusy,
+        group: 'Agent Actions',
+        icon: <Icon name="play" size={14} />,
+        id: `agent-action:start:${agent.id}`,
+        label: `Start ${agent.name}`,
+      },
+      {
+        description: agent.name,
+        disabled: vm.lifecycleBusy,
+        group: 'Agent Actions',
+        icon: <Icon name="stop" size={14} />,
+        id: `agent-action:stop:${agent.id}`,
+        label: `Stop ${agent.name}`,
+      },
+    ]);
+    const layoutCommands = TERMINAL_LAYOUT_OPTIONS.map((option) => ({
+      description: 'Change terminal grid',
+      group: 'Layout',
+      icon: <Icon name={option.icon} size={14} />,
+      id: `layout:${option.value}`,
+      label: option.label,
+    }));
+
+    return [
+      { group: 'System', icon: <Icon name="settings" size={14} />, id: 'settings:open', label: 'Open Settings' },
+      ...workspaceCommands,
+      ...layoutCommands,
+      ...projectCommands,
+      ...agentCommands,
+    ];
+  }, [vm.agents, vm.lifecycleBusy, vm.projects]);
+
+  const onCommandSelect = useCallback(
+    (id: string) => {
+      if (id === 'settings:open') {
+        setSettingsOpen(true);
+        return;
+      }
+      if (id.startsWith('workspace:')) {
+        setWorkspace(id.slice('workspace:'.length) as WorkspaceId);
+        return;
+      }
+      if (id.startsWith('project:')) {
+        vm.selectProject(id.slice('project:'.length));
+        setWorkspace('terminals');
+        return;
+      }
+      if (id.startsWith('agent:')) {
+        vm.selectAgent(id.slice('agent:'.length));
+        setWorkspace('terminals');
+        return;
+      }
+      if (id.startsWith('layout:')) {
+        setLayoutMode(id.slice('layout:'.length) as GridLayoutMode);
+        setWorkspace('terminals');
+        return;
+      }
+      if (id.startsWith('agent-action:')) {
+        const [, action, agentId] = id.split(':');
+        const agent = vm.agents.find((item) => item.id === agentId);
+        if (!agent) {
+          return;
+        }
+        if (action === 'start') {
+          vm.startAgent(agent);
+        } else if (action === 'stop') {
+          vm.stopAgent(agent);
+        }
+      }
+    },
+    [setLayoutMode, vm],
+  );
+
+  const main = useMemo(() => {
+    if (!vm.selectedProject) {
+      return <EmptyState title="Select a project" />;
+    }
+
+    return (
+      <section className="shell-workspace">
+        <Toolbar align="between" className="shell-workspace__bar">
+          <ToolbarGroup>
+            <TabBar
+              activeId={workspace}
+              ariaLabel="Workspace"
+              items={workspaceTabs}
+              onChange={onWorkspaceChange}
+            />
+          </ToolbarGroup>
+          <ToolbarGroup>
+            <button className="shell-workspace__command" onClick={openPalette} type="button">
+              <Icon name="search" size={13} />
+              <span>Command</span>
+            </button>
+          </ToolbarGroup>
+        </Toolbar>
+        {workspace === 'terminals' ? (
+          <TerminalWorkspace
+            agents={vm.agents}
+            onSelectAgent={vm.selectAgent}
+            selectedAgentId={vm.selectedAgentId}
+          />
+        ) : null}
+        {workspace === 'messages' ? (
+          <MessagesPanel
+            agents={vm.agents}
+            projectId={vm.selectedProject.id}
+            selectedAgentId={vm.selectedAgentId}
+          />
+        ) : null}
+        {workspace === 'content' ? (
+          <ContentPanel author={vm.selectedAgentId ?? 'user'} projectId={vm.selectedProject.id} />
+        ) : null}
+        {workspace === 'wiki' ? <WikiPanel projectId={vm.selectedProject.id} /> : null}
+        {workspace === 'activity' ? <ActivityFeed projectId={vm.selectedProject.id} /> : null}
+      </section>
+    );
+  }, [onWorkspaceChange, openPalette, vm, workspace, workspaceTabs]);
 
   return (
     <>
@@ -47,17 +280,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         }
         sidebarCollapsed={sidebarCollapsed}
         sidebarWidth={sidebarWidth}
-        main={
-          vm.selectedProject ? (
-            <TerminalWorkspace
-              agents={vm.agents}
-              onSelectAgent={vm.selectAgent}
-              selectedAgentId={vm.selectedAgentId}
-            />
-          ) : (
-            <EmptyState title="Select a project" />
-          )
-        }
+        main={main}
         rightPanel={
           vm.selectedProject ? (
             <div className="shell-right-panel">
@@ -101,6 +324,15 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         onConfirm={vm.deleteProject}
         project={vm.projectPendingDelete}
       />
+      <CommandPaletteShell
+        items={commandItems}
+        onClose={closePalette}
+        onSelect={onCommandSelect}
+        open={paletteOpen}
+        placeholder="Run a command"
+      />
+      <SettingsModal onClose={closeSettings} open={settingsOpen} />
+      <NotificationHost items={notifications} />
     </>
   );
 };
