@@ -4,6 +4,7 @@ import type { Agent } from '@/types';
 
 import { Button, EmptyState, GridLayout, Toolbar, ToolbarGroup, type GridLayoutMode } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
+import { CodexAgentView } from '@/features/codex';
 
 import { TERMINAL_LAYOUT_OPTIONS } from '../constants';
 import { useTerminalLayoutMode } from '../hooks';
@@ -33,11 +34,19 @@ export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
     () =>
       agents.map((agent) => ({
         children: (
-          <AgentTerminal
-            agentId={agent.id}
-            focused={agent.id === selectedAgentId}
-            onFocus={() => onSelectAgent(agent.id)}
-          />
+          agent.cli === 'codex' ? (
+            <CodexAgentView
+              agentId={agent.id}
+              focused={agent.id === selectedAgentId}
+              onFocus={() => onSelectAgent(agent.id)}
+            />
+          ) : (
+            <AgentTerminal
+              agentId={agent.id}
+              focused={agent.id === selectedAgentId}
+              onFocus={() => onSelectAgent(agent.id)}
+            />
+          )
         ),
         id: agent.id,
       })),

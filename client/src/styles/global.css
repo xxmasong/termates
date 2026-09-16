@@ -3,6 +3,8 @@
 @import '../features/projects/styles.css';
 @import '../features/agents/styles.css';
 @import '../features/terminal/styles.css';
+@import '../features/codex/styles.css';
+@import '../features/brain/styles.css';
 
 *,
 *::before,
@@ -77,4 +79,11 @@ button {
 .placeholder-shell p {
   color: var(--text-1);
   line-height: 1.5;
+}
+
+.shell-right-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }

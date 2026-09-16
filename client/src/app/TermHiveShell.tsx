@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { AppShell, EmptyState, SidebarShell } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
 import { AgentList, CreateAgentModal } from '@/features/agents';
+import { BrainPanel } from '@/features/brain';
 import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
 import { TerminalWorkspace } from '@/features/terminal';
 import { useLocalStorage } from '@/lib/hooks';
@@ -59,20 +60,23 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         }
         rightPanel={
           vm.selectedProject ? (
-            <AgentList
-              agents={vm.agents}
-              error={vm.agentsError}
-              lifecycleBusy={vm.lifecycleBusy}
-              loading={vm.agentsLoading}
-              onCreateAgent={vm.openCreateAgent}
-              onDeleteAgent={vm.deleteAgent}
-              onRestartAgent={vm.restartAgent}
-              onSelectAgent={vm.selectAgent}
-              onStartAgent={vm.startAgent}
-              onStopAgent={vm.stopAgent}
-              previews={vm.previews}
-              selectedAgentId={vm.selectedAgentId}
-            />
+            <div className="shell-right-panel">
+              <AgentList
+                agents={vm.agents}
+                error={vm.agentsError}
+                lifecycleBusy={vm.lifecycleBusy}
+                loading={vm.agentsLoading}
+                onCreateAgent={vm.openCreateAgent}
+                onDeleteAgent={vm.deleteAgent}
+                onRestartAgent={vm.restartAgent}
+                onSelectAgent={vm.selectAgent}
+                onStartAgent={vm.startAgent}
+                onStopAgent={vm.stopAgent}
+                previews={vm.previews}
+                selectedAgentId={vm.selectedAgentId}
+              />
+              <BrainPanel />
+            </div>
           ) : undefined
         }
         rightPanelWidth={360}
