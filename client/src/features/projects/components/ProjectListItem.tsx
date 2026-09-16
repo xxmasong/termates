@@ -1,40 +1,33 @@
 import type { Project } from '@/types';
 
-import { Button, Icon } from '@/components';
+interface ProjectListItemSummary {
+  total: number;
+  alive: number;
+}
 
 export interface ProjectListItemProps {
   project: Project;
+  summary?: ProjectListItemSummary;
   selected: boolean;
   onSelect: (projectId: string) => void;
-  onDelete: (project: Project) => void;
 }
 
 export const ProjectListItem: React.FC<ProjectListItemProps> = ({
   project,
+  summary,
   selected,
   onSelect,
-  onDelete,
 }) => (
   <div className={`project-list-item${selected ? ' project-list-item--selected' : ''}`}>
     <button className="project-list-item__select" onClick={() => onSelect(project.id)} type="button">
-      <Icon name="folder" size={14} />
       <span className="project-list-item__body">
         <span className="project-list-item__name">{project.name}</span>
-        <span className="project-list-item__cwd">{project.cwd}</span>
-        {project.description ? (
-          <span className="project-list-item__description" title={project.description}>
-            {project.description}
-          </span>
-        ) : null}
       </span>
+      {summary ? (
+        <span className={summary.alive > 0 ? 'project-list-item__running-chip' : 'project-list-item__total-chip'}>
+          {summary.alive > 0 ? `${summary.alive}/${summary.total}` : summary.total}
+        </span>
+      ) : null}
     </button>
-    <Button
-      aria-label={`Delete ${project.name}`}
-      icon="x"
-      iconOnly
-      onClick={() => onDelete(project)}
-      size="sm"
-      variant="ghost"
-    />
   </div>
 );

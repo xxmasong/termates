@@ -209,3 +209,342 @@
   color: var(--text-2);
   font-size: 10.5px;
 }
+
+.keeper-hud {
+  bottom: 42px;
+  position: fixed;
+  right: 22px;
+  z-index: 180;
+}
+
+.keeper-hud__orb {
+  background: radial-gradient(circle at 50% 38%, var(--bg-3), var(--bg-1));
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42), 0 0 0 1px var(--border);
+  cursor: pointer;
+  display: grid;
+  height: 56px;
+  padding: 0;
+  place-items: center;
+  position: relative;
+  transition: box-shadow 0.18s ease;
+  width: 56px;
+}
+
+.keeper-hud__orb:hover,
+.keeper-hud__orb--thinking {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent);
+}
+
+.keeper-hud__core {
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.keeper-hud__orb--idle .keeper-hud__core {
+  animation: keeper-breathe 3.6s ease-in-out infinite;
+}
+
+.keeper-hud__ring {
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.keeper-hud__orb--listening .keeper-hud__ring {
+  animation: keeper-ring 1.7s ease-out infinite;
+}
+
+.keeper-hud__orb--listening .keeper-hud__ring--second {
+  animation-delay: 0.85s;
+}
+
+.keeper-hud__orb--thinking .keeper-hud__ring {
+  animation: keeper-spin 0.85s linear infinite;
+  border-color: transparent;
+  border-top-color: var(--accent);
+  opacity: 1;
+}
+
+.keeper-hud__badge {
+  background: var(--attn);
+  border-radius: 9px;
+  box-shadow: 0 0 0 2px var(--bg-1);
+  color: #0a0a0a;
+  font-size: 10px;
+  font-weight: 700;
+  height: 18px;
+  line-height: 18px;
+  min-width: 18px;
+  padding: 0 4px;
+  position: absolute;
+  right: -3px;
+  text-align: center;
+  top: -3px;
+  z-index: 3;
+}
+
+.keeper-hud__panel {
+  animation: keeper-pop 0.18s ease;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  bottom: 68px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  width: 332px;
+}
+
+.keeper-hud__header,
+.keeper-hud__compose,
+.keeper-hud__wake,
+.keeper-hud__status {
+  align-items: center;
+  display: flex;
+}
+
+.keeper-hud__header {
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  padding: 10px 10px 10px 12px;
+}
+
+.keeper-hud__mini-orb {
+  background: var(--accent-soft);
+  border-radius: 50%;
+  color: var(--accent);
+  display: grid;
+  flex-shrink: 0;
+  height: 24px;
+  place-items: center;
+  width: 24px;
+}
+
+.keeper-hud__mini-orb--thinking {
+  animation: keeper-breathe 1.4s ease-in-out infinite;
+}
+
+.keeper-hud__title {
+  color: var(--text-0);
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.keeper-hud__wake {
+  border-bottom: 1px solid var(--border);
+  color: var(--text-3);
+  gap: 6px;
+  padding: 7px 12px;
+}
+
+.keeper-hud__wake span,
+.keeper-hud__wake code {
+  font-size: 11px;
+}
+
+.keeper-hud__wake code {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-1);
+  font-family: var(--ff-mono);
+  margin-left: auto;
+  padding: 3px 6px;
+}
+
+.keeper-hud__status {
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 11px;
+  gap: 12px;
+  padding: 9px 13px;
+}
+
+.keeper-hud__status span {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+}
+
+.keeper-hud__awaiting {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 168px;
+  overflow: auto;
+  padding: 5px;
+}
+
+.keeper-hud__awaiting-row {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  display: flex;
+  gap: 8px;
+  padding: 7px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.keeper-hud__awaiting-row:hover {
+  background: var(--bg-2);
+}
+
+.keeper-hud__awaiting-row .status-dot {
+  flex-shrink: 0;
+  height: 7px;
+  width: 7px;
+}
+
+.keeper-hud__awaiting-name {
+  color: var(--text-0);
+  font-size: 12px;
+}
+
+.keeper-hud__awaiting-project {
+  color: var(--text-3);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.keeper-hud__reply {
+  border-top: 1px solid var(--border);
+  color: var(--text-1);
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 140px;
+  overflow: auto;
+  padding: 9px 13px;
+  position: relative;
+}
+
+.keeper-hud__working {
+  align-items: center;
+  color: var(--text-2);
+  display: flex;
+  gap: 6px;
+}
+
+.keeper-hud__dot {
+  animation: keeper-dot 1.2s infinite ease-in-out;
+  background: var(--accent);
+  border-radius: 50%;
+  height: 4px;
+  width: 4px;
+}
+
+.keeper-hud__dot:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.keeper-hud__dot:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+.keeper-hud__clear {
+  height: 18px;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 18px;
+}
+
+.keeper-hud__reply-text {
+  word-break: break-word;
+}
+
+.keeper-hud__compose {
+  background: var(--bg-1);
+  border-top: 1px solid var(--border);
+  gap: 6px;
+  padding: 9px 10px;
+}
+
+.keeper-hud__mic--on {
+  animation: status-dot-pulse 1.2s ease-in-out infinite;
+  border-color: var(--err);
+  color: var(--err);
+}
+
+.keeper-hud__input {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-0);
+  flex: 1;
+  font-size: 12px;
+  height: 30px;
+  min-width: 0;
+  outline: none;
+  padding: 0 10px;
+}
+
+.keeper-hud__input:focus {
+  border-color: var(--accent);
+}
+
+.keeper-hud__input::placeholder {
+  color: var(--text-3);
+}
+
+@keyframes keeper-breathe {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes keeper-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.95);
+  }
+}
+
+@keyframes keeper-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes keeper-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes keeper-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 1;
+  }
+}

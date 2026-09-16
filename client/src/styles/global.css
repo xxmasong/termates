@@ -44,6 +44,11 @@ body {
   textarea {
     font-size: 16px;
   }
+
+  .app-header__command-input,
+  .keeper-hud__input {
+    font-size: 16px;
+  }
 }
 
 button,

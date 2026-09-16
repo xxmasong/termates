@@ -17,6 +17,11 @@ export interface AgentLifecycleInput {
   agentId: string;
 }
 
+export interface ProjectAgentSummary {
+  total: number;
+  alive: number;
+}
+
 export interface AgentLifecycleResult {
   status: string;
 }

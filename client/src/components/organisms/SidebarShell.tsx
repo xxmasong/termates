@@ -83,12 +83,6 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
           className,
         )}
       >
-        <IconButton
-          icon={collapsed ? 'panelLeftOpen' : 'panelLeft'}
-          label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
-          onClick={updateCollapsed}
-          size="sm"
-        />
         {children}
       </aside>
       {collapsed ? null : (

@@ -22,8 +22,8 @@ import {
 } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
 import { ActivityFeed } from '@/features/activity';
-import { AgentList, CreateAgentModal } from '@/features/agents';
-import { BrainPanel, useBrainActions, useBrainState } from '@/features/brain';
+import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
+import { BrainPanel, KeeperHud, useBrainActions, useBrainState, type KeeperHudNotice } from '@/features/brain';
 import { ContentPanel } from '@/features/content';
 import { MessagesPanel } from '@/features/messages';
 import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
@@ -145,18 +145,53 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
   const closePalette = useCallback(() => setPaletteOpen(false), []);
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
   const onWorkspaceChange = useCallback((id: string) => setWorkspace(id as WorkspaceId), []);
+  const openVoiceShortcut = useCallback(() => {
+    if (speech.supported) {
+      speech.toggle();
+    }
+  }, [speech]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      const mod = event.metaKey || event.ctrlKey;
+
+      if (!mod) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+
+      if (key === 'k') {
         event.preventDefault();
         setPaletteOpen(true);
+        return;
+      }
+
+      if (key === 'j') {
+        event.preventDefault();
+        setCommandPanelOpen(true);
+        return;
+      }
+
+      if (event.key === ';') {
+        event.preventDefault();
+        openVoiceShortcut();
+        return;
+      }
+
+      if (/^[1-5]$/.test(event.key)) {
+        const agent = vm.agents[Number(event.key) - 1];
+        if (agent) {
+          event.preventDefault();
+          vm.selectAgent(agent.id);
+          setWorkspace('terminals');
+        }
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [openVoiceShortcut, vm]);
 
   useEffect(() => {
     const previous = previousAgentStatusRef.current;
@@ -190,6 +225,19 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             : undefined,
       })),
     [vm.agents],
+  );
+
+  const keeperNotices = useMemo<KeeperHudNotice[]>(
+    () =>
+      vm.agents
+        .filter((agent) => agent.status === 'awaiting_input')
+        .map((agent) => ({
+          agentId: agent.id,
+          agentName: agent.name,
+          projectId: agent.projectId,
+          projectName: vm.selectedProject?.name ?? 'Current project',
+        })),
+    [vm.agents, vm.selectedProject?.name],
   );
 
   const commandItems = useMemo<CommandPaletteItem[]>(() => {
@@ -292,7 +340,17 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
 
   const main = useMemo(() => {
     if (!vm.selectedProject) {
-      return <EmptyState title="Select a project" />;
+      return (
+        <EmptyState
+          action={
+            <button className="empty-state__primary-action" onClick={vm.openCreateProject} type="button">
+              <Icon name="plus" size={11} />
+              <span>New Project</span>
+            </button>
+          }
+          title="Select or create a project to get started"
+        />
+      );
     }
 
     return (
@@ -335,6 +393,15 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
       </section>
     );
   }, [onWorkspaceChange, openPalette, vm, workspace, workspaceTabs]);
+
+  const selectHudAgent = useCallback(
+    (_projectId: string, agentId: string) => {
+      vm.selectAgent(agentId);
+      setWorkspace('terminals');
+      setCommandPanelOpen(false);
+    },
+    [vm],
+  );
 
   return (
     <>
@@ -381,13 +448,24 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         sidebar={
           <SidebarShell onLayoutChange={onSidebarLayoutChange}>
             <ProjectList
+              agentSummaries={vm.projectAgentSummaries}
               error={vm.projectsError}
               loading={vm.projectsLoading}
               onCreateProject={vm.openCreateProject}
-              onDeleteProject={vm.requestDeleteProject}
               onSelectProject={vm.selectProject}
               projects={vm.projects}
               selectedProjectId={vm.selectedProjectId}
+            />
+            <SidebarAgentList
+              agents={vm.agents}
+              error={vm.agentsError}
+              loading={vm.agentsLoading}
+              modKey={MOD_KEY}
+              onCreateAgent={vm.openCreateAgent}
+              onDeleteAgent={vm.deleteAgent}
+              onSelectAgent={vm.selectAgent}
+              selectedAgentId={vm.selectedAgentId}
+              selectedProjectName={vm.selectedProject?.name}
             />
             <UsageMeters />
           </SidebarShell>
@@ -395,27 +473,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         sidebarCollapsed={sidebarCollapsed}
         sidebarWidth={sidebarWidth}
         main={main}
-        rightPanel={
-          vm.selectedProject ? (
-            <div className="shell-right-panel">
-              <AgentList
-                agents={vm.agents}
-                error={vm.agentsError}
-                lifecycleBusy={vm.lifecycleBusy}
-                loading={vm.agentsLoading}
-                onCreateAgent={vm.openCreateAgent}
-                onDeleteAgent={vm.deleteAgent}
-                onRestartAgent={vm.restartAgent}
-                onSelectAgent={vm.selectAgent}
-                onStartAgent={vm.startAgent}
-                onStopAgent={vm.stopAgent}
-                previews={vm.previews}
-                selectedAgentId={vm.selectedAgentId}
-              />
-              <BrainPanel />
-            </div>
-          ) : undefined
-        }
+        rightPanel={undefined}
         rightPanelWidth={360}
       />
       <CreateProjectModal
@@ -454,6 +512,14 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
       >
         <BrainPanel />
       </Modal>
+      <KeeperHud
+        awaiting={keeperNotices}
+        headerListening={speech.listening}
+        idleCount={vm.agents.filter((agent) => agent.status === 'idle').length}
+        onOpenFull={openCommandPanel}
+        onSelectAgent={selectHudAgent}
+        runningCount={vm.agents.filter((agent) => agent.status === 'running').length}
+      />
       <NotificationHost items={notifications} />
     </>
   );

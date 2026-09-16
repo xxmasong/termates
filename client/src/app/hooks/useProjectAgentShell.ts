@@ -10,6 +10,7 @@ import {
   useAgents,
   useCreateAgent,
   useDeleteAgent,
+  useProjectAgentSummaries,
   type CreateAgentInput,
 } from '@/features/agents';
 import {
@@ -40,6 +41,7 @@ export const useProjectAgentShell = () => {
   const lifecycle = useAgentLifecycle();
 
   const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data]);
+  const projectAgentSummaries = useProjectAgentSummaries(projects);
   const agents = useMemo(() => agentsQuery.data ?? [], [agentsQuery.data]);
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
@@ -157,6 +159,7 @@ export const useProjectAgentShell = () => {
     previews: previewsQuery.data ?? {},
     projectPendingDelete,
     projects,
+    projectAgentSummaries,
     projectsError: getErrorMessage(projectsQuery.error),
     projectsLoading: projectsQuery.isLoading,
     requestDeleteProject,

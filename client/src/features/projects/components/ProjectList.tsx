@@ -4,24 +4,29 @@ import { Button, EmptyState, Spinner } from '@/components';
 
 import { ProjectListItem } from './ProjectListItem';
 
+interface ProjectListAgentSummary {
+  total: number;
+  alive: number;
+}
+
 export interface ProjectListProps {
   projects: Project[];
+  agentSummaries?: Record<string, ProjectListAgentSummary>;
   selectedProjectId: string | null;
   loading?: boolean;
   error?: string | null;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
-  onDeleteProject: (project: Project) => void;
 }
 
 export const ProjectList: React.FC<ProjectListProps> = ({
   projects,
+  agentSummaries,
   selectedProjectId,
   loading = false,
   error,
   onSelectProject,
   onCreateProject,
-  onDeleteProject,
 }) => (
   <section className="project-list">
     <header className="feature-section-header">
@@ -48,9 +53,9 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       {projects.map((project) => (
         <ProjectListItem
           key={project.id}
-          onDelete={onDeleteProject}
           onSelect={onSelectProject}
           project={project}
+          summary={agentSummaries?.[project.id]}
           selected={project.id === selectedProjectId}
         />
       ))}
