@@ -13,14 +13,19 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:3000',
+      // src/server.ts defaults to PORT 3200.
+      '/api': 'http://localhost:3200',
       '/ws': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3200',
         ws: true,
       },
     },
   },
   build: {
+    // src/server.ts resolves the client as path.join(__dirname, 'client'), and
+    // tsup bundles the server to dist/server.js — so it serves dist/client.
+    outDir: fileURLToPath(new URL('../dist/client', import.meta.url)),
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
