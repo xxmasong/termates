@@ -116,3 +116,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Free text of any length — truncate to one line, full value in the title. */
+.project-list-item__description {
+  color: var(--text-3);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

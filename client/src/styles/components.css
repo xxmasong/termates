@@ -450,10 +450,14 @@
 }
 
 .empty-state {
+  align-content: center;
   align-items: center;
   color: var(--text-2);
   display: grid;
   gap: 8px;
+  /* Fill the pane so the message sits in the middle rather than pinned to the
+     top of a large empty area. */
+  height: 100%;
   justify-items: center;
   padding: 32px 20px;
   text-align: center;
@@ -547,10 +551,19 @@
 }
 
 .sidebar-shell__restore {
+  /* Floats over the content area, so it needs its own surface to stay legible
+     against a terminal or an empty pane. */
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   left: 10px;
   position: fixed;
   top: 10px;
   z-index: 50;
+}
+
+.sidebar-shell__restore:hover {
+  background: var(--bg-3);
 }
 
 .command-palette {

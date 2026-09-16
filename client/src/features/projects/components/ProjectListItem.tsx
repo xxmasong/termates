@@ -1,6 +1,6 @@
 import type { Project } from '@/types';
 
-import { Badge, Button, Icon } from '@/components';
+import { Button, Icon } from '@/components';
 
 export interface ProjectListItemProps {
   project: Project;
@@ -21,8 +21,12 @@ export const ProjectListItem: React.FC<ProjectListItemProps> = ({
       <span className="project-list-item__body">
         <span className="project-list-item__name">{project.name}</span>
         <span className="project-list-item__cwd">{project.cwd}</span>
+        {project.description ? (
+          <span className="project-list-item__description" title={project.description}>
+            {project.description}
+          </span>
+        ) : null}
       </span>
-      {project.description ? <Badge>{project.description}</Badge> : null}
     </button>
     <Button
       aria-label={`Delete ${project.name}`}
