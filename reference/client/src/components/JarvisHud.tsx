@@ -1,0 +1,405 @@
+/**
+ * JarvisHud — a floating, non-modal voice cockpit for The Keeper.
+ *
+ * An always-present orb (bottom-right) that pulses with the Keeper's state —
+ * breathing when idle, radiating rings while listening, spinning while it
+ * works. Click it for a floating HUD: talk or type to the Keeper and glance
+ * at which agents need you, without opening the full Command drawer and
+ * without a scrim — everything underneath stays fully interactive.
+ */
+
+import { useState, useEffect, useRef } from 'react';
+import { marked } from 'marked';
+import Ic from './Icons';
+import { useSpeechInput } from '../hooks/useSpeechInput';
+import type { AgentNotif } from './NotificationCenter';
+
+function renderMd(text: string): string {
+  try { return marked.parse(text, { async: false }) as string; }
+  catch { return text; }
+}
+
+interface TtsCfg {
+  enabled: boolean;
+  provider: 'browser' | 'openai' | 'gemini';
+  model: string;
+  voice: string;
+  speed: number;
+}
+
+/**
+ * Single global TTS queue — the Keeper's step narration and its closing 🔊
+ * summary play back in order, and `stopSpeaking()` is the only thing that
+ * clears them. Each job carries the per-call TTS config so we can switch
+ * provider on the fly without dropping in-flight audio.
+ */
+let ttsQueue: Array<{ spoken: string; cfg: TtsCfg }> = [];
+let ttsBusy = false;
+let ttsCurrent: HTMLAudioElement | null = null;
+/** Survive HUD remount: don't re-speak a reply we already spoke. The HUD
+ *  un/remounts every time the Command panel toggles, which would otherwise
+ *  re-fire the lastReply useEffect and re-speak the stale message. */
+let lastSpokenTs = 0;
+/** Bumped by stopSpeaking — lets an in-flight play detect it was cancelled
+ *  and prevents its `finally` from clobbering the busy flag of the next
+ *  play that may already have started after the stop. */
+let speakGen = 0;
+/** Dedupe key against React StrictMode's effect-double-invocation in dev,
+ *  which would otherwise queue every spoken line twice. */
+let lastSpokenKey = '';
+let lastSpokenAt = 0;
+
+export function stopSpeaking() {
+  ttsQueue = [];
+  ttsBusy = false;
+  speakGen++;
+  if (ttsCurrent) {
+    const a = ttsCurrent;
+    ttsCurrent = null;
+    try { a.pause(); } catch { /* ignore */ }
+  }
+  try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+}
+
+/** Pull the Keeper's explicit spoken-summary line (`🔊 …`) out of a reply. */
+const SPOKEN_RE = /🔊[ \t]*([^\n]+)/;
+
+/** Distill the speakable line out of a Keeper reply. */
+function extractSpoken(text: string): string {
+  let spoken = '';
+  const marked = text.match(SPOKEN_RE);
+  if (marked) {
+    spoken = marked[1].replace(/[*_`#>]/g, '').trim();
+  } else {
+    const clean = text
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[*_#>]/g, '')
+      .replace(/^\s*[-•]\s*/gm, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const sentences = clean.split(/(?<=[。.!?！?])\s*/).filter((s) => s.trim());
+    spoken = sentences.slice(0, 2).join('') || clean;
+  }
+  return spoken.slice(0, 500).trim();
+}
+
+function speakReply(text: string, cfg: TtsCfg) {
+  if (!cfg.enabled) return;   // master TTS off
+  const spoken = extractSpoken(text);
+  if (!spoken) return;
+  // React StrictMode double-invokes effects in dev; a brain-event reflow can
+  // also drop the same lastReply object through twice. Skip if we already
+  // queued this exact line in the last second.
+  const now = Date.now();
+  if (spoken === lastSpokenKey && now - lastSpokenAt < 1000) return;
+  lastSpokenKey = spoken;
+  lastSpokenAt = now;
+  ttsQueue.push({ spoken, cfg });
+  void processTtsQueue();
+}
+
+async function processTtsQueue(): Promise<void> {
+  if (ttsBusy || ttsQueue.length === 0) return;
+  ttsBusy = true;
+  const myGen = speakGen;
+  const job = ttsQueue.shift()!;
+  try {
+    if (job.cfg.provider === 'openai' || job.cfg.provider === 'gemini') {
+      await playApi(job.spoken);
+    } else {
+      await playBrowser(job.spoken);
+    }
+  } catch (err) {
+    console.warn('[tts] failed:', err);
+  } finally {
+    // If stopSpeaking ran during this play, a fresh processTtsQueue may
+    // already own ttsBusy — don't touch it (would let another play start
+    // concurrent with the new one and overlap audio).
+    if (myGen === speakGen) {
+      ttsBusy = false;
+      if (ttsQueue.length > 0) void processTtsQueue();
+    }
+  }
+}
+
+async function playApi(text: string): Promise<void> {
+  // Snapshot the generation at start of this play. If stopSpeaking bumps the
+  // counter while we're in an await (fetch / blob), abandon the play before
+  // creating an Audio element — otherwise the OLD playApi would still build
+  // and play its audio concurrent with whatever started after the stop.
+  const myGen = speakGen;
+  const r = await fetch('/api/voice/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  if (myGen !== speakGen) return; // cancelled during fetch
+  if (!r.ok) throw new Error(`tts ${r.status}: ${await r.text().catch(() => '')}`);
+  const blob = await r.blob();
+  if (myGen !== speakGen) return; // cancelled during blob assembly
+  const url = URL.createObjectURL(blob);
+  const a = new Audio(url);
+  if (myGen !== speakGen) { URL.revokeObjectURL(url); return; }
+  ttsCurrent = a;
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      if (ttsCurrent === a) ttsCurrent = null;
+      resolve();
+    };
+    a.onended = done;
+    a.onerror = done;
+    // External pause (stopSpeaking) needs to release the promise too; without
+    // this the await hangs forever and the queue stalls.
+    a.onpause = () => { if (!a.ended) done(); };
+    a.play().catch(done);
+  });
+}
+
+async function playBrowser(text: string): Promise<void> {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  const myGen = speakGen;
+  const synth = window.speechSynthesis;
+  return new Promise((resolve) => {
+    // If we were cancelled while waiting for the queue, don't queue more.
+    if (myGen !== speakGen) { resolve(); return; }
+    const zh = synth.getVoices().find((v) => /^zh|cmn/i.test(v.lang));
+    // Quiet warm-up absorbs the audio-device wake-up clip on the first line.
+    if (!synth.speaking && !synth.pending) {
+      const warm = new SpeechSynthesisUtterance('嗯。嗯。嗯。');
+      warm.lang = 'zh-TW';
+      warm.volume = 0.1;
+      if (zh) warm.voice = zh;
+      synth.speak(warm);
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-TW';
+    if (zh) u.voice = zh;
+    u.onend = () => resolve();
+    u.onerror = () => resolve();
+    synth.speak(u);
+  });
+}
+
+interface Props {
+  send: (msg: object) => void;
+  /** Brain state, fed from App (whose ws.onmessage is the reliable sink). */
+  working: boolean;
+  lastReply: { text: string; ts: number } | null;
+  onClearReply: () => void;
+  sttCfg: { provider: 'browser' | 'openai' | 'gemini'; language: string };
+  ttsCfg: TtsCfg;
+  /** True when the App-level header voice (⌘; hotkey / header mic button)
+   *  is recording — lets the orb pulse "listening" so the user sees the
+   *  hotkey took effect even when their eyes are on the HUD, not the header. */
+  headerListening: boolean;
+  wake: {
+    enabled: boolean; supported: boolean; armed: boolean; phrase: string;
+    onToggle: () => void; onPhraseChange: (v: string) => void;
+  };
+  awaiting: AgentNotif[];
+  running: number;
+  idle: number;
+  onSelectAgent: (projectId: string, agentId: string) => void;
+  onOpenFull: () => void;
+}
+
+export default function JarvisHud({
+  send, working, lastReply, onClearReply, sttCfg, ttsCfg, headerListening, wake, awaiting, running, idle, onSelectAgent, onOpenFull,
+}: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const [input, setInput] = useState('');
+  const [voiceOut, setVoiceOut] = useState(
+    () => localStorage.getItem('termhive:voice-out') === '1',
+  );
+  const reply = (lastReply?.text || '').trim();
+
+  const submit = (textArg?: string) => {
+    const t = (textArg ?? input).trim();
+    if (!t) return;
+    send({ type: 'brain:send', message: t });
+    setInput('');
+  };
+
+  // Voice input — fill the box, and on a final result send automatically.
+  // The provider/language come from the user's settings (Browser / OpenAI / Gemini).
+  const speech = useSpeechInput(
+    (t, final) => { setInput(t); if (final && t.trim()) submit(t); },
+    { provider: sttCfg.provider, language: sttCfg.language },
+  );
+  const ttsCfgRef = useRef(ttsCfg);
+  ttsCfgRef.current = ttsCfg;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const voiceOutRef = useRef(voiceOut);
+  voiceOutRef.current = voiceOut;
+
+  useEffect(() => {
+    localStorage.setItem('termhive:voice-out', voiceOut ? '1' : '0');
+    if (!voiceOut) stopSpeaking();
+  }, [voiceOut]);
+
+  // Speak each new Keeper reply when voice replies are on. The lastSpokenTs
+  // guard means a HUD remount (Command panel toggle) doesn't re-speak the
+  // same reply.
+  useEffect(() => {
+    if (!lastReply) return;
+    if (lastReply.ts === lastSpokenTs) return;
+    lastSpokenTs = lastReply.ts;
+    if (voiceOutRef.current) speakReply(lastReply.text, ttsCfgRef.current);
+  }, [lastReply]);
+
+  // A new turn starting cuts off any in-progress speech.
+  useEffect(() => {
+    if (working) stopSpeaking();
+  }, [working]);
+
+  useEffect(() => {
+    if (expanded) setTimeout(() => inputRef.current?.focus(), 80);
+  }, [expanded]);
+
+  const state = working ? 'thinking'
+    : (speech.listening || wake.armed || headerListening) ? 'listening'
+    : 'idle';
+
+  return (
+    <div className="jv">
+      {expanded && (
+        <div className="jv-panel">
+          <div className="jv-panel-h">
+            <div className={'jv-mini-orb ' + state}><Ic.logo size={12} /></div>
+            <span className="jv-panel-t">The Keeper</span>
+            <button
+              className={'jv-x' + (voiceOut ? ' on' : '')}
+              onClick={() => setVoiceOut((v) => !v)}
+              title={voiceOut ? 'Voice replies: on' : 'Voice replies: off'}
+            >
+              <Ic.volume size={13} />
+            </button>
+            {wake.supported && (
+              <button
+                className={'jv-x' + (wake.enabled ? ' on' : '')}
+                onClick={wake.onToggle}
+                title={wake.enabled ? 'Wake word on — say “Hey Queen”' : 'Wake word off'}
+              >
+                <Ic.mic size={13} />
+              </button>
+            )}
+            <button className="jv-x" onClick={onOpenFull} title="Open full conversation">
+              <Ic.message size={12} />
+            </button>
+            <button className="jv-x" onClick={() => setExpanded(false)} title="Collapse">
+              <Ic.x size={12} />
+            </button>
+          </div>
+
+          {wake.enabled && (
+            <div className="jv-wake-cfg">
+              <Ic.mic size={11} />
+              <span className="jv-wake-lbl">喚醒詞</span>
+              <input
+                className="jv-wake-input"
+                value={wake.phrase}
+                onChange={(e) => wake.onPhraseChange(e.target.value)}
+                placeholder="中文喚醒詞…"
+                spellCheck={false}
+              />
+            </div>
+          )}
+
+          <div className="jv-status">
+            <span className="jv-stat"><i className="sdot running" />{running} running</span>
+            <span className="jv-stat"><i className="sdot awaiting_input" />{awaiting.length} awaiting</span>
+            <span className="jv-stat"><i className="sdot idle" />{idle} idle</span>
+          </div>
+
+          {awaiting.length > 0 && (
+            <div className="jv-await">
+              {awaiting.slice(0, 6).map((n) => (
+                <button
+                  key={n.agentId}
+                  className="jv-await-row"
+                  onClick={() => onSelectAgent(n.projectId, n.agentId)}
+                >
+                  <span className="sdot awaiting_input" />
+                  <span className="jv-await-t">{n.agentName}</span>
+                  <span className="jv-await-s">{n.projectName}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {(working || reply) && (
+            <div className="jv-reply">
+              {working ? (
+                <span className="jv-reply-w">
+                  <span className="cmd-dot" /><span className="cmd-dot" /><span className="cmd-dot" />
+                  The Keeper is working…
+                  <button
+                    className="jv-stop"
+                    onClick={() => { stopSpeaking(); send({ type: 'brain:abort' }); }}
+                    title="Stop"
+                  >
+                    <Ic.stop size={11} /> Stop
+                  </button>
+                </span>
+              ) : (
+                <>
+                  <button
+                    className="jv-reply-x"
+                    onClick={() => { stopSpeaking(); onClearReply(); }}
+                    title="Clear reply"
+                  >
+                    <Ic.x size={10} />
+                  </button>
+                  <div
+                    className="jv-reply-t cmd-md"
+                    dangerouslySetInnerHTML={{ __html: renderMd(reply) }}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="jv-compose">
+            {speech.supported && (
+              <button
+                className={'jv-mic' + (speech.listening ? ' on' : '')}
+                onClick={speech.toggle}
+                title={speech.error || (speech.listening ? 'Stop listening' : 'Voice')}
+              >
+                <Ic.mic size={14} />
+              </button>
+            )}
+            <input
+              ref={inputRef}
+              className="jv-input"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
+              placeholder="Speak or type to The Keeper…"
+            />
+            <button className="jv-send" onClick={() => submit()} disabled={!input.trim()} title="Send">
+              <Ic.send size={13} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <button
+        className={'jv-orb ' + state}
+        onClick={() => setExpanded((e) => !e)}
+        title="The Keeper"
+      >
+        <span className="jv-ring" />
+        <span className="jv-ring jv-ring2" />
+        <span className="jv-core"><Ic.logo size={21} /></span>
+        {awaiting.length > 0 && <span className="jv-orb-badge">{awaiting.length}</span>}
+      </button>
+    </div>
+  );
+}
