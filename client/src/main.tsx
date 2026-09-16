@@ -15,3 +15,11 @@ createRoot(rootElement).render(
     <App />
   </React.StrictMode>,
 );
+
+// Only registered for the built app — in dev the SW would serve stale modules
+// and fight Vite's HMR.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js');
+  });
+}

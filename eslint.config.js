@@ -10,6 +10,19 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
+    // The service worker runs in ServiceWorkerGlobalScope, not window.
+    files: ['client/public/sw.js'],
+    languageOptions: {
+      globals: {
+        Response: 'readonly',
+        URL: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        self: 'readonly',
+      },
+    },
+  },
+  {
     files: ['client/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {

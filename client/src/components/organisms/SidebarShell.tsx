@@ -70,9 +70,12 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
 
   return (
     <div
-      className="sidebar-shell"
+      className={classNames('sidebar-shell', collapsed && 'sidebar-shell--collapsed')}
       style={{ '--app-shell-sidebar-width': `${clampSidebarWidth(width)}px` } as React.CSSProperties}
     >
+      {collapsed ? null : (
+        <div aria-hidden className="sidebar-shell__scrim" onClick={updateCollapsed} />
+      )}
       <aside
         className={classNames(
           'sidebar-shell__sidebar',

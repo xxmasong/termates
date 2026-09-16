@@ -1014,11 +1014,56 @@
     display: none;
   }
 
+  /* The drawer sits over the app, so it needs a tap-away backdrop or there is
+     no way to dismiss it on a touch device. */
+  .sidebar-shell:not(.sidebar-shell--collapsed) .sidebar-shell__scrim {
+    background: rgb(0 0 0 / 45%);
+    inset: 0;
+    position: fixed;
+    z-index: 39;
+  }
+
+  /* Stacked below main, this would otherwise grow unbounded and push the
+     terminal off-screen. */
+  .app-shell__right {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+
   .grid-layout--row {
     flex-direction: column;
   }
 
   .grid-layout__resizer {
     display: none;
+  }
+
+  /* Comfortable touch targets. */
+  .btn--sm,
+  .btn--icon-only {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .tab-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Respect users who ask for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
