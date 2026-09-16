@@ -111,6 +111,19 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     setSidebarCollapsed((current) => !current);
   }, [setSidebarCollapsed]);
 
+  // On a phone the sidebar is an overlay, so picking a project has to close it
+  // or the user never sees the project they just chose.
+  const selectProjectFromSidebar = useCallback(
+    (projectId: string) => {
+      vm.selectProject(projectId);
+
+      if (window.innerWidth <= MOBILE_BREAKPOINT) {
+        setSidebarCollapsed(true);
+      }
+    },
+    [setSidebarCollapsed, vm],
+  );
+
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   const openCommandPanel = useCallback(() => setCommandPanelOpen(true), []);
   const closeCommandPanel = useCallback(() => setCommandPanelOpen(false), []);
@@ -456,7 +469,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               error={vm.projectsError}
               loading={vm.projectsLoading}
               onCreateProject={vm.openCreateProject}
-              onSelectProject={vm.selectProject}
+              onSelectProject={selectProjectFromSidebar}
               projects={vm.projects}
               selectedProjectId={vm.selectedProjectId}
             />
