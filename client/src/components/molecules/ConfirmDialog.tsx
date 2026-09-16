@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { Button } from '@/components/atoms';
 
 import { Modal } from './Modal';
@@ -10,6 +12,7 @@ export interface ConfirmDialogProps {
   cancelLabel?: string;
   danger?: boolean;
   loading?: boolean;
+  children?: ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -22,6 +25,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelLabel = 'Cancel',
   danger = false,
   loading = false,
+  children,
   onCancel,
   onConfirm,
 }) => (
@@ -42,5 +46,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     width={420}
   >
     <p>{message}</p>
+    {children}
   </Modal>
 );

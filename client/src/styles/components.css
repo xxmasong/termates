@@ -546,6 +546,13 @@
   background: color-mix(in oklch, var(--accent) 35%, transparent);
 }
 
+.sidebar-shell__restore {
+  left: 10px;
+  position: fixed;
+  top: 10px;
+  z-index: 50;
+}
+
 .command-palette {
   background: var(--bg-1);
   border: 1px solid var(--border);

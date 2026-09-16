@@ -1,0 +1,118 @@
+.feature-section-header {
+  align-items: center;
+  color: var(--text-3);
+  display: flex;
+  font-size: 10.5px;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+  padding: 10px 12px 6px;
+  text-transform: uppercase;
+}
+
+.feature-loading {
+  color: var(--text-2);
+  display: grid;
+  padding: 14px;
+  place-items: center;
+}
+
+.feature-error {
+  background: var(--err-soft);
+  border: 1px solid color-mix(in oklch, var(--err) 24%, transparent);
+  border-radius: var(--radius);
+  color: var(--err);
+  font-size: 12px;
+  margin: 8px;
+  padding: 8px;
+}
+
+.feature-form {
+  display: grid;
+  gap: 12px;
+}
+
+.feature-checkbox,
+.project-delete-option {
+  align-items: center;
+  color: var(--text-1);
+  display: flex;
+  font-size: 12px;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.feature-checkbox input,
+.project-delete-option input {
+  accent-color: var(--accent);
+}
+
+.project-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.project-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
+  padding: 0 6px 8px;
+}
+
+.project-list-item {
+  align-items: center;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.project-list-item__select {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.project-list-item__select:hover,
+.project-list-item--selected .project-list-item__select {
+  background: var(--bg-hover);
+  color: var(--text-0);
+}
+
+.project-list-item--selected .project-list-item__select {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.project-list-item__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.project-list-item__name {
+  color: var(--text-0);
+  font-size: 12.5px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-list-item__cwd {
+  color: var(--text-2);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

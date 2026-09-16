@@ -1,14 +1,14 @@
 import { AppProviders } from '@/app/providers/AppProviders';
 import { ThemeBootstrap } from '@/app/providers/ThemeBootstrap';
-import { PlaceholderShell } from '@/components/templates/PlaceholderShell';
+import { TermHiveShell } from '@/app/TermHiveShell';
 
 interface AppProps {
   children?: never;
 }
 
 export const App: React.FC<AppProps> = () => (
-  <AppProviders>
-    <ThemeBootstrap />
-    <PlaceholderShell />
-  </AppProviders>
-);
+    <AppProviders>
+      <ThemeBootstrap />
+      <TermHiveShell />
+    </AppProviders>
+  );

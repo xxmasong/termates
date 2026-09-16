@@ -96,6 +96,15 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
           style={{ left: `${clampSidebarWidth(width)}px` }}
         />
       )}
+      {collapsed ? (
+        <IconButton
+          className="sidebar-shell__restore"
+          icon="panelLeftOpen"
+          label="Show sidebar"
+          onClick={updateCollapsed}
+          size="md"
+        />
+      ) : null}
     </div>
   );
 };

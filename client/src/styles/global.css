@@ -1,5 +1,7 @@
 @import './tokens.css';
 @import './components.css';
+@import '../features/projects/styles.css';
+@import '../features/agents/styles.css';
 
 *,
 *::before,
