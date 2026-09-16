@@ -15,6 +15,18 @@ export interface TextToSpeechInput {
   voice?: string;
 }
 
-export type UsageSummary = Record<string, unknown>;
+export interface UsageWindow {
+  utilization: number;
+  resetsAt: string;
+}
+
+export interface CliUsage {
+  session?: UsageWindow;
+  week?: UsageWindow;
+  updatedAt?: string;
+}
+
+/** Keyed by CLI name — 'claude' and 'codex' today. */
+export type UsageSummary = Record<string, CliUsage | undefined>;
 
 export type SpeechResultHandler = (text: string, final: boolean) => void;

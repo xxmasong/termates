@@ -3,30 +3,36 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { AgentStatus } from '@/types';
 
 import {
+  AppHeader,
   AppShell,
   CommandPaletteShell,
   EmptyState,
   Icon,
+  Modal,
   NotificationHost,
   SidebarShell,
+  StatusBar,
   TabBar,
   Toolbar,
   ToolbarGroup,
   type CommandPaletteItem,
   type GridLayoutMode,
   type NotificationItem,
+  type StatusBarCount,
 } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
 import { ActivityFeed } from '@/features/activity';
 import { AgentList, CreateAgentModal } from '@/features/agents';
-import { BrainPanel } from '@/features/brain';
+import { BrainPanel, useBrainActions, useBrainState } from '@/features/brain';
 import { ContentPanel } from '@/features/content';
 import { MessagesPanel } from '@/features/messages';
 import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
-import { SettingsModal } from '@/features/settings';
+import { SettingsModal, THEMES, useThemePreference, type ThemeName } from '@/features/settings';
 import { TerminalWorkspace, TERMINAL_LAYOUT_OPTIONS, useTerminalLayoutMode } from '@/features/terminal';
+import { UsageMeters, useSpeechInput } from '@/features/voice';
 import { WikiPanel } from '@/features/wiki';
 import { useLocalStorage } from '@/lib/hooks';
+import { useWsStatus } from '@/lib/ws';
 
 import { useProjectAgentShell } from './hooks';
 
@@ -42,6 +48,16 @@ const WORKSPACES: Array<{ id: WorkspaceId; label: string; icon: ReactNode }> = [
 
 const NOTIFICATION_LIMIT = 5;
 
+const MOD_KEY =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
+
+const SHORTCUTS = [
+  { keys: `${MOD_KEY}K`, label: 'palette' },
+  { keys: `${MOD_KEY}J`, label: 'command' },
+  { keys: `${MOD_KEY};`, label: 'voice' },
+  { keys: `${MOD_KEY}1-5`, label: 'agent' },
+];
+
 interface TermHiveShellProps {
   children?: never;
 }
@@ -53,12 +69,70 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     false,
   );
   const [sidebarWidth, setSidebarWidth] = useLocalStorage(STORAGE_KEYS.SIDEBAR_WIDTH, 232);
-  const [, setLayoutMode] = useTerminalLayoutMode();
   const [workspace, setWorkspace] = useState<WorkspaceId>('terminals');
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [commandPanelOpen, setCommandPanelOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const previousAgentStatusRef = useRef<Map<string, AgentStatus>>(new Map());
+  const [layoutMode, setLayoutMode] = useTerminalLayoutMode();
+  const [quickCommand, setQuickCommand] = useState('');
+  const [theme, setTheme] = useThemePreference();
+  const wsStatus = useWsStatus();
+  const { brainState } = useBrainState();
+  const { sendMessage: sendBrainMessage } = useBrainActions();
+  const brainStatus = brainState.status;
+
+  const submitQuickCommand = useCallback(() => {
+    const text = quickCommand.trim();
+
+    if (!text) {
+      return;
+    }
+
+    sendBrainMessage(text);
+    setQuickCommand('');
+  }, [quickCommand, sendBrainMessage]);
+
+  // Dictation appends into the same box the keyboard types into.
+  const speech = useSpeechInput(
+    useCallback((text: string, final: boolean) => {
+      if (final) {
+        setQuickCommand((current) => (current ? `${current} ${text}` : text));
+      }
+    }, []),
+  );
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((current) => !current);
+  }, [setSidebarCollapsed]);
+
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
+  const openCommandPanel = useCallback(() => setCommandPanelOpen(true), []);
+  const closeCommandPanel = useCallback(() => setCommandPanelOpen(false), []);
+
+  const cycleTheme = useCallback(() => {
+    const order: ThemeName[] = THEMES.map((entry) => entry.value);
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    setTheme(next);
+  }, [setTheme, theme]);
+
+  const { selectedProject, requestDeleteProject } = vm;
+  const deleteSelectedProject = useMemo(
+    () => (selectedProject ? () => requestDeleteProject(selectedProject) : undefined),
+    [requestDeleteProject, selectedProject],
+  );
+
+  const statusCounts = useMemo<StatusBarCount[]>(
+    () =>
+      (['running', 'awaiting_input', 'idle', 'stopped'] as const).map((tone) => ({
+        label:
+          tone === 'awaiting_input' ? 'awaiting you' : tone === 'running' ? 'running' : tone,
+        tone,
+        value: vm.agents.filter((agent) => agent.status === tone).length,
+      })),
+    [vm.agents],
+  );
 
   const onSidebarLayoutChange = useCallback(
     (layout: { collapsed: boolean; width: number }) => {
@@ -265,6 +339,45 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
   return (
     <>
       <AppShell
+        header={
+          <AppHeader
+            breadcrumb={
+              vm.selectedProject
+                ? { meta: vm.selectedProject.cwd, title: vm.selectedProject.name }
+                : undefined
+            }
+            commandBusy={brainStatus === 'thinking'}
+            commandHasReply={false}
+            commandPlaceholder={
+              brainStatus === 'thinking' ? 'The Keeper is working…' : 'Ask The Keeper…'
+            }
+            commandValue={quickCommand}
+            layoutOptions={TERMINAL_LAYOUT_OPTIONS}
+            layoutValue={layoutMode}
+            micListening={speech.listening}
+            micSupported={speech.supported}
+            micTitle={speech.error ?? undefined}
+            modKey={MOD_KEY}
+            notifications={
+              <NotificationHost items={notifications} />
+            }
+            onCommandChange={setQuickCommand}
+            onCommandSubmit={submitQuickCommand}
+            onDeleteProject={deleteSelectedProject}
+            onLayoutChange={setLayoutMode}
+            onOpenCommandPanel={openCommandPanel}
+            onOpenPalette={openPalette}
+            onOpenSettings={openSettings}
+            onToggleMic={speech.toggle}
+            onToggleSidebar={toggleSidebar}
+            onToggleTheme={cycleTheme}
+            sidebarCollapsed={sidebarCollapsed}
+            themeIcon={theme === 'light' ? 'sun' : 'moon'}
+          />
+        }
+        statusBar={
+          <StatusBar connected={wsStatus === 'open'} counts={statusCounts} shortcuts={SHORTCUTS} />
+        }
         sidebar={
           <SidebarShell onLayoutChange={onSidebarLayoutChange}>
             <ProjectList
@@ -276,6 +389,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               projects={vm.projects}
               selectedProjectId={vm.selectedProjectId}
             />
+            <UsageMeters />
           </SidebarShell>
         }
         sidebarCollapsed={sidebarCollapsed}
@@ -332,6 +446,14 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         placeholder="Run a command"
       />
       <SettingsModal onClose={closeSettings} open={settingsOpen} />
+      <Modal
+        onClose={closeCommandPanel}
+        open={commandPanelOpen}
+        title="The Keeper"
+        width={620}
+      >
+        <BrainPanel />
+      </Modal>
       <NotificationHost items={notifications} />
     </>
   );
