@@ -1,6 +1,5 @@
 import { useCallback, type ReactNode } from 'react';
 
-import { IconButton } from '@/components/atoms';
 import { SIDEBAR_WIDTH } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
 import { useLocalStorage } from '@/lib/hooks';
@@ -8,9 +7,10 @@ import { classNames } from '@/lib/utils';
 
 export interface SidebarShellProps {
   children: ReactNode;
+  /** Controlled collapse state — the app header owns the toggle. */
+  collapsed: boolean;
   storageKeyPrefix?: string;
   className?: string;
-  defaultCollapsed?: boolean;
   defaultWidth?: number;
   onLayoutChange?: (layout: { collapsed: boolean; width: number }) => void;
 }
@@ -20,28 +20,20 @@ const clampSidebarWidth = (width: number): number =>
 
 export const SidebarShell: React.FC<SidebarShellProps> = ({
   children,
+  collapsed,
   storageKeyPrefix = 'termhive',
   className,
-  defaultCollapsed = false,
   defaultWidth = SIDEBAR_WIDTH.DEFAULT,
   onLayoutChange,
 }) => {
-  const collapsedKey =
-    storageKeyPrefix === 'termhive'
-      ? STORAGE_KEYS.SIDEBAR_COLLAPSED
-      : `${storageKeyPrefix}:sidebar-collapsed`;
   const widthKey =
     storageKeyPrefix === 'termhive' ? STORAGE_KEYS.SIDEBAR_WIDTH : `${storageKeyPrefix}:sidebar-width`;
-  const [collapsed, setCollapsed] = useLocalStorage(collapsedKey, defaultCollapsed);
   const [width, setWidth] = useLocalStorage(widthKey, defaultWidth);
 
-  const updateCollapsed = useCallback(() => {
-    setCollapsed((current) => {
-      const next = !current;
-      onLayoutChange?.({ collapsed: next, width });
-      return next;
-    });
-  }, [onLayoutChange, setCollapsed, width]);
+  // Tapping the scrim closes the drawer; the owner holds the state.
+  const collapse = useCallback(() => {
+    onLayoutChange?.({ collapsed: true, width });
+  }, [onLayoutChange, width]);
 
   const startResize = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -74,7 +66,7 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
       style={{ '--app-shell-sidebar-width': `${clampSidebarWidth(width)}px` } as React.CSSProperties}
     >
       {collapsed ? null : (
-        <div aria-hidden className="sidebar-shell__scrim" onClick={updateCollapsed} />
+        <div aria-hidden className="sidebar-shell__scrim" onClick={collapse} />
       )}
       <aside
         className={classNames(
@@ -93,15 +85,6 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
           style={{ left: `${clampSidebarWidth(width)}px` }}
         />
       )}
-      {collapsed ? (
-        <IconButton
-          className="sidebar-shell__restore"
-          icon="panelLeftOpen"
-          label="Show sidebar"
-          onClick={updateCollapsed}
-          size="md"
-        />
-      ) : null}
     </div>
   );
 };

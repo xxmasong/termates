@@ -73,7 +73,14 @@ const browser = await chromium.launch({ args: ['--no-sandbox'] });
   }));
   record('mobile: no horizontal overflow', sw <= cw + 1, `scroll=${sw} client=${cw}`);
 
-  // Bug 1: the drawer needs a tap-away backdrop.
+  // Bug 1: the drawer needs a tap-away backdrop. It now starts collapsed on
+  // mobile (an open drawer would cover the app), so open it before checking.
+  const sidebarToggle = page.getByLabel(/sidebar/i).first();
+  if ((await sidebarToggle.count()) > 0) {
+    await sidebarToggle.click();
+    await page.waitForTimeout(500);
+  }
+
   const scrim = page.locator('.sidebar-shell__scrim').first();
   const hasScrim = (await scrim.count()) > 0;
   const scrimFixed = hasScrim

@@ -30,3 +30,6 @@ export const GRID_LAYOUT = {
   SPLIT_MIN_RATIO: 0.1,
   SPLIT_MAX_RATIO: 0.9,
 } as const;
+
+/** Matches the `max-width: 760px` breakpoint in components.css. */
+export const MOBILE_BREAKPOINT = 760;

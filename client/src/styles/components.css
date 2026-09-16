@@ -573,21 +573,7 @@
   background: color-mix(in oklch, var(--accent) 35%, transparent);
 }
 
-.sidebar-shell__restore {
-  /* Floats over the content area, so it needs its own surface to stay legible
-     against a terminal or an empty pane. */
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  left: 10px;
-  position: fixed;
-  top: 10px;
-  z-index: 50;
-}
 
-.sidebar-shell__restore:hover {
-  background: var(--bg-3);
-}
 
 .command-palette {
   background: var(--bg-1);
@@ -1103,72 +1089,7 @@
   left: -4px;
 }
 
-@media (max-width: 760px) {
-  .app-shell,
-  .app-shell--sidebar-collapsed {
-    grid-template-areas:
-      'main'
-      'right';
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
 
-  .sidebar-shell__sidebar {
-    bottom: 0;
-    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
-    left: 0;
-    position: fixed;
-    top: 0;
-    width: min(var(--app-shell-sidebar-width), 86vw);
-    z-index: 40;
-  }
-
-  .sidebar-shell__resizer {
-    display: none;
-  }
-
-  /* The drawer sits over the app, so it needs a tap-away backdrop or there is
-     no way to dismiss it on a touch device. */
-  .sidebar-shell:not(.sidebar-shell--collapsed) .sidebar-shell__scrim {
-    background: rgb(0 0 0 / 45%);
-    inset: 0;
-    position: fixed;
-    z-index: 39;
-  }
-
-  /* Stacked below main, this would otherwise grow unbounded and push the
-     terminal off-screen. */
-  .app-shell__right {
-    border-left: 0;
-    border-top: 1px solid var(--border);
-    max-height: 45vh;
-    overflow-y: auto;
-  }
-
-  .grid-layout--row {
-    flex-direction: column;
-  }
-
-  .grid-layout__resizer {
-    display: none;
-  }
-
-  /* Comfortable touch targets. */
-  .btn--sm,
-  .btn--icon-only {
-    min-height: 36px;
-    min-width: 36px;
-  }
-
-  .tab-bar {
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .tab-bar::-webkit-scrollbar {
-    display: none;
-  }
-}
 
 /* Respect users who ask for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
@@ -1565,4 +1486,152 @@
   border-radius: 2px;
   height: 100%;
   transition: width 0.5s;
+}
+
+@media (max-width: 760px) {
+  /* One column on a phone. The sidebar becomes an overlay drawer rather than a
+     grid track, so it must not reserve width here — otherwise main is pushed
+     off-centre by the drawer wrapper. */
+  .app-shell,
+  .app-shell--sidebar-collapsed {
+    grid-template-areas:
+      'main'
+      'right';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .app-shell--with-header,
+  .app-shell--with-header.app-shell--sidebar-collapsed {
+    grid-template-areas:
+      'hd'
+      'main'
+      'right';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px minmax(0, 1fr) auto;
+  }
+
+  .app-shell--with-header.app-shell--with-status,
+  .app-shell--with-header.app-shell--with-status.app-shell--sidebar-collapsed {
+    grid-template-areas:
+      'hd'
+      'main'
+      'right'
+      'st';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px minmax(0, 1fr) auto 24px;
+  }
+
+  /* The drawer is position:fixed, so its wrapper must not occupy a track. */
+  .sidebar-shell {
+    display: contents;
+  }
+
+  .sidebar-shell__sidebar {
+    bottom: 0;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
+    left: 0;
+    position: fixed;
+    top: 0;
+    width: min(var(--app-shell-sidebar-width), 86vw);
+    z-index: 40;
+  }
+
+  .sidebar-shell__resizer {
+    display: none;
+  }
+
+  /* The drawer sits over the app, so it needs a tap-away backdrop or there is
+     no way to dismiss it on a touch device. */
+  .sidebar-shell:not(.sidebar-shell--collapsed) .sidebar-shell__scrim {
+    background: rgb(0 0 0 / 45%);
+    inset: 0;
+    position: fixed;
+    z-index: 39;
+  }
+
+  /* Stacked below main, this would otherwise grow unbounded and push the
+     terminal off-screen. */
+  .app-shell__right {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+
+  .grid-layout--row {
+    flex-direction: column;
+  }
+
+  .grid-layout__resizer {
+    display: none;
+  }
+
+  /* Comfortable touch targets. */
+  .btn--sm,
+  .btn--icon-only {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .tab-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The header packs brand, search, composer, layout switcher and three icon
+     buttons — far more than fits a phone. Keep the composer (the primary
+     action) and drop what the command palette already covers. */
+  .app-header {
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .app-header__left {
+    gap: 6px;
+  }
+
+  .app-header__right {
+    flex: 1;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .app-header__brand-name,
+  .app-header__breadcrumb,
+  .app-header__layout {
+    display: none;
+  }
+
+  /* Search, settings and theme stay reachable from the command palette.
+     The sidebar toggle lives in __left and must survive. */
+  .app-header__btn--kbd,
+  .app-header__right .app-header__btn--icon {
+    display: none;
+  }
+
+  .app-header__command {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .app-header__command > kbd {
+    display: none;
+  }
+
+  /* Keyboard hints are noise on a touch device, and they overflow the bar. */
+  .status-bar {
+    font-size: 9.5px;
+    gap: 10px;
+    padding: 0 8px;
+  }
+
+  .status-bar__kbd {
+    display: none;
+  }
 }

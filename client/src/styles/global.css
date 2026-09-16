@@ -140,3 +140,17 @@ button {
   background: var(--bg-hover);
   color: var(--text-0);
 }
+
+/* Mobile overrides for shell-local classes defined in this file — they must
+   live here, after the @imports, or components.css would lose the cascade. */
+@media (max-width: 760px) {
+  /* Duplicates the header's palette trigger and overflows the tab row. */
+  .shell-workspace__command {
+    display: none;
+  }
+
+  .shell-workspace__bar {
+    gap: 6px;
+    padding: 0 8px;
+  }
+}

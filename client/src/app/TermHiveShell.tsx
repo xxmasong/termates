@@ -20,6 +20,7 @@ import {
   type NotificationItem,
   type StatusBarCount,
 } from '@/components';
+import { MOBILE_BREAKPOINT } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
 import { ActivityFeed } from '@/features/activity';
 import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
@@ -64,9 +65,12 @@ interface TermHiveShellProps {
 
 export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
   const vm = useProjectAgentShell();
+  // Below the mobile breakpoint the sidebar is an overlay drawer, so it must
+  // start closed or it covers the whole app on a first visit. SidebarShell
+  // reads the same storage key, so this default has to be the one it sees.
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     STORAGE_KEYS.SIDEBAR_COLLAPSED,
-    false,
+    typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT,
   );
   const [sidebarWidth, setSidebarWidth] = useLocalStorage(STORAGE_KEYS.SIDEBAR_WIDTH, 232);
   const [workspace, setWorkspace] = useState<WorkspaceId>('terminals');
@@ -446,7 +450,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
           <StatusBar connected={wsStatus === 'open'} counts={statusCounts} shortcuts={SHORTCUTS} />
         }
         sidebar={
-          <SidebarShell onLayoutChange={onSidebarLayoutChange}>
+          <SidebarShell collapsed={sidebarCollapsed} onLayoutChange={onSidebarLayoutChange}>
             <ProjectList
               agentSummaries={vm.projectAgentSummaries}
               error={vm.projectsError}
