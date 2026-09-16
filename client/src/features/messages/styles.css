@@ -45,7 +45,7 @@
   border-top: 1px solid var(--border);
   display: grid;
   gap: 12px;
-  padding: 12px;
+  padding: 12px calc(12px + var(--keeper-hud-composer-clearance)) 12px 12px;
 }
 
 .messages-panel__row {
@@ -59,4 +59,3 @@
     grid-template-columns: 1fr;
   }
 }
-

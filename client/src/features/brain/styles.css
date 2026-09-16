@@ -211,10 +211,15 @@
 }
 
 .keeper-hud {
-  bottom: 42px;
+  bottom: var(--keeper-hud-bottom);
   position: fixed;
-  right: 22px;
+  right: var(--keeper-hud-right);
   z-index: 180;
+}
+
+.app-shell:has(.codex-compose) ~ .keeper-hud,
+.app-shell:has(.messages-panel__composer) ~ .keeper-hud {
+  bottom: calc(var(--keeper-hud-bottom) + var(--keeper-hud-composer-lift));
 }
 
 .keeper-hud__orb {
@@ -224,12 +229,12 @@
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42), 0 0 0 1px var(--border);
   cursor: pointer;
   display: grid;
-  height: 56px;
+  height: var(--keeper-hud-size);
   padding: 0;
   place-items: center;
   position: relative;
   transition: box-shadow 0.18s ease;
-  width: 56px;
+  width: var(--keeper-hud-size);
 }
 
 .keeper-hud__orb:hover,

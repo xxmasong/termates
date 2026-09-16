@@ -36,6 +36,13 @@
   --radius-sm: 4px;
   --radius: 6px;
   --radius-lg: 10px;
+  --keeper-hud-size: 56px;
+  --keeper-hud-right: 22px;
+  --keeper-hud-bottom: 42px;
+  --keeper-hud-composer-clearance: calc(
+    var(--keeper-hud-size) + var(--keeper-hud-right) + 16px
+  );
+  --keeper-hud-composer-lift: 88px;
   --ff-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ff-mono: 'JetBrains Mono', 'Consolas', 'SF Mono', monospace;
 }

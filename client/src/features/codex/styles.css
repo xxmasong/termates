@@ -23,6 +23,7 @@
 
 .codex-compose {
   border-top: 1px solid var(--border);
+  padding-right: calc(8px + var(--keeper-hud-composer-clearance));
 }
 
 .codex-compose .textarea {
