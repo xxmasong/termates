@@ -1,3 +1,6 @@
+/* Component styles use a single plain stylesheet (`components.css`) layered on
+   these custom properties, matching the reference app's token-first approach. */
+
 :root,
 [data-theme='dark'] {
   --bg-0: #141414;
@@ -35,15 +38,6 @@
   --radius-lg: 10px;
   --ff-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ff-mono: 'JetBrains Mono', 'Consolas', 'SF Mono', monospace;
-  --bg-primary: var(--bg-1);
-  --bg-secondary: var(--bg-2);
-  --bg-tertiary: var(--bg-3);
-  --text-primary: var(--text-0);
-  --text-secondary: var(--text-1);
-  --text-muted: var(--text-2);
-  --green: var(--ok);
-  --yellow: var(--attn);
-  --red: var(--err);
 }
 
 [data-theme='light'] {
