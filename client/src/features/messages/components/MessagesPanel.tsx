@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import type { Agent } from '@/types';
 
 import { Badge, Button, EmptyState, FormField, Icon, Textarea } from '@/components';
 
+import { MESSAGE_TARGET_AUTO, MESSAGE_TARGET_BROADCAST } from '../constants';
 import { useAgentMessages, useBroadcastMessage, useSendAgentMessage, useTeammates } from '../hooks';
 
 export interface MessagesPanelProps {
@@ -13,10 +14,12 @@ export interface MessagesPanelProps {
 }
 
 export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents, selectedAgentId }) => {
-  const [fromAgentId, setFromAgentId] = useState(selectedAgentId ?? agents[0]?.id ?? '');
-  const [target, setTarget] = useState('broadcast');
+  const [fromAgentOverrideId, setFromAgentOverrideId] = useState<string | null>(null);
+  const [targetSelection, setTargetSelection] = useState(MESSAGE_TARGET_AUTO);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const events = useAgentMessages(projectId);
+  const fromAgentId = fromAgentOverrideId ?? selectedAgentId ?? agents[0]?.id ?? '';
   const teammatesQuery = useTeammates(projectId, fromAgentId || null);
   const sendMutation = useSendAgentMessage();
   const broadcastMutation = useBroadcastMessage();
@@ -26,34 +29,34 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
     [agents, fromAgentId],
   );
   const teammates = useMemo(() => teammatesQuery.data ?? [], [teammatesQuery.data]);
-
-  useEffect(() => {
-    if (selectedAgentId && selectedAgentId !== fromAgentId) {
-      setFromAgentId(selectedAgentId);
-      setTarget('broadcast');
-      return;
+  const target = useMemo(() => {
+    if (targetSelection === MESSAGE_TARGET_BROADCAST) {
+      return MESSAGE_TARGET_BROADCAST;
     }
 
-    if (!fromAgentId && agents[0]) {
-      setFromAgentId(agents[0].id);
+    if (teammates.some((agent) => agent.id === targetSelection)) {
+      return targetSelection;
     }
-  }, [agents, fromAgentId, selectedAgentId]);
 
-  useEffect(() => {
-    if (target !== 'broadcast' && !teammates.some((agent) => agent.id === target)) {
-      setTarget('broadcast');
-    }
-  }, [target, teammates]);
+    return teammates[0]?.id ?? MESSAGE_TARGET_BROADCAST;
+  }, [targetSelection, teammates]);
+  const targetAgent = useMemo(
+    () => teammates.find((agent) => agent.id === target) ?? null,
+    [target, teammates],
+  );
 
   const onFromChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFromAgentId(event.target.value);
-    setTarget('broadcast');
+    setFromAgentOverrideId(event.target.value || null);
+    setTargetSelection(MESSAGE_TARGET_AUTO);
+    setError(null);
   }, []);
   const onTargetChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setTarget(event.target.value);
+    setTargetSelection(event.target.value);
+    setError(null);
   }, []);
   const onMessageChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(event.target.value);
+    setError(null);
   }, []);
   const onSubmit = useCallback(
     (event: React.FormEvent) => {
@@ -63,20 +66,49 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
         return;
       }
 
-      if (target === 'broadcast') {
+      if (target === MESSAGE_TARGET_BROADCAST) {
         broadcastMutation.mutate(
-          { input: { fromAgentId, message: trimmed }, projectId },
-          { onSuccess: () => setMessage('') },
+          { input: { text: trimmed }, projectId },
+          {
+            onError: (mutationError) => {
+              setError(mutationError instanceof Error ? mutationError.message : 'Broadcast failed.');
+            },
+            onSuccess: () => {
+              setError(null);
+              setMessage('');
+            },
+          },
         );
         return;
       }
 
+      if (!fromAgent || !targetAgent) {
+        setError('Choose a teammate before sending.');
+        return;
+      }
+
       sendMutation.mutate(
-        { input: { fromAgentId, message: trimmed, toAgentId: target }, projectId },
-        { onSuccess: () => setMessage('') },
+        {
+          input: {
+            fromAgentId,
+            fromAgentName: fromAgent.name,
+            message: trimmed,
+            target: targetAgent.name,
+          },
+          projectId,
+        },
+        {
+          onError: (mutationError) => {
+            setError(mutationError instanceof Error ? mutationError.message : 'Message failed.');
+          },
+          onSuccess: () => {
+            setError(null);
+            setMessage('');
+          },
+        },
       );
     },
-    [broadcastMutation, fromAgentId, message, projectId, sendMutation, target],
+    [broadcastMutation, fromAgent, fromAgentId, message, projectId, sendMutation, target, targetAgent],
   );
 
   const sending = sendMutation.isPending || broadcastMutation.isPending;
@@ -125,7 +157,7 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
           </FormField>
           <FormField label="To">
             <select className="input" disabled={!fromAgent} onChange={onTargetChange} value={target}>
-              <option value="broadcast">Broadcast</option>
+              <option value={MESSAGE_TARGET_BROADCAST}>Broadcast</option>
               {teammates.map((agent) => (
                 <option key={agent.id} value={agent.id}>
                   {agent.name}
@@ -137,6 +169,7 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
         <FormField label="Message">
           <Textarea onChange={onMessageChange} rows={4} value={message} />
         </FormField>
+        {error ? <p className="messages-panel__error">{error}</p> : null}
         <div className="feature-panel__actions">
           <Button disabled={!fromAgentId || !message.trim()} icon="send" loading={sending} type="submit" variant="primary">
             Send

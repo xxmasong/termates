@@ -1,11 +1,22 @@
 export {};
 export interface SendAgentMessageInput {
   fromAgentId: string;
-  toAgentId: string;
+  fromAgentName?: string;
+  target: string;
   message: string;
 }
 
+export interface SendAgentMessageResponse {
+  delivered: boolean;
+  toAgentId: string;
+  toAgentName: string;
+}
+
 export interface BroadcastMessageInput {
-  fromAgentId: string;
-  message: string;
+  text: string;
+}
+
+export interface BroadcastMessageResponse {
+  delivered: string[];
+  failed: string[];
 }

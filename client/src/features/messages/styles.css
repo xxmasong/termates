@@ -48,6 +48,13 @@
   padding: 12px calc(12px + var(--keeper-hud-composer-clearance)) 12px 12px;
 }
 
+.messages-panel__error {
+  color: var(--err);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .messages-panel__row {
   display: grid;
   gap: 10px;

@@ -21,12 +21,12 @@ export interface UsageWindow {
 }
 
 export interface CliUsage {
-  session?: UsageWindow;
-  week?: UsageWindow;
-  updatedAt?: string;
+  session: UsageWindow | null;
+  week: UsageWindow | null;
+  updatedAt: string;
 }
 
 /** Keyed by CLI name — 'claude' and 'codex' today. */
-export type UsageSummary = Record<string, CliUsage | undefined>;
+export type UsageSummary = Record<string, CliUsage | null | undefined>;
 
 export type SpeechResultHandler = (text: string, final: boolean) => void;

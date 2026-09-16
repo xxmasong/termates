@@ -24,6 +24,23 @@ export interface Agent {
   };
 }
 
+export interface Teammate {
+  id: string;
+  name: string;
+  role?: string;
+  cli: Agent['cli'];
+  status: AgentStatus;
+}
+
+export interface AgentTeammatesResponse {
+  self: {
+    id: string;
+    name: string;
+    role?: string;
+  };
+  teammates: Teammate[];
+}
+
 export interface SharedContent {
   id: string;
   projectId: string;

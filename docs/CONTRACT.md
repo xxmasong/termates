@@ -20,7 +20,7 @@ GET    /projects/:id/agents/previews      -> Record<agentId, string>
 POST   /projects/:id/agents               {name, cli, cwd?, role?, flags?} -> Agent
 PUT    /projects/:id/agents/:aid          Partial<Agent> -> Agent
 DELETE /projects/:id/agents/:aid          -> 204
-GET    /projects/:id/agents/:aid/teammates
+GET    /projects/:id/agents/:aid/teammates -> AgentTeammatesResponse
 POST   /projects/:id/agents/:aid/start    -> {status}
 POST   /projects/:id/agents/:aid/stop     -> {status}
 POST   /projects/:id/agents/:aid/restart  -> {status}
@@ -28,8 +28,8 @@ POST   /projects/:id/agents/:aid/restart  -> {status}
 
 ### Messages / broadcast
 ```
-POST   /projects/:id/messages
-POST   /projects/:id/broadcast
+POST   /projects/:id/messages             {fromAgentId, fromAgentName?, target, message} -> {delivered, toAgentId, toAgentName}
+POST   /projects/:id/broadcast            {text} -> {delivered: string[], failed: string[]}
 ```
 
 ### Shared content
@@ -52,7 +52,9 @@ PUT    /projects/:id/wiki/:filename(*)  {content}
 
 ### Misc
 ```
-GET    /activity          GET /usage          GET /daemon/status
+GET    /activity?projectId? -> ActivityEvent[]
+GET    /usage             -> UsageSummary
+GET    /daemon/status     -> {connected: boolean}
 GET    /voice/config      PUT /voice/config
 POST   /voice/tts         GET /codex/models   GET /brain
 ```
@@ -112,6 +114,15 @@ interface Agent {
   flags?: { dangerouslySkipPermissions?: boolean; remoteControl?: boolean };
 }
 
+interface Teammate {
+  id: string; name: string; role?: string;
+  cli: Agent['cli']; status: AgentStatus;
+}
+interface AgentTeammatesResponse {
+  self: { id: string; name: string; role?: string };
+  teammates: Teammate[];
+}
+
 interface SharedContent {
   id: string; projectId: string; filename: string; content: string;
   createdBy: string; updatedAt: string;
@@ -151,6 +162,12 @@ interface CodexItem {
   status?: 'running'|'done'|'failed';
   ts: string;
 }
+
+interface UsageWindow { utilization: number; resetsAt: string }
+interface CliUsage {
+  session: UsageWindow | null; week: UsageWindow | null; updatedAt: string;
+}
+type UsageSummary = Record<string, CliUsage | null | undefined>;
 ```
 
 ## Runtime
