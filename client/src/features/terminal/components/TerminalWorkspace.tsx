@@ -4,22 +4,29 @@ import type { Agent } from '@/types';
 
 import { Button, EmptyState, GridLayout, Toolbar, ToolbarGroup, type GridLayoutMode } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
-import { CodexAgentView } from '@/features/codex';
 
 import { TERMINAL_LAYOUT_OPTIONS } from '../constants';
 import { useTerminalLayoutMode } from '../hooks';
-import { AgentTerminal } from './AgentTerminal';
+import { AgentPane } from './AgentPane';
 
 export interface TerminalWorkspaceProps {
   agents: Agent[];
   selectedAgentId: string | null;
+  onDeleteAgent: (agent: Agent) => void;
+  onRestartAgent: (agent: Agent) => void;
   onSelectAgent: (agentId: string) => void;
+  onStartAgent: (agent: Agent) => void;
+  onStopAgent: (agent: Agent) => void;
 }
 
 export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
   agents,
   selectedAgentId,
+  onDeleteAgent,
+  onRestartAgent,
   onSelectAgent,
+  onStartAgent,
+  onStopAgent,
 }) => {
   const [layoutMode, setLayoutMode] = useTerminalLayoutMode();
 
@@ -34,23 +41,27 @@ export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
     () =>
       agents.map((agent) => ({
         children: (
-          agent.cli === 'codex' ? (
-            <CodexAgentView
-              agentId={agent.id}
-              focused={agent.id === selectedAgentId}
-              onFocus={() => onSelectAgent(agent.id)}
-            />
-          ) : (
-            <AgentTerminal
-              agentId={agent.id}
-              focused={agent.id === selectedAgentId}
-              onFocus={() => onSelectAgent(agent.id)}
-            />
-          )
+          <AgentPane
+            agent={agent}
+            focused={agent.id === selectedAgentId}
+            onDelete={onDeleteAgent}
+            onFocus={onSelectAgent}
+            onRestart={onRestartAgent}
+            onStart={onStartAgent}
+            onStop={onStopAgent}
+          />
         ),
         id: agent.id,
       })),
-    [agents, onSelectAgent, selectedAgentId],
+    [
+      agents,
+      onDeleteAgent,
+      onRestartAgent,
+      onSelectAgent,
+      onStartAgent,
+      onStopAgent,
+      selectedAgentId,
+    ],
   );
 
   if (agents.length === 0) {

@@ -161,6 +161,10 @@
   text-align: left;
 }
 
+.sidebar-agent-row__select .status-dot {
+  justify-self: center;
+}
+
 .sidebar-agent-row__select:hover,
 .sidebar-agent-row--selected .sidebar-agent-row__select {
   background: var(--bg-hover);
@@ -172,7 +176,7 @@
 }
 
 .sidebar-agent-row--selected::before {
-  background: var(--accent);
+  background: var(--agent-color, var(--accent));
   border-radius: 2px;
   bottom: 7px;
   content: '';
@@ -206,9 +210,9 @@
 }
 
 .sidebar-agent-row__cli {
-  background: var(--accent-soft);
+  background: color-mix(in oklch, var(--agent-color, var(--accent)) 14%, transparent);
   border-radius: 3px;
-  color: var(--accent);
+  color: var(--agent-color, var(--accent));
   flex-shrink: 0;
   font-family: var(--ff-mono);
   font-size: 9.5px;

@@ -5,6 +5,7 @@ import type { AgentStatus } from '@/types';
 import {
   AppHeader,
   AppShell,
+  Button,
   CommandPaletteShell,
   EmptyState,
   Icon,
@@ -37,12 +38,12 @@ import { useWsStatus } from '@/lib/ws';
 
 import { useProjectAgentShell } from './hooks';
 
-type WorkspaceId = 'terminals' | 'messages' | 'content' | 'wiki' | 'activity';
+type WorkspaceId = 'terminals' | 'messages' | 'shared' | 'wiki' | 'activity';
 
 const WORKSPACES: Array<{ id: WorkspaceId; label: string; icon: ReactNode }> = [
   { id: 'terminals', label: 'Terminals', icon: <Icon name="terminal" size={14} /> },
   { id: 'messages', label: 'Messages', icon: <Icon name="message" size={14} /> },
-  { id: 'content', label: 'Content', icon: <Icon name="file" size={14} /> },
+  { id: 'shared', label: 'Shared', icon: <Icon name="folder" size={14} /> },
   { id: 'wiki', label: 'Wiki', icon: <Icon name="book" size={14} /> },
   { id: 'activity', label: 'Activity', icon: <Icon name="activity" size={14} /> },
 ];
@@ -162,6 +163,13 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
   const closePalette = useCallback(() => setPaletteOpen(false), []);
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
   const onWorkspaceChange = useCallback((id: string) => setWorkspace(id as WorkspaceId), []);
+  const selectAgentFromSidebar = useCallback(
+    (agentId: string) => {
+      vm.selectAgent(agentId);
+      setWorkspace('terminals');
+    },
+    [vm],
+  );
   const openVoiceShortcut = useCallback(() => {
     if (speech.supported) {
       speech.toggle();
@@ -236,13 +244,25 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     () =>
       WORKSPACES.map((item) => ({
         ...item,
-        count:
-          item.id === 'messages'
-            ? vm.agents.filter((agent) => agent.status === 'awaiting_input').length
-            : undefined,
+        count: item.id === 'terminals' ? vm.agents.length : undefined,
       })),
     [vm.agents],
   );
+
+  const aliveCount = useMemo(
+    () => vm.agents.filter((agent) => agent.status !== 'stopped').length,
+    [vm.agents],
+  );
+  const stoppedCount = useMemo(
+    () => vm.agents.filter((agent) => agent.status === 'stopped').length,
+    [vm.agents],
+  );
+  const startAllAgents = useCallback(() => {
+    vm.agents.filter((agent) => agent.status === 'stopped').forEach(vm.startAgent);
+  }, [vm]);
+  const stopAllAgents = useCallback(() => {
+    vm.agents.filter((agent) => agent.status !== 'stopped').forEach(vm.stopAgent);
+  }, [vm]);
 
   const keeperNotices = useMemo<KeeperHudNotice[]>(
     () =>
@@ -382,16 +402,41 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             />
           </ToolbarGroup>
           <ToolbarGroup>
-            <button className="shell-workspace__command" onClick={openPalette} type="button">
-              <Icon name="search" size={13} />
-              <span>Command</span>
-            </button>
+            {workspace === 'terminals' ? (
+              <>
+                <Button
+                  disabled={stoppedCount === 0}
+                  icon="play"
+                  onClick={startAllAgents}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Start all
+                </Button>
+                <Button
+                  disabled={aliveCount === 0}
+                  icon="stop"
+                  onClick={stopAllAgents}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Stop all
+                </Button>
+              </>
+            ) : null}
+            <Button icon="plus" onClick={vm.openCreateAgent} size="sm" variant="primary">
+              New agent
+            </Button>
           </ToolbarGroup>
         </Toolbar>
         {workspace === 'terminals' ? (
           <TerminalWorkspace
             agents={vm.agents}
+            onDeleteAgent={vm.deleteAgent}
+            onRestartAgent={vm.restartAgent}
             onSelectAgent={vm.selectAgent}
+            onStartAgent={vm.startAgent}
+            onStopAgent={vm.stopAgent}
             selectedAgentId={vm.selectedAgentId}
           />
         ) : null}
@@ -402,14 +447,23 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             selectedAgentId={vm.selectedAgentId}
           />
         ) : null}
-        {workspace === 'content' ? (
+        {workspace === 'shared' ? (
           <ContentPanel author={vm.selectedAgentId ?? 'user'} projectId={vm.selectedProject.id} />
         ) : null}
         {workspace === 'wiki' ? <WikiPanel projectId={vm.selectedProject.id} /> : null}
         {workspace === 'activity' ? <ActivityFeed projectId={vm.selectedProject.id} /> : null}
       </section>
     );
-  }, [onWorkspaceChange, openPalette, vm, workspace, workspaceTabs]);
+  }, [
+    aliveCount,
+    onWorkspaceChange,
+    startAllAgents,
+    stopAllAgents,
+    stoppedCount,
+    vm,
+    workspace,
+    workspaceTabs,
+  ]);
 
   const selectHudAgent = useCallback(
     (_projectId: string, agentId: string) => {
@@ -480,7 +534,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               modKey={MOD_KEY}
               onCreateAgent={vm.openCreateAgent}
               onDeleteAgent={vm.deleteAgent}
-              onSelectAgent={vm.selectAgent}
+              onSelectAgent={selectAgentFromSidebar}
               selectedAgentId={vm.selectedAgentId}
               selectedProjectName={vm.selectedProject?.name}
             />

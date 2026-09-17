@@ -3,7 +3,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, EmptyState, FormField, Icon, Input, Textarea } from '@/components';
 import { renderMarkdown } from '@/lib/utils/markdown';
 
-import { useContentItem, useContentList, useCreateContent, useDeleteContent, useUpdateContent } from '../hooks';
+import {
+  useContentItem,
+  useContentList,
+  useContentTree,
+  useCreateContent,
+  useDeleteContent,
+  useUpdateContent,
+} from '../hooks';
+import { ContentTreeRow } from './ContentTreeRow';
 
 export interface ContentPanelProps {
   projectId: string;
@@ -12,6 +20,7 @@ export interface ContentPanelProps {
 
 export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 'user' }) => {
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const [draftFilename, setDraftFilename] = useState('');
   const [draftContent, setDraftContent] = useState('');
   const listQuery = useContentList(projectId);
@@ -21,13 +30,21 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
   const deleteMutation = useDeleteContent();
 
   const files = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+  const tree = useContentTree(files);
   const previewHtml = useMemo(() => renderMarkdown(draftContent), [draftContent]);
 
   useEffect(() => {
-    if (!selectedFilename && files[0]) {
+    setSelectedFilename(null);
+    setCreating(false);
+    setDraftFilename('');
+    setDraftContent('');
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!selectedFilename && !creating && files[0]) {
       setSelectedFilename(files[0].filename);
     }
-  }, [files, selectedFilename]);
+  }, [creating, files, selectedFilename]);
 
   useEffect(() => {
     if (itemQuery.data) {
@@ -38,6 +55,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
 
   const onNew = useCallback(() => {
     setSelectedFilename(null);
+    setCreating(true);
     setDraftFilename('');
     setDraftContent('');
   }, []);
@@ -48,6 +66,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
     setDraftContent(event.target.value);
   }, []);
   const onSelect = useCallback((filename: string) => {
+    setCreating(false);
     setSelectedFilename(filename);
   }, []);
   const onSave = useCallback(() => {
@@ -63,7 +82,12 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
 
     createMutation.mutate(
       { input: { content: draftContent, createdBy: author, filename }, projectId },
-      { onSuccess: (content) => setSelectedFilename(content.filename) },
+      {
+        onSuccess: (content) => {
+          setCreating(false);
+          setSelectedFilename(content.filename);
+        },
+      },
     );
   }, [author, createMutation, draftContent, draftFilename, projectId, selectedFilename, updateMutation]);
   const onDelete = useCallback(() => {
@@ -75,6 +99,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       { filename: selectedFilename, projectId },
       {
         onSuccess: () => {
+          setCreating(false);
           setSelectedFilename(null);
           setDraftFilename('');
           setDraftContent('');
@@ -88,7 +113,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       <header className="feature-panel__header">
         <div>
           <h2>Shared Content</h2>
-          <p>Files visible to every agent in this project</p>
+          <p>Files and folders visible to every agent in this project · {files.length} {files.length === 1 ? 'item' : 'items'}</p>
         </div>
         <Button icon="plus" onClick={onNew} size="sm" variant="ghost">
           New
@@ -96,20 +121,18 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       </header>
 
       <div className="file-workspace">
-        <aside className="file-workspace__list">
-          {files.length === 0 ? (
-            <EmptyState icon={<Icon name="file" size={18} />} title="No shared files" />
+        <aside className="file-workspace__tree">
+          {tree.length === 0 ? (
+            <EmptyState icon={<Icon name="folder" size={18} />} title="No files yet" />
           ) : (
-            files.map((file) => (
-              <button
-                className={file.filename === selectedFilename ? 'file-list-item file-list-item--active' : 'file-list-item'}
-                key={file.id}
-                onClick={() => onSelect(file.filename)}
-                type="button"
-              >
-                <span>{file.filename}</span>
-                <time>{new Date(file.updatedAt).toLocaleString()}</time>
-              </button>
+            tree.map((node) => (
+              <ContentTreeRow
+                depth={0}
+                key={node.path}
+                node={node}
+                onSelect={onSelect}
+                selectedPath={selectedFilename}
+              />
             ))
           )}
         </aside>
@@ -141,4 +164,3 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
     </section>
   );
 };
-

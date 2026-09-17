@@ -1,9 +1,12 @@
+import type { CSSProperties } from 'react';
+
 import type { Agent } from '@/types';
 
 import { Button, Spinner } from '@/components';
 import { classNames } from '@/lib/utils';
 
 import { AGENT_CLI_OPTIONS } from '../constants';
+import { agentHue } from '../utils';
 
 export interface SidebarAgentListProps {
   agents: Agent[];
@@ -59,6 +62,7 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
       ) : null}
       {agents.map((agent, index) => {
         const cliOption = AGENT_CLI_OPTIONS.find((option) => option.value === agent.cli);
+        const hue = agentHue(agent.name);
 
         return (
           <article
@@ -67,6 +71,7 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
               agent.id === selectedAgentId && 'sidebar-agent-row--selected',
             )}
             key={agent.id}
+            style={{ '--agent-color': hue } as CSSProperties}
           >
             <button
               className="sidebar-agent-row__select"
