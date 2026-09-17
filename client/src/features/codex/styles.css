@@ -56,6 +56,18 @@
   padding: 12px;
 }
 
+.codex-stream--empty {
+  flex: 0 0 auto;
+  min-height: 132px;
+  overflow: hidden;
+}
+
+.codex-stream--empty .empty-state {
+  height: auto;
+  min-height: 108px;
+  padding: 18px 12px;
+}
+
 .codex-virtual {
   position: relative;
 }

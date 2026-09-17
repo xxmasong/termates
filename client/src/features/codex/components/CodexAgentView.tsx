@@ -88,7 +88,9 @@ export const CodexAgentView: React.FC<CodexAgentViewProps> = ({
         </Button>
       </header>
       {items.length === 0 ? (
-        <EmptyState title="Waiting for Codex" />
+        <div className="codex-stream codex-stream--empty">
+          <EmptyState title="Waiting for Codex" />
+        </div>
       ) : (
         <CodexItemList expandedIds={expandedIds} items={items} onToggle={toggle} />
       )}

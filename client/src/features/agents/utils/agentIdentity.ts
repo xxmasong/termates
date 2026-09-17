@@ -44,5 +44,17 @@ export function agentInitials(name: string): string {
     if (p.length <= 2) return p.toUpperCase();
     return (p[0] + p[p.length - 1]).toUpperCase();
   }
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+
+  const [primary, secondary] = parts;
+
+  // The distinguishing part of an agent name is almost always the first one —
+  // "claude-dev" and "codex-dev" differ only in the primary, and taking one
+  // letter from each part collapses both to "CD". Deriving both letters from
+  // the primary keeps such names apart without needing to know which suffixes
+  // are generic.
+  if (primary.length > 1) {
+    return (primary[0] + primary[1]).toUpperCase();
+  }
+
+  return (primary[0] + secondary[0]).toUpperCase();
 }

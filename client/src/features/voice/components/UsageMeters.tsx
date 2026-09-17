@@ -47,7 +47,7 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
         cli,
         session: data?.[cli.key]?.session,
         week: data?.[cli.key]?.week,
-      })).filter((row) => row.session ?? row.week),
+      })).filter((row) => row.session != null || row.week != null),
     [data],
   );
 

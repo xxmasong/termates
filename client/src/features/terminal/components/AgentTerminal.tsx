@@ -79,6 +79,7 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
+  const fitFrameRef = useRef<number | null>(null);
   const initialLoadRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -99,16 +100,35 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
     });
   }, [agentId, send, visible]);
 
+  const fitAndEmitResize = useCallback(() => {
+    if (!visible) {
+      return;
+    }
+
+    fitRef.current?.fit();
+    emitResize();
+  }, [emitResize, visible]);
+
+  const requestLayoutFit = useCallback(() => {
+    if (fitFrameRef.current !== null) {
+      cancelAnimationFrame(fitFrameRef.current);
+    }
+
+    fitFrameRef.current = requestAnimationFrame(() => {
+      fitFrameRef.current = null;
+      fitAndEmitResize();
+    });
+  }, [fitAndEmitResize]);
+
   const scheduleFit = useCallback(() => {
     if (resizeTimerRef.current) {
       clearTimeout(resizeTimerRef.current);
     }
 
     resizeTimerRef.current = setTimeout(() => {
-      fitRef.current?.fit();
-      emitResize();
+      fitAndEmitResize();
     }, TERMINAL_RESIZE_DEBOUNCE_MS);
-  }, [emitResize]);
+  }, [fitAndEmitResize]);
 
   useEffect(() => {
     if (focused && visible) {
@@ -133,7 +153,6 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
 
     terminal.loadAddon(fit);
     terminal.open(container);
-    fit.fit();
 
     terminalRef.current = terminal;
     fitRef.current = fit;
@@ -148,7 +167,6 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
     });
 
     send({ agentId, type: WS_CLIENT_MESSAGE_TYPES.TERMINAL_ATTACH });
-    emitResize();
 
     scrollTimerRef.current = setTimeout(() => {
       initialLoadRef.current = false;
@@ -203,13 +221,19 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
       }
     };
     const resizeObserver = new ResizeObserver(scheduleFit);
+    const paneBody = container.parentElement;
 
     container.addEventListener('focusin', focusIn);
     container.addEventListener('mousedown', mouseDown);
     container.addEventListener('paste', paste);
-    resizeObserver.observe(container);
+    resizeObserver.observe(paneBody ?? container);
+    requestLayoutFit();
 
     return () => {
+      if (fitFrameRef.current !== null) {
+        cancelAnimationFrame(fitFrameRef.current);
+      }
+
       if (scrollTimerRef.current) {
         clearTimeout(scrollTimerRef.current);
       }
@@ -230,7 +254,7 @@ export const AgentTerminal: React.FC<AgentTerminalProps> = ({
       terminalRef.current = null;
       fitRef.current = null;
     };
-  }, [agentId, emitResize, onFocus, scheduleFit, send, visible]);
+  }, [agentId, onFocus, requestLayoutFit, scheduleFit, send, visible]);
 
   useWsSubscribe(
     'terminal:output',
