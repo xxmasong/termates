@@ -11,14 +11,19 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import type { Agent } from '../types.js';
 import type { CodexItem } from './protocol.js';
 import { updateAgent, getProjectData, SHARED_CONTENT_DIR, WIKI_DIR } from '../storage.js';
+import { writeCodexMcpConfig } from '../mcp-config.js';
 import { CodexAppServer } from './codex-server.js';
 
 type StatusFn = (agentId: string, status: string) => void;
 type ItemListener = (item: CodexItem) => void;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname_ = path.dirname(__filename);
 
 interface CodexSession {
   agent: Agent;
@@ -106,6 +111,7 @@ const sessions = new Map<string, CodexSession>();   // agentId → session
 const threadToAgent = new Map<string, string>();    // threadId → agentId
 let server: CodexAppServer | null = null;
 let onStatus: StatusFn = () => {};
+let restartingForMcpConfig = false;
 
 const now = () => new Date().toISOString();
 
@@ -114,6 +120,23 @@ function expandHome(p: string): string {
   if (p === '~') return os.homedir();
   if (p.startsWith('~/') || p.startsWith('~\\')) return path.join(os.homedir(), p.slice(2));
   return p;
+}
+
+function getMcpServerPath(): string {
+  return path.resolve(__dirname_, '../mcp-server.js');
+}
+
+function getHubUrl(): string {
+  return process.env.TERMHIVE_HUB_URL || `http://localhost:${process.env.PORT || '3200'}`;
+}
+
+function ensureCodexMcpConfig(agent: Agent, cwd: string): boolean {
+  return writeCodexMcpConfig({
+    agent,
+    agentCwd: cwd,
+    hubUrl: getHubUrl(),
+    mcpServerPath: getMcpServerPath(),
+  });
 }
 
 // ─────────────────────────── Shared app-server ───────────────────────────
@@ -130,6 +153,7 @@ function getServer(): CodexAppServer {
       : { decision: 'approved' }
   ));
   s.onExit(() => {
+    if (restartingForMcpConfig) return;
     for (const agentId of [...sessions.keys()]) flushSave(agentId);
     for (const agentId of [...sessions.keys()]) onStatus(agentId, 'stopped');
     sessions.clear();
@@ -460,6 +484,49 @@ function drainPending(s: CodexSession): void {
   if (next) submitTurn(s, next.text, next.model, next.effort);
 }
 
+function waitForIdleTurns(timeoutMs: number): Promise<boolean> {
+  if ([...sessions.values()].every((s) => !s.busy)) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const interval = setInterval(() => {
+      const idle = [...sessions.values()].every((s) => !s.busy);
+      if (idle || Date.now() - started >= timeoutMs) {
+        clearInterval(interval);
+        resolve(idle);
+      }
+    }, 250);
+  });
+}
+
+function interruptBusyTurnsForRestart(): void {
+  for (const s of sessions.values()) {
+    if (!s.busy) continue;
+    s.busy = false;
+    upsert(s, {
+      id: randomUUID(), kind: 'error',
+      text: 'turn interrupted: codex app-server restarted to reload Termhive MCP config',
+      ts: now(),
+    });
+  }
+}
+
+async function restartServerForMcpConfig(cs: CodexAppServer): Promise<void> {
+  const idle = await waitForIdleTurns(30_000);
+  if (!idle) {
+    console.warn('[codex-agents] restarting codex app-server with active turns to reload MCP config');
+    interruptBusyTurnsForRestart();
+  }
+  restartingForMcpConfig = true;
+  try {
+    await cs.restart();
+  } finally {
+    restartingForMcpConfig = false;
+  }
+  for (const s of sessions.values()) {
+    if (!s.busy && s.pending && s.pending.length > 0) drainPending(s);
+  }
+}
+
 /** Pull a resumed thread's past turns/items back into the view. */
 async function loadHistory(cs: CodexAppServer, s: CodexSession): Promise<void> {
   try {
@@ -489,7 +556,23 @@ export async function startAgent(agent: Agent, statusFn: StatusFn): Promise<bool
   onStatus = statusFn;
   if (sessions.has(agent.id)) return true;
 
+  const cwd = expandHome(agent.cwd);
   const cs = getServer();
+  const serverWasRunning = cs.isRunning();
+  let mcpConfigChanged = false;
+  try {
+    mcpConfigChanged = ensureCodexMcpConfig(agent, cwd);
+  } catch (err) {
+    console.warn(`[codex-agents] Failed to write MCP config for ${agent.name}:`, err);
+  }
+  if (mcpConfigChanged && serverWasRunning) {
+    try {
+      await restartServerForMcpConfig(cs);
+    } catch (err) {
+      console.error('[codex-agents] app-server failed to restart after MCP config update:', err);
+      return false;
+    }
+  }
   try {
     await cs.ensureStarted();
   } catch (err) {
@@ -497,7 +580,6 @@ export async function startAgent(agent: Agent, statusFn: StatusFn): Promise<bool
     return false;
   }
 
-  const cwd = expandHome(agent.cwd);
   const env = buildAgentEnv(agent);
   const baseParams = {
     cwd,

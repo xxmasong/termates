@@ -88,7 +88,7 @@ export function writeClaudeMcpConfig(ctx: McpWriteContext): string {
  * Codex MCP config is global (not per-project), so we use a per-agent key
  * to avoid collisions across multiple agents.
  */
-export function writeCodexMcpConfig(ctx: McpWriteContext): void {
+export function writeCodexMcpConfig(ctx: McpWriteContext): boolean {
   const codexDir = path.join(os.homedir(), '.codex');
   const configPath = path.join(codexDir, 'config.toml');
   fs.mkdirSync(codexDir, { recursive: true });
@@ -126,7 +126,9 @@ export function writeCodexMcpConfig(ctx: McpWriteContext): void {
     (hasTermhiveHeader ? '' : header) +
     section;
 
+  if (existing === newContent) return false;
   fs.writeFileSync(configPath, newContent, 'utf-8');
+  return true;
 }
 
 /**
@@ -155,29 +157,44 @@ export function removeCodexMcpConfig(agentId: string): void {
 }
 
 /**
- * Remove every Termhive-managed `[mcp_servers.termhive_*]` section from the
+ * Remove stale Termhive-managed `[mcp_servers.termhive_*]` sections from the
  * global ~/.codex/config.toml.
  *
  * v2.2: Codex agents moved to `codex app-server`, which loads its MCP servers
- * from this global file. The PTY era left per-agent `termhive_*` entries here;
- * they no longer correspond to anything and just produce startup-failure
- * noise. This is a one-time cleanup — only the `termhive_`-prefixed sections
- * (which Termhive itself wrote) are touched; the user's own config is left
- * exactly as-is. Returns the number of sections removed.
+ * from this global file. Termhive-owned sections for deleted agents can produce
+ * startup-failure noise, but live Codex agents still need their section. Only
+ * `termhive_`-prefixed sections whose agent no longer exists are touched; the
+ * user's own config is left exactly as-is. Returns the number of sections
+ * removed.
  */
-export function cleanStaleCodexMcp(): number {
+export function cleanStaleCodexMcp(activeAgentIds: Iterable<string>): number {
   const configPath = path.join(os.homedir(), '.codex', 'config.toml');
   if (!fs.existsSync(configPath)) return 0;
 
+  const activeKeys = new Set(
+    [...activeAgentIds].map((agentId) => mcpServerKeyForCodex(agentId))
+  );
   const before = fs.readFileSync(configPath, 'utf-8');
-  const count = (before.match(/\[mcp_servers\.termhive_/g) || []).length;
-  if (count === 0) return 0;
+  let removed = 0;
 
   let out = before
     // each [mcp_servers.termhive_*] section, up to the next section or EOF
-    .replace(/(?:^|\n)\[mcp_servers\.termhive_[^\]\n]*\][\s\S]*?(?=\n\[|\n*$)/g, '\n')
-    // the now-orphaned managed-section header comment
-    .replace(/\n*#[^\n]*Termhive MCP servers[^\n]*\n/g, '\n')
+    .replace(
+      /(?:^|\n)\[mcp_servers\.(termhive_[^\]\n]*)\][\s\S]*?(?=\n\[|$)/g,
+      (section, key) => {
+        if (activeKeys.has(key)) return section;
+        removed += 1;
+        return '\n';
+      }
+    );
+  if (removed === 0) return 0;
+
+  const hasTermhiveSections = /\[mcp_servers\.termhive_[^\]\n]*\]/.test(out);
+  if (!hasTermhiveSections) {
+    out = out.replace(/\n*#[^\n]*Termhive MCP servers[^\n]*\n/g, '\n');
+  }
+
+  out = out
     .replace(/\n{3,}/g, '\n\n')
     .trimEnd();
   out = out.length > 0 ? out + '\n' : '';
@@ -186,7 +203,7 @@ export function cleanStaleCodexMcp(): number {
   if (out.trim() === '' && before.trim() !== '') return 0;
 
   fs.writeFileSync(configPath, out, 'utf-8');
-  return count;
+  return removed;
 }
 
 // --- TOML helpers (hand-rolled; keep scope minimal to avoid adding @iarna/toml) ---

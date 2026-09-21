@@ -125,10 +125,14 @@ function emitAgentDispatch(d: AgentDispatch) {
   broadcast({ kind: 'event', event: 'agent:dispatch', payload: d });
 }
 
-// One-time cleanup: drop stale PTY-era Codex MCP entries from the global
-// ~/.codex/config.toml — Codex agents now load MCP via codex app-server.
+// One-time cleanup: drop stale Codex MCP entries from the global
+// ~/.codex/config.toml while preserving sections for existing Codex agents.
 {
-  const removed = cleanStaleCodexMcp();
+  const activeCodexAgentIds = storage.listProjects()
+    .flatMap((project) => storage.listAgents(project.id))
+    .filter((agent) => agent.cli === 'codex')
+    .map((agent) => agent.id);
+  const removed = cleanStaleCodexMcp(activeCodexAgentIds);
   if (removed > 0) {
     console.log(`[daemon] cleaned ${removed} stale Codex MCP `
       + `entr${removed === 1 ? 'y' : 'ies'} from ~/.codex/config.toml`);

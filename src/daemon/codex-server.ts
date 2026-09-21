@@ -201,4 +201,26 @@ export class CodexAppServer {
       this.proc = null;
     }
   }
+
+  /** Restart app-server so process-start config such as MCP servers is re-read. */
+  async restart(): Promise<void> {
+    const proc = this.proc;
+    if (!proc) {
+      await this.ensureStarted();
+      return;
+    }
+    const exited = new Promise<void>((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      proc.once('exit', finish);
+      setTimeout(finish, 3000);
+    });
+    this.stop();
+    await exited;
+    await this.ensureStarted();
+  }
 }
