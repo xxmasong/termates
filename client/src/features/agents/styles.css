@@ -314,3 +314,28 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.agent-model-bar {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex: none;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.agent-model-bar__select {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  max-width: 190px;
+  padding: 3px 6px;
+}
+
+.agent-model-bar__select:hover {
+  border-color: var(--border-strong);
+  color: var(--text-0);
+}

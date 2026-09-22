@@ -280,6 +280,8 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       if (mcpConfigPath) args.push('--mcp-config', mcpConfigPath);
       // Lifecycle hooks → daemon status engine (additive to user's settings)
       if (hookConfigPath) args.push('--settings', hookConfigPath);
+      if (agent.model) args.push('--model', agent.model);
+      if (agent.effort) args.push('--effort', agent.effort);
       return { cmd: 'claude', args };
     case 'codex':
       // Same idea for Codex: `codex resume --last` is cwd-filtered by default
@@ -292,10 +294,15 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       args.push('-s', 'workspace-write');
       args.push('--add-dir', sharedPath);
       args.push('--add-dir', wikiPath);
+      // Codex has no --model / --effort flags; both are config overrides.
+      if (agent.model) args.push('-c', `model="${agent.model}"`);
+      if (agent.effort) args.push('-c', `model_reasoning_effort="${agent.effort}"`);
       return { cmd: 'codex', args };
     case 'gemini':
       args.push('--include-directories', sharedPath);
       args.push('--include-directories', wikiPath);
+      // Gemini takes a model but has no reasoning-effort flag.
+      if (agent.model) args.push('--model', agent.model);
       return { cmd: 'gemini', args };
   }
 }
@@ -364,7 +371,6 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
     claude: 'CLAUDE.md',
     codex: 'AGENTS.md',
     gemini: 'AGENTS.md',
-    opencode: 'AGENTS.md',
   };
   const instrFile = path.join(cwd, instructionFiles[agent.cli]);
   ensureInstructionFile(instrFile, projectName, sharedPath, wikiPath, agent, teammates);

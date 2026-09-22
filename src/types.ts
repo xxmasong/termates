@@ -29,6 +29,10 @@ export interface Agent {
   cwd: string;
   status: AgentStatus;
   pid?: number;
+  /** Launch-time model override, empty/absent means the CLI's default. */
+  model?: string;
+  /** Launch-time reasoning effort; Gemini has no equivalent flag. */
+  effort?: string;
   flags?: {
     dangerouslySkipPermissions?: boolean;
     remoteControl?: boolean;

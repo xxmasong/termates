@@ -1,3 +1,4 @@
+export * from "./useAgentModel";
 export * from './useAgentLifecycle';
 export * from './useAgentPreviews';
 export * from './useAgents';

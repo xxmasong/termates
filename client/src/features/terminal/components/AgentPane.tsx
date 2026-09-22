@@ -3,7 +3,7 @@ import { useCallback, useMemo, type MouseEvent } from 'react';
 import type { Agent } from '@/types';
 
 import { Badge, Button, Icon } from '@/components';
-import { agentHue, agentInitials } from '@/features/agents';
+import { AgentModelBar, agentHue, agentInitials, useAgentModel } from '@/features/agents';
 import { classNames } from '@/lib/utils';
 
 import { AGENT_PANE_STATUS_LABELS, AGENT_PANE_STATUS_TONES } from '../constants';
@@ -48,6 +48,14 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
     event.stopPropagation();
     onDelete(agent);
   }, [agent, onDelete]);
+
+  const modelMutation = useAgentModel();
+  const changeModel = useCallback(
+    (target: Agent, patch: { model?: string; effort?: string }) => {
+      modelMutation.mutate({ agent: target, patch });
+    },
+    [modelMutation],
+  );
 
   return (
     <article className={classNames('agent-pane', focused && 'agent-pane--focused')} onMouseDown={focusPane}>
@@ -116,6 +124,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
           />
         </div>
       </header>
+      <AgentModelBar agent={agent} onChange={changeModel} />
       <div className="agent-pane__body">
         {alive ? (
           <AgentTerminal agentId={agent.id} focused={focused} onFocus={focusPane} />
