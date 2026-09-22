@@ -646,6 +646,7 @@
 }
 
 .notification {
+  animation: notif-in 200ms ease both;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-left: 3px solid var(--notification-color);
@@ -656,6 +657,36 @@
   gap: 4px;
   padding: 10px 12px;
   pointer-events: auto;
+}
+
+@keyframes notif-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+.notification__row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.notification__close {
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.notification__close:hover {
+  background: var(--bg-2);
+  color: var(--text-0);
 }
 
 .notification--info {
@@ -1581,6 +1612,25 @@
 
   .tab-bar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Every workspace tab has an icon, so drop the labels here rather than let
+     five of them scroll sideways. The text stays in the a11y tree. */
+  .tab-bar__tab > span {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  .tab-bar__tab {
+    gap: 5px;
+    justify-content: center;
+    min-width: 44px;
+    padding: 0 10px;
   }
 
   /* The header packs brand, search, composer, layout switcher and three icon

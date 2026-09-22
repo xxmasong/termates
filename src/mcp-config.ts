@@ -45,7 +45,7 @@ export function mcpServerKeyForCodex(agentId: string): string {
 /**
  * Build the command + args array used by both Claude and Codex configs.
  */
-function buildInvocation(ctx: McpWriteContext): { command: string; args: string[] } {
+export function buildInvocation(ctx: McpWriteContext): { command: string; args: string[] } {
   return {
     command: 'node',
     args: [

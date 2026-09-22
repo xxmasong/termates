@@ -39,6 +39,7 @@ import { TerminalWorkspace, TERMINAL_LAYOUT_OPTIONS, useTerminalLayoutMode } fro
 import { UsageMeters, useSpeechInput } from '@/features/voice';
 import { WikiPanel } from '@/features/wiki';
 import { useLocalStorage } from '@/lib/hooks';
+import { subscribeToasts } from '@/lib/utils/toastBus';
 import { useWsStatus } from '@/lib/ws';
 
 import { useProjectAgentShell } from './hooks';
@@ -223,21 +224,73 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     vm.agents.forEach((agent) => {
       const priorStatus = previous.get(agent.id);
       if (agent.status === 'awaiting_input' && priorStatus !== 'awaiting_input') {
-        setNotifications((current) =>
-          [
+        const stableId = `awaiting:${agent.id}`;
+        setNotifications((current) => {
+          if (current.some((n) => n.id === stableId)) return current;
+          return [
             {
-              id: `${agent.id}:${Date.now()}`,
+              id: stableId,
               message: `${agent.name} is waiting for a human response.`,
               title: 'Agent needs input',
               tone: 'warning' as const,
             },
             ...current,
-          ].slice(0, NOTIFICATION_LIMIT),
-        );
+          ].slice(0, NOTIFICATION_LIMIT);
+        });
       }
       previous.set(agent.id, agent.status);
     });
   }, [vm.agents]);
+
+  const notificationTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(
+    () =>
+      subscribeToasts((toast) => {
+        // Re-pushing an id restarts its countdown, so drop the in-flight timer.
+        const timer = notificationTimersRef.current.get(toast.id);
+        if (timer) {
+          clearTimeout(timer);
+          notificationTimersRef.current.delete(toast.id);
+        }
+
+        setNotifications((current) =>
+          [toast, ...current.filter((n) => n.id !== toast.id)].slice(0, NOTIFICATION_LIMIT),
+        );
+      }),
+    [],
+  );
+
+  const dismissNotification = useCallback((id: string) => {
+    const timer = notificationTimersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      notificationTimersRef.current.delete(id);
+    }
+    setNotifications((current) => current.filter((n) => n.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const timers = notificationTimersRef.current;
+    notifications.forEach((n) => {
+      if (timers.has(n.id)) return;
+      timers.set(
+        n.id,
+        setTimeout(() => {
+          timers.delete(n.id);
+          setNotifications((current) => current.filter((item) => item.id !== n.id));
+        }, NOTIFICATION_TTL_MS),
+      );
+    });
+  }, [notifications]);
+
+  useEffect(() => {
+    const timers = notificationTimersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
 
   const workspaceTabs = useMemo(
     () =>
@@ -496,7 +549,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             micTitle={speech.error ?? undefined}
             modKey={MOD_KEY}
             notifications={
-              <NotificationHost items={notifications} />
+              <NotificationHost items={notifications} onDismiss={dismissNotification} />
             }
             onCommandChange={setQuickCommand}
             onCommandSubmit={submitQuickCommand}
@@ -598,7 +651,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         onSelectAgent={selectHudAgent}
         runningCount={vm.agents.filter((agent) => agent.status === 'running').length}
       />
-      <NotificationHost items={notifications} />
+      <NotificationHost items={notifications} onDismiss={dismissNotification} />
     </>
   );
 };

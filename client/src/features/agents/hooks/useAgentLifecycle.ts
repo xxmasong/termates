@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { pushToast } from '@/lib/utils/toastBus';
 import type { Agent, AgentStatus } from '@/types';
 
 import { agentKeys, restartAgent, startAgent, stopAgent } from '../api';
@@ -53,10 +54,20 @@ export const useAgentLifecycle = () => {
 
       return { previousAgents };
     },
-    onError: (_error, variables, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousAgents) {
         queryClient.setQueryData(agentKeys.list(variables.projectId), context.previousAgents);
       }
+
+      const agents = queryClient.getQueryData<Agent[]>(agentKeys.list(variables.projectId));
+      const name = agents?.find((agent) => agent.id === variables.agentId)?.name ?? 'Agent';
+
+      pushToast({
+        id: `lifecycle:${variables.action}:${variables.agentId}`,
+        message: error instanceof Error ? error.message : String(error),
+        title: `Could not ${variables.action} ${name}`,
+        tone: 'error',
+      });
     },
     onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: agentKeys.list(variables.projectId) });

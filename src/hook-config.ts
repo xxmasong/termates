@@ -80,7 +80,30 @@ export function writeClaudeHookConfig(agentId: string, hookBaseUrl: string): str
   }
 
   const configPath = getHookConfigPath(agentId);
-  fs.writeFileSync(configPath, JSON.stringify({ hooks }, null, 2), 'utf-8');
+  // `--settings` shadows the user's settings.json, so anything set there has to
+  // be restated here or every agent silently falls back to the CLI defaults.
+  const settings: Record<string, unknown> = { hooks };
+
+  const model = process.env.TERMHIVE_AGENT_MODEL;
+  if (model) settings.model = model;
+
+  // Models without auto mode prompt on every tool call, which deadlocks an
+  // unattended agent. An allowlist unblocks them without the root-incompatible
+  // --dangerously-skip-permissions flag.
+  const allow = process.env.TERMHIVE_AGENT_ALLOW;
+  const deny = process.env.TERMHIVE_AGENT_DENY;
+  if (allow || deny) {
+    const split = (v: string) => v.split(',').map((rule) => rule.trim()).filter(Boolean);
+    settings.permissions = {
+      ...(allow ? { allow: split(allow) } : {}),
+      // Every agent registers as a peer Claude session, so the built-in
+      // SendMessage shadows the MCP tool and silently delivers to the wrong
+      // process. Denying it forces mcp__termhive__message_agent.
+      ...(deny ? { deny: split(deny) } : {}),
+    };
+  }
+
+  fs.writeFileSync(configPath, JSON.stringify(settings, null, 2), 'utf-8');
   return configPath;
 }
 

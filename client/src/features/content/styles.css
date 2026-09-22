@@ -27,11 +27,16 @@
   margin-top: 3px;
 }
 
+/* The Keeper HUD orb is fixed above the bottom-right corner and only lifts for
+   the codex/messages composers, so without this it covers Delete/Save. */
 .feature-panel__actions {
   align-items: center;
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  padding-right: var(--keeper-hud-composer-clearance);
+  position: relative;
+  z-index: 190;
 }
 
 .feature-panel__center-action {

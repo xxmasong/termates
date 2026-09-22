@@ -74,8 +74,10 @@ async function main() {
         name: 'message_agent',
         description:
           'Send a message to another agent (teammate) in this project. ' +
-          'Use this when the user asks you to notify, tell, or communicate with another agent. ' +
-          'The target agent will see the message in their terminal. ' +
+          'Use this to notify, tell, or communicate with another agent, AND to reply ' +
+          'to incoming messages. When you receive a "[Message from <name>]:" prompt, ' +
+          'you MUST call this tool with target=<name> and your response as the message — ' +
+          'that is the only way your reply reaches them. ' +
           'Call list_teammates first if you are unsure who is available.',
         inputSchema: {
           type: 'object',

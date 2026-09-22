@@ -226,12 +226,24 @@ function buildTermhiveSection(
       }
       lines.push(
         '',
+        '#### Sending messages',
         'To send a message to a teammate, use the `message_agent` MCP tool:',
         '- When the user says things like "tell backend I finished the API" or "跟後端說我做完了",',
         '  call `message_agent(target="<teammate name>", message="<what to say>")`.',
         '- The teammate will see your message in their terminal.',
         '- Use `list_teammates` if you need to look up who is available.',
-        '- Messages are one-way notifications — do NOT wait for a reply in the same tool call.',
+        '',
+        '#### Receiving messages',
+        'When you see a prompt that starts with `[Message from <name>]:`, it is an',
+        'inter-agent message delivered by Termhive. You MUST:',
+        '1. Read the message and do whatever it asks (answer a question, perform a task, etc.).',
+        '2. **Reply by calling `message_agent`** with `target` set to the sender\'s name and',
+        '   `message` set to your response. This is the ONLY way your reply reaches them —',
+        '   typing into your own terminal does NOT deliver anything back.',
+        '3. If the message does not need a reply (pure notification), acknowledge briefly',
+        '   via `message_agent` anyway so the sender knows you received it.',
+        '',
+        'Never ignore an incoming message. Always reply via the tool.',
       );
     }
   }
@@ -454,7 +466,10 @@ export function injectMessage(targetAgentId: string, fromName: string, message: 
   // as the text as a literal newline (it looks like a multi-line paste) — only
   // a standalone CR is read as the Enter key that actually submits the prompt.
   const clean = message.replace(/\r/g, '').trim();
-  session.pty.write(`[Message from ${fromName}]: ${clean}`);
+  const payload =
+    `[Message from ${fromName}]: ${clean} ` +
+    `— Reply to ${fromName} by calling message_agent(target="${fromName}", message="<your reply>").`;
+  session.pty.write(payload);
   setTimeout(() => {
     const s = sessions.get(targetAgentId);
     if (s) s.pty.write('\r');
