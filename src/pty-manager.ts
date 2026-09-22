@@ -324,6 +324,8 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       if (hookConfigPath) args.push('--settings', hookConfigPath);
       if (agent.model) args.push('--model', agent.model);
       if (agent.effort) args.push('--effort', agent.effort);
+      if (agent.permissionMode) args.push('--permission-mode', agent.permissionMode);
+      if (agent.autocompact) args.push('--autocompact', agent.autocompact);
       return { cmd: 'claude', args };
     case 'codex':
       // Same idea for Codex: `codex resume --last` is cwd-filtered by default
@@ -333,9 +335,16 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       // Codex's --add-dir adds *writable* roots, which requires sandbox mode
       // to be at least workspace-write. Default to workspace-write so shared
       // content / wiki are actually writable by the agent.
-      args.push('-s', 'workspace-write');
-      args.push('--add-dir', sharedPath);
-      args.push('--add-dir', wikiPath);
+      const sandbox = agent.permissionMode || 'workspace-write';
+      args.push('-s', sandbox);
+      // Passing --add-dir under read-only makes codex exit immediately, since
+      // it cannot grant a writable root inside a read-only sandbox. Drop the
+      // shared roots instead of failing to start; the agent still runs, it
+      // just cannot reach shared content or the wiki.
+      if (sandbox !== 'read-only') {
+        args.push('--add-dir', sharedPath);
+        args.push('--add-dir', wikiPath);
+      }
       // Codex has no --model / --effort flags; both are config overrides.
       if (agent.model) args.push('-c', `model="${agent.model}"`);
       if (agent.effort) args.push('-c', `model_reasoning_effort="${agent.effort}"`);
@@ -345,6 +354,7 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       args.push('--include-directories', wikiPath);
       // Gemini takes a model but has no reasoning-effort flag.
       if (agent.model) args.push('--model', agent.model);
+      if (agent.permissionMode) args.push('--approval-mode', agent.permissionMode);
       // Thinking has no CLI flag; it is a generation setting. Written to the
       // agent's own workspace settings in writeGeminiWorkspaceSettings below,
       // which override the shared user settings for this cwd only.

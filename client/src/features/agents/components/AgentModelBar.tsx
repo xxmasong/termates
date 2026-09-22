@@ -3,8 +3,10 @@ import { useCallback } from 'react';
 import type { Agent } from '@/types';
 
 import {
+  AGENT_AUTOCOMPACT_OPTIONS,
   AGENT_EFFORT_OPTIONS,
   AGENT_MODEL_OPTIONS,
+  AGENT_PERMISSION_MODES,
   AGENT_REMOTE_CONTROL_CLIS,
   AGENT_THINKING_ALWAYS_ON,
   AGENT_THINKING_CLIS,
@@ -19,6 +21,8 @@ export interface AgentModelBarProps {
       model?: string;
       effort?: string;
       thinking?: string;
+      permissionMode?: string;
+      autocompact?: string;
       flags?: Agent['flags'];
     },
   ) => void;
@@ -29,6 +33,8 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
   const showsThinking = AGENT_THINKING_CLIS.includes(agent.cli);
   const showsRemoteControl = AGENT_REMOTE_CONTROL_CLIS.includes(agent.cli);
+  const permissionModes = AGENT_PERMISSION_MODES[agent.cli] ?? [];
+  const autocompacts = AGENT_AUTOCOMPACT_OPTIONS[agent.cli] ?? [];
   // Some models think unconditionally, so offering "off" there would lie.
   const thinkingLocked = AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
 
@@ -56,9 +62,19 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
     });
   };
 
+  const changePermissionMode = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(agent, { permissionMode: event.target.value });
+  };
+
+  const changeAutocompact = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(agent, { autocompact: event.target.value });
+  };
+
   if (
     models.length === 0 &&
     efforts.length === 0 &&
+    permissionModes.length === 0 &&
+    autocompacts.length === 0 &&
     !showsThinking &&
     !showsRemoteControl
   ) {
@@ -112,6 +128,36 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
           <option value="">Thinking: default</option>
           <option value="on">Thinking: yes</option>
           <option value="off">Thinking: no</option>
+        </select>
+      ) : null}
+      {permissionModes.length > 0 ? (
+        <select
+          className="agent-model-bar__select"
+          onChange={changePermissionMode}
+          title="Permission mode — applying restarts the agent"
+          value={agent.permissionMode ?? ''}
+        >
+          <option value="">Permissions: default</option>
+          {permissionModes.map((mode) => (
+            <option key={mode} value={mode}>
+              {mode}
+            </option>
+          ))}
+        </select>
+      ) : null}
+      {autocompacts.length > 0 ? (
+        <select
+          className="agent-model-bar__select"
+          onChange={changeAutocompact}
+          title="Auto-compact window — applying restarts the agent"
+          value={agent.autocompact ?? ''}
+        >
+          <option value="">Compact: default</option>
+          {autocompacts.map((value) => (
+            <option key={value} value={value}>
+              {value === 'auto' ? 'auto' : `${Number(value) / 1000}k`}
+            </option>
+          ))}
         </select>
       ) : null}
       {showsRemoteControl ? (

@@ -51,7 +51,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
 
   const modelMutation = useAgentModel();
   const changeModel = useCallback(
-    (target: Agent, patch: { model?: string; effort?: string; thinking?: string; flags?: Agent['flags'] }) => {
+    (target: Agent, patch: { model?: string; effort?: string; thinking?: string; permissionMode?: string; autocompact?: string; flags?: Agent['flags'] }) => {
       modelMutation.mutate({ agent: target, patch });
     },
     [modelMutation],

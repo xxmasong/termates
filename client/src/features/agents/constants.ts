@@ -75,6 +75,25 @@ export const AGENT_THINKING_ALWAYS_ON = [
  */
 export const AGENT_REMOTE_CONTROL_CLIS: AgentCli[] = ['claude'];
 
+/**
+ * Claude's `--permission-mode`, values exactly as `claude --help` lists them.
+ * This is the control the Claude Code composer shows as "Edit automatically".
+ * Codex uses `-s/--sandbox` and Gemini `--approval-mode`, which are wired
+ * separately below.
+ */
+export const AGENT_PERMISSION_MODES: Record<AgentCli, string[]> = {
+  claude: ['manual', 'acceptEdits', 'auto', 'dontAsk', 'plan', 'bypassPermissions'],
+  codex: ['read-only', 'workspace-write', 'danger-full-access'],
+  gemini: ['default', 'auto_edit', 'yolo', 'plan'],
+};
+
+/** Claude's `--autocompact`: 'auto' or a token window between 100k and 1M. */
+export const AGENT_AUTOCOMPACT_OPTIONS: Record<AgentCli, string[]> = {
+  claude: ['auto', '100000', '200000', '500000', '1000000'],
+  codex: [],
+  gemini: [],
+};
+
 export const AGENT_FORM_FIELD_IDS = {
   CWD: 'agent-cwd',
   NAME: 'agent-name',

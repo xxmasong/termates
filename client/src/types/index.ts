@@ -23,6 +23,10 @@ export interface Agent {
   effort?: string;
   /** Gemini thinking mode: 'on' | 'off'; absent leaves the model default. */
   thinking?: string;
+  /** Permission mode; the flag differs per CLI, the stored value does not. */
+  permissionMode?: string;
+  /** Claude only: --autocompact window ('auto' or a token count). */
+  autocompact?: string;
   flags?: {
     dangerouslySkipPermissions?: boolean;
     remoteControl?: boolean;

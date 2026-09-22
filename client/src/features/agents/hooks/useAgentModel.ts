@@ -6,7 +6,7 @@ import { agentKeys, restartAgent, updateAgent } from '../api';
 
 interface ChangeModelVariables {
   agent: Agent;
-  patch: { model?: string; effort?: string; thinking?: string; flags?: Agent['flags'] };
+  patch: { model?: string; effort?: string; thinking?: string; permissionMode?: string; autocompact?: string; flags?: Agent['flags'] };
 }
 
 /**
