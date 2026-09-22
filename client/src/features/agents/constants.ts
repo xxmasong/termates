@@ -68,6 +68,13 @@ export const AGENT_THINKING_ALWAYS_ON = [
   'gemini-2.5-pro',
 ];
 
+/**
+ * Remote control is a Claude-only launch flag (`--remote-control`). It is
+ * absent from `claude --help` in 2.1.278 but the CLI still accepts it; Codex
+ * has only an unrelated `remote-control` subcommand and Gemini has nothing.
+ */
+export const AGENT_REMOTE_CONTROL_CLIS: AgentCli[] = ['claude'];
+
 export const AGENT_FORM_FIELD_IDS = {
   CWD: 'agent-cwd',
   NAME: 'agent-name',

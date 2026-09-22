@@ -5,6 +5,7 @@ import type { Agent } from '@/types';
 import {
   AGENT_EFFORT_OPTIONS,
   AGENT_MODEL_OPTIONS,
+  AGENT_REMOTE_CONTROL_CLIS,
   AGENT_THINKING_ALWAYS_ON,
   AGENT_THINKING_CLIS,
 } from '../constants';
@@ -14,7 +15,12 @@ export interface AgentModelBarProps {
   /** Applying a change restarts the agent: a running CLI cannot be reconfigured. */
   onChange: (
     agent: Agent,
-    patch: { model?: string; effort?: string; thinking?: string },
+    patch: {
+      model?: string;
+      effort?: string;
+      thinking?: string;
+      flags?: Agent['flags'];
+    },
   ) => void;
 }
 
@@ -22,6 +28,7 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
   const models = AGENT_MODEL_OPTIONS[agent.cli] ?? [];
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
   const showsThinking = AGENT_THINKING_CLIS.includes(agent.cli);
+  const showsRemoteControl = AGENT_REMOTE_CONTROL_CLIS.includes(agent.cli);
   // Some models think unconditionally, so offering "off" there would lie.
   const thinkingLocked = AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
 
@@ -43,7 +50,18 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
     onChange(agent, { thinking: event.target.value });
   };
 
-  if (models.length === 0 && efforts.length === 0 && !showsThinking) {
+  const changeRemoteControl = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(agent, {
+      flags: { ...agent.flags, remoteControl: event.target.value === 'on' },
+    });
+  };
+
+  if (
+    models.length === 0 &&
+    efforts.length === 0 &&
+    !showsThinking &&
+    !showsRemoteControl
+  ) {
     return null;
   }
 
@@ -94,6 +112,17 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
           <option value="">Thinking: default</option>
           <option value="on">Thinking: yes</option>
           <option value="off">Thinking: no</option>
+        </select>
+      ) : null}
+      {showsRemoteControl ? (
+        <select
+          className="agent-model-bar__select"
+          onChange={changeRemoteControl}
+          title="Remote control — applying restarts the agent"
+          value={agent.flags?.remoteControl ? 'on' : 'off'}
+        >
+          <option value="off">Remote control: off</option>
+          <option value="on">Remote control: on</option>
         </select>
       ) : null}
     </div>
