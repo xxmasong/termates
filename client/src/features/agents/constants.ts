@@ -9,13 +9,26 @@ export const AGENT_CLI_OPTIONS: Array<{ value: AgentCli; label: string; icon: Ic
 
 /**
  * Model choices per CLI, verified against each CLI's own help output / API:
- *   claude  `--model` accepts the aliases fable | opus | sonnet
+ *   claude  `--model`, aliases as `/model` lists them (--help shows only a
+ *           three-item example, which is not the full set)
  *   codex   `-c model="..."` (any model id the account can reach)
  *   gemini  `--model`, names from the Generative Language models endpoint
  * An empty value leaves the CLI on its own default.
  */
 export const AGENT_MODEL_OPTIONS: Record<AgentCli, string[]> = {
-  claude: ['fable', 'opus', 'sonnet'],
+  claude: [
+    'default',
+    'opus',
+    'sonnet',
+    'haiku',
+    'fable',
+    'opusplan',
+    'best',
+    // 1M-token context variants
+    'opus[1m]',
+    'sonnet[1m]',
+    'fable[1m]',
+  ],
   codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'gpt-5.2-codex', 'o3'],
   gemini: [
     'gemini-3.1-pro-preview',
