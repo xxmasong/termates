@@ -9,7 +9,7 @@ import {
   AGENT_PERMISSION_MODES,
   AGENT_REMOTE_CONTROL_CLIS,
   AGENT_THINKING_ALWAYS_ON,
-  AGENT_THINKING_CLIS,
+  AGENT_THINKING_OPTIONS,
 } from '../constants';
 
 export interface AgentModelBarProps {
@@ -31,12 +31,13 @@ export interface AgentModelBarProps {
 export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange }) => {
   const models = AGENT_MODEL_OPTIONS[agent.cli] ?? [];
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
-  const showsThinking = AGENT_THINKING_CLIS.includes(agent.cli);
+  const thinkingModes = AGENT_THINKING_OPTIONS[agent.cli] ?? [];
   const showsRemoteControl = AGENT_REMOTE_CONTROL_CLIS.includes(agent.cli);
   const permissionModes = AGENT_PERMISSION_MODES[agent.cli] ?? [];
   const autocompacts = AGENT_AUTOCOMPACT_OPTIONS[agent.cli] ?? [];
   // Some models think unconditionally, so offering "off" there would lie.
-  const thinkingLocked = AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
+  const thinkingLocked =
+    agent.cli === 'gemini' && AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
 
   const changeModel = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -75,7 +76,7 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
     efforts.length === 0 &&
     permissionModes.length === 0 &&
     autocompacts.length === 0 &&
-    !showsThinking &&
+    thinkingModes.length === 0 &&
     !showsRemoteControl
   ) {
     return null;
@@ -113,7 +114,7 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
           ))}
         </select>
       ) : null}
-      {showsThinking ? (
+      {thinkingModes.length > 0 ? (
         <select
           className="agent-model-bar__select"
           disabled={thinkingLocked}
@@ -123,11 +124,14 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
               ? `${agent.model} always thinks; it cannot be turned off`
               : 'Thinking mode — applying restarts the agent'
           }
-          value={thinkingLocked ? 'on' : (agent.thinking ?? '')}
+          value={thinkingLocked ? 'enabled' : (agent.thinking ?? '')}
         >
           <option value="">Thinking: default</option>
-          <option value="on">Thinking: yes</option>
-          <option value="off">Thinking: no</option>
+          {thinkingModes.map((mode) => (
+            <option key={mode} value={mode}>
+              Thinking: {mode}
+            </option>
+          ))}
         </select>
       ) : null}
       {permissionModes.length > 0 ? (

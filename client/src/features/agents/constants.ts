@@ -55,13 +55,19 @@ export const AGENT_EFFORT_OPTIONS: Record<AgentCli, string[]> = {
 };
 
 /**
- * Thinking mode. Only Gemini exposes a real on/off switch, and only on models
- * that allow it: thinking cannot be disabled on Gemini 3.x or 2.5 Pro, and
- * Claude and Codex fold thinking into their effort setting rather than a
- * separate toggle. The control is therefore shown for Gemini alone.
- *   https://ai.google.dev/gemini-api/docs/thinking
+ * Thinking mode, per CLI.
+ *   claude  `--thinking <enabled|adaptive|disabled>`, as the CLI's own error
+ *           message enumerates; this is the toggle its action menu shows
+ *   gemini  no flag: written as generation.thinkingBudget into the agent's
+ *           workspace settings, where 0 disables and -1 is dynamic
+ *   codex    folds thinking into model_reasoning_effort, no separate switch
+ * Values are stored as given and translated per CLI at launch.
  */
-export const AGENT_THINKING_CLIS: AgentCli[] = ['gemini'];
+export const AGENT_THINKING_OPTIONS: Record<AgentCli, string[]> = {
+  claude: ['enabled', 'adaptive', 'disabled'],
+  codex: [],
+  gemini: ['enabled', 'disabled'],
+};
 
 /** Gemini models whose thinking cannot be turned off. */
 export const AGENT_THINKING_ALWAYS_ON = [

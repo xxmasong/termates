@@ -298,7 +298,8 @@ function writeGeminiWorkspaceSettings(agent: Agent, cwd: string): void {
     }
 
     const generation = (settings.generation ?? {}) as Record<string, unknown>;
-    generation.thinkingBudget = agent.thinking === 'off' ? 0 : -1;
+    // Shared vocabulary with Claude's --thinking: 0 disables, -1 is dynamic.
+    generation.thinkingBudget = agent.thinking === 'disabled' ? 0 : -1;
     settings.generation = generation;
 
     fs.writeFileSync(file, JSON.stringify(settings, null, 2), 'utf-8');
@@ -324,6 +325,7 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       if (hookConfigPath) args.push('--settings', hookConfigPath);
       if (agent.model) args.push('--model', agent.model);
       if (agent.effort) args.push('--effort', agent.effort);
+      if (agent.thinking) args.push('--thinking', agent.thinking);
       if (agent.permissionMode) args.push('--permission-mode', agent.permissionMode);
       if (agent.autocompact) args.push('--autocompact', agent.autocompact);
       return { cmd: 'claude', args };
