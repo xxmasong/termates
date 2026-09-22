@@ -18,7 +18,9 @@ import {
   useCreateProject,
   useDeleteProject,
   useProjects,
+  useUpdateProject,
   type CreateProjectInput,
+  type UpdateProjectInput,
 } from '@/features/projects';
 
 const getErrorMessage = (error: unknown): string | null =>
@@ -30,12 +32,14 @@ export const useProjectAgentShell = () => {
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const [projectPendingDelete, setProjectPendingDelete] = useState<Project | null>(null);
+  const [projectPendingEdit, setProjectPendingEdit] = useState<Project | null>(null);
 
   const projectsQuery = useProjects();
   const agentsQuery = useAgents(selectedProjectId);
   const previewsQuery = useAgentPreviews(selectedProjectId);
   const createProjectMutation = useCreateProject();
   const deleteProjectMutation = useDeleteProject();
+  const updateProjectMutation = useUpdateProject();
   const createAgentMutation = useCreateAgent();
   const deleteAgentMutation = useDeleteAgent();
   const lifecycle = useAgentLifecycle();
@@ -63,6 +67,20 @@ export const useProjectAgentShell = () => {
   const closeCreateAgent = useCallback(() => setCreateAgentOpen(false), []);
   const requestDeleteProject = useCallback((project: Project) => setProjectPendingDelete(project), []);
   const cancelDeleteProject = useCallback(() => setProjectPendingDelete(null), []);
+  const requestEditProject = useCallback((project: Project) => setProjectPendingEdit(project), []);
+  const cancelEditProject = useCallback(() => setProjectPendingEdit(null), []);
+
+  const updateProject = useCallback(
+    (projectId: string, input: UpdateProjectInput) => {
+      updateProjectMutation.mutate(
+        { input, projectId },
+        {
+          onSuccess: () => setProjectPendingEdit(null),
+        },
+      );
+    },
+    [updateProjectMutation],
+  );
 
   const createProject = useCallback(
     (input: CreateProjectInput) => {
@@ -142,6 +160,7 @@ export const useProjectAgentShell = () => {
     agentsError: getErrorMessage(agentsQuery.error),
     agentsLoading: agentsQuery.isLoading,
     cancelDeleteProject,
+    cancelEditProject,
     closeCreateAgent,
     closeCreateProject,
     createAgent,
@@ -158,11 +177,13 @@ export const useProjectAgentShell = () => {
     openCreateProject,
     previews: previewsQuery.data ?? {},
     projectPendingDelete,
+    projectPendingEdit,
     projects,
     projectAgentSummaries,
     projectsError: getErrorMessage(projectsQuery.error),
     projectsLoading: projectsQuery.isLoading,
     requestDeleteProject,
+    requestEditProject,
     restartAgent,
     selectAgent,
     selectProject,
@@ -171,5 +192,7 @@ export const useProjectAgentShell = () => {
     selectedProjectId,
     startAgent,
     stopAgent,
+    updateProject,
+    updateProjectLoading: updateProjectMutation.isPending,
   };
 };

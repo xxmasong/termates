@@ -6,7 +6,7 @@ export interface CreateProjectInput {
   description?: string;
 }
 
-export type UpdateProjectInput = Partial<Project>;
+export type UpdateProjectInput = Partial<Pick<Project, 'name' | 'cwd' | 'description'>>;
 
 export interface DeleteProjectInput {
   projectId: string;

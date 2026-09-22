@@ -1,5 +1,7 @@
 import type { Project } from '@/types';
 
+import { Button } from '@/components';
+
 interface ProjectListItemSummary {
   total: number;
   alive: number;
@@ -10,6 +12,8 @@ export interface ProjectListItemProps {
   summary?: ProjectListItemSummary;
   selected: boolean;
   onSelect: (projectId: string) => void;
+  onEdit?: (project: Project) => void;
+  onDelete?: (project: Project) => void;
 }
 
 export const ProjectListItem: React.FC<ProjectListItemProps> = ({
@@ -17,6 +21,8 @@ export const ProjectListItem: React.FC<ProjectListItemProps> = ({
   summary,
   selected,
   onSelect,
+  onEdit,
+  onDelete,
 }) => (
   <div className={`project-list-item${selected ? ' project-list-item--selected' : ''}`}>
     <button className="project-list-item__select" onClick={() => onSelect(project.id)} type="button">
@@ -29,5 +35,31 @@ export const ProjectListItem: React.FC<ProjectListItemProps> = ({
         </span>
       ) : null}
     </button>
+    {onEdit || onDelete ? (
+      <span className="project-list-item__actions">
+        {onEdit ? (
+          <Button
+            aria-label={`Edit ${project.name}`}
+            icon="gear"
+            iconOnly
+            onClick={() => onEdit(project)}
+            size="sm"
+            title="Edit project"
+            variant="ghost"
+          />
+        ) : null}
+        {onDelete ? (
+          <Button
+            aria-label={`Delete ${project.name}`}
+            icon="x"
+            iconOnly
+            onClick={() => onDelete(project)}
+            size="sm"
+            title="Delete project"
+            variant="ghost"
+          />
+        ) : null}
+      </span>
+    ) : null}
   </div>
 );

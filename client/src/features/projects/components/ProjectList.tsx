@@ -17,6 +17,8 @@ export interface ProjectListProps {
   error?: string | null;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
+  onEditProject?: (project: Project) => void;
+  onDeleteProject?: (project: Project) => void;
 }
 
 export const ProjectList: React.FC<ProjectListProps> = ({
@@ -27,6 +29,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   error,
   onSelectProject,
   onCreateProject,
+  onEditProject,
+  onDeleteProject,
 }) => (
   <section className="project-list">
     <header className="feature-section-header">
@@ -53,6 +57,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       {projects.map((project) => (
         <ProjectListItem
           key={project.id}
+          onDelete={onDeleteProject}
+          onEdit={onEditProject}
           onSelect={onSelectProject}
           project={project}
           summary={agentSummaries?.[project.id]}

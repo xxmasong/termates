@@ -67,7 +67,21 @@
 }
 
 .project-list-item {
+  align-items: center;
+  display: flex;
   position: relative;
+}
+
+.project-list-item__actions {
+  align-items: center;
+  display: none;
+  gap: 2px;
+  padding-right: 2px;
+}
+
+.project-list-item:hover .project-list-item__actions,
+.project-list-item:focus-within .project-list-item__actions {
+  display: inline-flex;
 }
 
 .project-list-item__select {

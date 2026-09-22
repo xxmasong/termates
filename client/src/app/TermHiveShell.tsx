@@ -28,7 +28,12 @@ import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
 import { BrainPanel, KeeperHud, useBrainActions, useBrainState, type KeeperHudNotice } from '@/features/brain';
 import { ContentPanel } from '@/features/content';
 import { MessagesPanel } from '@/features/messages';
-import { CreateProjectModal, DeleteProjectDialog, ProjectList } from '@/features/projects';
+import {
+  CreateProjectModal,
+  DeleteProjectDialog,
+  EditProjectModal,
+  ProjectList,
+} from '@/features/projects';
 import { SettingsModal, THEMES, useThemePreference, type ThemeName } from '@/features/settings';
 import { TerminalWorkspace, TERMINAL_LAYOUT_OPTIONS, useTerminalLayoutMode } from '@/features/terminal';
 import { UsageMeters, useSpeechInput } from '@/features/voice';
@@ -523,6 +528,8 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               error={vm.projectsError}
               loading={vm.projectsLoading}
               onCreateProject={vm.openCreateProject}
+              onDeleteProject={vm.requestDeleteProject}
+              onEditProject={vm.requestEditProject}
               onSelectProject={selectProjectFromSidebar}
               projects={vm.projects}
               selectedProjectId={vm.selectedProjectId}
@@ -560,6 +567,12 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         onCreate={vm.createAgent}
         open={vm.createAgentOpen}
         projectCwd={vm.selectedProject?.cwd}
+      />
+      <EditProjectModal
+        loading={vm.updateProjectLoading}
+        onClose={vm.cancelEditProject}
+        onSave={vm.updateProject}
+        project={vm.projectPendingEdit}
       />
       <DeleteProjectDialog
         loading={vm.deleteProjectLoading}
