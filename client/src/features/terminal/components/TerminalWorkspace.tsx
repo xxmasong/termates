@@ -1,11 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import type { Agent } from '@/types';
 
-import { Button, EmptyState, GridLayout, Toolbar, ToolbarGroup, type GridLayoutMode } from '@/components';
+import { EmptyState, GridLayout } from '@/components';
 import { STORAGE_KEYS } from '@/constants';
 
-import { TERMINAL_LAYOUT_OPTIONS } from '../constants';
 import { useTerminalLayoutMode } from '../hooks';
 import { AgentPane } from './AgentPane';
 
@@ -28,14 +27,7 @@ export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
   onStartAgent,
   onStopAgent,
 }) => {
-  const [layoutMode, setLayoutMode] = useTerminalLayoutMode();
-
-  const selectLayoutMode = useCallback(
-    (mode: GridLayoutMode) => {
-      setLayoutMode(mode);
-    },
-    [setLayoutMode],
-  );
+  const [layoutMode] = useTerminalLayoutMode();
 
   const panes = useMemo(
     () =>
@@ -70,27 +62,6 @@ export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
 
   return (
     <section className="terminal-workspace">
-      <header className="terminal-workspace__bar">
-        <Toolbar align="between">
-          <ToolbarGroup>
-            <span className="terminal-workspace__title">Terminals</span>
-          </ToolbarGroup>
-          <ToolbarGroup>
-            {TERMINAL_LAYOUT_OPTIONS.map((option) => (
-              <Button
-                aria-pressed={layoutMode === option.value}
-                icon={option.icon}
-                iconOnly
-                key={option.value}
-                onClick={() => selectLayoutMode(option.value)}
-                size="sm"
-                title={option.label}
-                variant={layoutMode === option.value ? 'primary' : 'ghost'}
-              />
-            ))}
-          </ToolbarGroup>
-        </Toolbar>
-      </header>
       <GridLayout
         emptyTitle="No terminals"
         focusedId={selectedAgentId}

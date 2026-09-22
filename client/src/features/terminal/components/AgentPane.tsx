@@ -4,7 +4,6 @@ import type { Agent } from '@/types';
 
 import { Badge, Button, Icon } from '@/components';
 import { agentHue, agentInitials } from '@/features/agents';
-import { CodexAgentView } from '@/features/codex';
 import { classNames } from '@/lib/utils';
 
 import { AGENT_PANE_STATUS_LABELS, AGENT_PANE_STATUS_TONES } from '../constants';
@@ -119,11 +118,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
       </header>
       <div className="agent-pane__body">
         {alive ? (
-          agent.cli === 'codex' ? (
-            <CodexAgentView agentId={agent.id} focused={focused} onFocus={focusPane} />
-          ) : (
-            <AgentTerminal agentId={agent.id} focused={focused} onFocus={focusPane} />
-          )
+          <AgentTerminal agentId={agent.id} focused={focused} onFocus={focusPane} />
         ) : (
           <div className="agent-pane__stopped">
             <span className="agent-pane__stopped-label">agent stopped</span>

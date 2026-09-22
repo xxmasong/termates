@@ -7,18 +7,12 @@ export interface StatusBarCount {
   value: number;
 }
 
-export interface StatusBarShortcut {
-  keys: string;
-  label: string;
-}
-
 export interface StatusBarProps {
   counts?: StatusBarCount[];
-  shortcuts: StatusBarShortcut[];
   connected: boolean;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ counts = [], shortcuts, connected }) => (
+export const StatusBar: React.FC<StatusBarProps> = ({ counts = [], connected }) => (
   <footer className="status-bar">
     <div className="status-bar__group">
       {counts
@@ -34,11 +28,6 @@ export const StatusBar: React.FC<StatusBarProps> = ({ counts = [], shortcuts, co
         ))}
     </div>
     <div className="status-bar__group">
-      {shortcuts.map((shortcut) => (
-        <span className="status-bar__kbd" key={shortcut.keys}>
-          <kbd>{shortcut.keys}</kbd> {shortcut.label}
-        </span>
-      ))}
       <span
         className={classNames(
           'status-bar__item',

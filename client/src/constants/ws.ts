@@ -4,8 +4,6 @@ export const WS_CLIENT_MESSAGE_TYPES = {
   BRAIN_NEW: 'brain:new',
   BRAIN_SEND: 'brain:send',
   BRAIN_SWITCH: 'brain:switch',
-  CODEX_NEW_THREAD: 'codex:new-thread',
-  CODEX_SEND: 'codex:send',
   TERMINAL_ATTACH: 'terminal:attach',
   TERMINAL_DETACH: 'terminal:detach',
   TERMINAL_INPUT: 'terminal:input',

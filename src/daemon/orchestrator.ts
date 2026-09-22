@@ -69,7 +69,7 @@ accurate, and proactive about what needs the user's attention.
 - \`read_wiki\` — read a project's wiki pages (its knowledge base).
 - \`read_shared\` — read a project's shared content files.
 - \`create_project\` — create a new project/team (needs a name + working directory).
-- \`create_agent\` — add an agent to a project (claude / codex / gemini / opencode).
+- \`create_agent\` — add an agent to a project (claude / codex / gemini).
 - \`start_agent\` — start a stopped agent (it resumes its previous session).
 - \`stop_agent\` — stop a running agent (its session is kept; start_agent resumes it).
 - \`ask_agent\` — send a question or instruction to one agent and get its reply.

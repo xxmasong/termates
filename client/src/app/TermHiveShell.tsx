@@ -54,16 +54,10 @@ const WORKSPACES: Array<{ id: WorkspaceId; label: string; icon: ReactNode }> = [
 ];
 
 const NOTIFICATION_LIMIT = 5;
+const NOTIFICATION_TTL_MS = 6_000;
 
 const MOD_KEY =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
-
-const SHORTCUTS = [
-  { keys: `${MOD_KEY}K`, label: 'palette' },
-  { keys: `${MOD_KEY}J`, label: 'command' },
-  { keys: `${MOD_KEY};`, label: 'voice' },
-  { keys: `${MOD_KEY}1-5`, label: 'agent' },
-];
 
 interface TermHiveShellProps {
   children?: never;
@@ -519,7 +513,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
           />
         }
         statusBar={
-          <StatusBar connected={wsStatus === 'open'} counts={statusCounts} shortcuts={SHORTCUTS} />
+          <StatusBar connected={wsStatus === 'open'} counts={statusCounts} />
         }
         sidebar={
           <SidebarShell collapsed={sidebarCollapsed} onLayoutChange={onSidebarLayoutChange}>

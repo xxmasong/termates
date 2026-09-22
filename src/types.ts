@@ -15,18 +15,20 @@ export interface Project {
  */
 export type AgentStatus = 'stopped' | 'running' | 'idle' | 'awaiting_input';
 
+/** The CLIs an agent may run. Single source of truth for validation. */
+export const AGENT_CLIS = ['claude', 'codex', 'gemini'] as const;
+
+export type AgentCli = (typeof AGENT_CLIS)[number];
+
 export interface Agent {
   id: string;
   projectId: string;
   name: string;
   role?: string;
-  cli: 'claude' | 'codex' | 'gemini' | 'opencode';
+  cli: AgentCli;
   cwd: string;
   status: AgentStatus;
   pid?: number;
-  /** v2.2: Codex agents run as `codex app-server` threads — this is the
-   *  thread id, persisted so the agent resumes across daemon restarts. */
-  codexThreadId?: string;
   flags?: {
     dangerouslySkipPermissions?: boolean;
     remoteControl?: boolean;
@@ -55,8 +57,6 @@ export type WSClientMessage =
   | { type: 'terminal:input'; agentId: string; data: string }
   | { type: 'terminal:detach'; agentId: string }
   | { type: 'terminal:resize'; agentId: string; cols: number; rows: number }
-  | { type: 'codex:send'; agentId: string; text: string; model?: string; effort?: string }
-  | { type: 'codex:new-thread'; agentId: string }
   | { type: 'brain:send'; message: string }
   | { type: 'brain:new' }
   | { type: 'brain:abort' }

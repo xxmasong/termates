@@ -17,7 +17,7 @@ import os from 'os';
 import path from 'path';
 import * as storage from '../storage.js';
 import * as runtime from './runtime.js';
-import type { Agent, Project } from '../types.js';
+import { AGENT_CLIS, type Agent, type Project } from '../types.js';
 import { hookEvents } from './hook-events.js';
 
 /** Upper bound on how long `ask_agent` waits for a Claude turn to finish.
@@ -361,26 +361,17 @@ export async function askAgentDispatch(
     }
 
     await sleep(800); // let the final transcript line flush to disk
-    // The text injectMessage wrote — used to locate our exact turn in the
-    // transcript so the reply is read from the right conversation branch.
+    // Match the prefix of the injected payload (pty-manager appends a reply
+    // hint after the message body, but the distinguishing part is this prefix).
     const injectedText = `[Message from Hive Orchestrator]: ${message.replace(/\r/g, '').trim()}`;
     const reply = readClaudeReply(expandHome(agent.cwd), since, injectedText);
     return { ok: true, status: reply ? 'replied' : 'no-reply', ...base, reply };
   }
 
-  if (agent.cli === 'codex') {
-    // Codex → app-server: run a turn and wait for the structured reply.
-    const r = await runtime.askCodexAgent(agent.id, message);
-    if (r.status === 'not-running') {
-      return { ok: false, status: 'not-running', ...base, reply: null };
-    }
-    if (r.status === 'error') {
-      return { ok: false, status: 'no-reply', ...base, reply: null, error: r.error };
-    }
-    return { ok: true, status: r.status, ...base, reply: r.reply };
-  }
-
-  // Gemini / OpenCode — deliver the message; reply capture not supported.
+  // Codex / Gemini — deliver the message; reply capture not supported.
+  // Codex previously ran on the app-server, which returned a structured reply.
+  // It now runs as an interactive TUI in a PTY like the others, and there is no
+  // transcript file to read a reply back from, so delivery is one-way.
   const injected = runtime.injectMessage(agent.id, 'Hive Orchestrator', message);
   return {
     ok: injected,
@@ -733,7 +724,7 @@ export interface CreateAgentResult {
   error?: string;
 }
 
-const VALID_CLIS = ['claude', 'codex', 'gemini', 'opencode'];
+const VALID_CLIS: readonly string[] = AGENT_CLIS;
 
 /** Add an agent to a project. The agent is created stopped. */
 export function createAgentDispatch(

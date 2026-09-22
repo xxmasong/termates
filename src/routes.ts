@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import * as storage from './storage.js';
 import * as activity from './activity.js';
+import { AGENT_CLIS } from './types.js';
 import type { DaemonClient } from './daemon/client.js';
 import { appendTranscript } from './transcript.js';
 
@@ -84,6 +85,10 @@ export function createRouter(
     const { name, cli, cwd, role, flags } = req.body;
     if (!name || !cli) {
       res.status(400).json({ error: 'name and cli are required' });
+      return;
+    }
+    if (!(AGENT_CLIS as readonly string[]).includes(cli)) {
+      res.status(400).json({ error: `cli must be one of: ${AGENT_CLIS.join(', ')}.` });
       return;
     }
     const projectData = storage.getProjectData(req.params.id);

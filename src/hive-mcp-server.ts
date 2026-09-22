@@ -305,7 +305,7 @@ async function main() {
             name: { type: 'string', description: 'Agent name, e.g. "Backend".' },
             cli: {
               type: 'string',
-              description: 'Which CLI runs this agent: claude, codex, gemini, or opencode.',
+              description: 'Which CLI runs this agent: claude, codex, or gemini.',
             },
             role: {
               type: 'string',

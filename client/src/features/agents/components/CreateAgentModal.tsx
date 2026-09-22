@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 
 import { Button, FormField, Input, Modal, Textarea } from '@/components';
 
+import { joinCwd, sanitizeSlugInput, slugifyName } from '@/lib/utils';
+
 import { AGENT_CLI_OPTIONS, AGENT_FORM_FIELD_IDS } from '../constants';
 import type { AgentCli, CreateAgentInput } from '../types';
 
@@ -22,19 +24,38 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [cli, setCli] = useState<AgentCli>('claude');
-  const [cwd, setCwd] = useState(projectCwd);
+  const [slug, setSlug] = useState('');
+  const [slugEdited, setSlugEdited] = useState(false);
   const [role, setRole] = useState('');
   const [dangerouslySkipPermissions, setDangerouslySkipPermissions] = useState(false);
   const [remoteControl, setRemoteControl] = useState(false);
 
+  const cwd = joinCwd(projectCwd, slug);
+
+  const changeName = useCallback(
+    (value: string) => {
+      setName(value);
+      if (!slugEdited) {
+        setSlug(slugifyName(value));
+      }
+    },
+    [slugEdited],
+  );
+
+  const changeSlug = useCallback((value: string) => {
+    setSlugEdited(true);
+    setSlug(sanitizeSlugInput(value));
+  }, []);
+
   const reset = useCallback(() => {
     setName('');
     setCli('claude');
-    setCwd(projectCwd);
+    setSlug('');
+    setSlugEdited(false);
     setRole('');
     setDangerouslySkipPermissions(false);
     setRemoteControl(false);
-  }, [projectCwd]);
+  }, []);
 
   const close = useCallback(() => {
     reset();
@@ -52,7 +73,9 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
 
       onCreate({
         cli,
-        cwd: cwd.trim() || undefined,
+        // Normalize once more on submit: the input tolerates a trailing hyphen
+        // while typing, but it must not reach the filesystem.
+        cwd: joinCwd(projectCwd, slugifyName(slug)),
         flags: {
           dangerouslySkipPermissions,
           remoteControl,
@@ -62,7 +85,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
       });
       reset();
     },
-    [cli, cwd, dangerouslySkipPermissions, name, onCreate, remoteControl, reset, role],
+    [cli, dangerouslySkipPermissions, name, onCreate, projectCwd, remoteControl, reset, role, slug],
   );
 
   return (
@@ -86,7 +109,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
           <Input
             autoFocus
             id={AGENT_FORM_FIELD_IDS.NAME}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => changeName(event.target.value)}
             required
             value={name}
           />
@@ -105,11 +128,18 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
           ))}
         </div>
         <FormField htmlFor={AGENT_FORM_FIELD_IDS.CWD} label="Working directory">
-          <Input
-            id={AGENT_FORM_FIELD_IDS.CWD}
-            onChange={(event) => setCwd(event.target.value)}
-            value={cwd}
-          />
+          <div className="agent-cwd-field">
+            <span className="agent-cwd-field__root" title={projectCwd}>
+              {projectCwd.replace(/\/+$/, '')}/
+            </span>
+            <Input
+              id={AGENT_FORM_FIELD_IDS.CWD}
+              onChange={(event) => changeSlug(event.target.value)}
+              placeholder="agent-folder"
+              value={slug}
+            />
+          </div>
+          <p className="agent-cwd-field__preview">{cwd}</p>
         </FormField>
         <FormField htmlFor={AGENT_FORM_FIELD_IDS.ROLE} label="Role">
           <Textarea

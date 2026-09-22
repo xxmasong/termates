@@ -5,7 +5,10 @@ const HOME = process.env.HOME || process.env.USERPROFILE || '.';
 const CLAUDE_CREDS = path.join(HOME, '.claude', '.credentials.json');
 const CODEX_AUTH = path.join(HOME, '.codex', 'auth.json');
 const POLL_INTERVAL = 5 * 60 * 1000;
-const RETRY_AFTER_429 = 10 * 60 * 1000;
+const RETRY_AFTER_429 = 2 * 60 * 1000;
+/** Last good readings, so a restart during a 429 window still has something
+ *  to show instead of dropping the meter. */
+const USAGE_CACHE_FILE = path.join(HOME, '.termhive', 'usage-cache.json');
 
 interface UsageData {
   session: { utilization: number; resetsAt: string } | null;
@@ -16,6 +19,29 @@ interface UsageData {
 interface AllUsage {
   claude: UsageData | null;
   codex: UsageData | null;
+}
+
+function loadCache(): { claude?: UsageData | null; codex?: UsageData | null } {
+  try {
+    if (!fs.existsSync(USAGE_CACHE_FILE)) return {};
+    return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf-8'));
+  } catch { return {}; }
+}
+
+function saveCache(): void {
+  try {
+    // Never let a null overwrite a good reading on disk: one CLI being rate
+    // limited must not wipe the other CLI's last known figures.
+    const prev = loadCache();
+    fs.mkdirSync(path.dirname(USAGE_CACHE_FILE), { recursive: true });
+    fs.writeFileSync(
+      USAGE_CACHE_FILE,
+      JSON.stringify({
+        claude: claudeCache ?? prev.claude ?? null,
+        codex: codexCache ?? prev.codex ?? null,
+      }),
+    );
+  } catch { /* cache is best-effort */ }
 }
 
 // --- Claude ---
@@ -56,6 +82,7 @@ async function fetchClaudeUsage(): Promise<UsageData | null> {
       updatedAt: new Date().toISOString(),
     };
     claudeLastFetch = Date.now();
+    saveCache();
     return claudeCache;
   } catch { return claudeCache; }
 }
@@ -109,6 +136,7 @@ async function fetchCodexUsage(): Promise<UsageData | null> {
       updatedAt: new Date().toISOString(),
     };
     codexLastFetch = Date.now();
+    saveCache();
     return codexCache;
   } catch { return codexCache; }
 }
@@ -122,6 +150,10 @@ export async function getUsage(): Promise<AllUsage> {
 }
 
 export function startPolling() {
+  const persisted = loadCache();
+  if (!claudeCache && persisted.claude) claudeCache = persisted.claude;
+  if (!codexCache && persisted.codex) codexCache = persisted.codex;
+
   const poll = async () => {
     const claude = await fetchClaudeUsage();
     const codex = await fetchCodexUsage();

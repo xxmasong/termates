@@ -297,9 +297,6 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       args.push('--include-directories', sharedPath);
       args.push('--include-directories', wikiPath);
       return { cmd: 'gemini', args };
-    case 'opencode':
-      if (agent.flags?.dangerouslySkipPermissions) args.push('--dangerously-skip-permissions');
-      return { cmd: 'opencode', args };
   }
 }
 
@@ -318,6 +315,16 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   const wikiPath = path.join(WIKI_DIR, projectName);
 
   const cwd = expandHome(agent.cwd);
+
+  // The agent's working directory is a plain path the user typed; nothing has
+  // created it yet. Both the instruction file below and pty.spawn require it
+  // to exist, so make it here rather than failing with a bare ENOENT.
+  try {
+    fs.mkdirSync(cwd, { recursive: true });
+  } catch (err) {
+    console.error(`[pty-manager] Cannot create cwd ${cwd} for agent ${agent.name}:`, err);
+    return false;
+  }
 
   // Resolve teammates (all other agents in the same project)
   const teammates = projectData.agents.filter(a => a.id !== agent.id);

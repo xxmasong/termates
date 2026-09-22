@@ -109,7 +109,7 @@ type AgentStatus = 'stopped' | 'running' | 'idle' | 'awaiting_input';
 
 interface Agent {
   id: string; projectId: string; name: string; role?: string;
-  cli: 'claude' | 'codex' | 'gemini' | 'opencode';
+  cli: 'claude' | 'codex' | 'gemini';
   cwd: string; status: AgentStatus; pid?: number; codexThreadId?: string;
   flags?: { dangerouslySkipPermissions?: boolean; remoteControl?: boolean };
 }

@@ -3,7 +3,6 @@
 @import '../features/projects/styles.css';
 @import '../features/agents/styles.css';
 @import '../features/terminal/styles.css';
-@import '../features/codex/styles.css';
 @import '../features/brain/styles.css';
 @import '../features/messages/styles.css';
 @import '../features/content/styles.css';
@@ -16,6 +15,47 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Scrollbars: the native ones render as an opaque white trough with stepper
+   arrows, which reads as a foreign box on every dark surface. Draw a thin
+   thumb on a transparent track instead, in both the standards syntax and the
+   WebKit one. */
+* {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Remove the stepper arrows at each end of the track. */
+*::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 html,

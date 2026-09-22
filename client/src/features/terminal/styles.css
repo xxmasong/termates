@@ -5,19 +5,6 @@
   min-height: 0;
 }
 
-.terminal-workspace__bar {
-  background: var(--bg-1);
-  border-bottom: 1px solid var(--border);
-  flex: 0 0 auto;
-  padding: 6px 10px;
-}
-
-.terminal-workspace__title {
-  color: var(--text-1);
-  font-size: 12px;
-  font-weight: 650;
-}
-
 .terminal-container {
   background: #1e1e1e;
   height: 100%;
