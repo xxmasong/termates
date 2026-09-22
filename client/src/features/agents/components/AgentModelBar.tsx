@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { Agent } from '@/types';
 
@@ -12,23 +12,48 @@ import {
   AGENT_THINKING_OPTIONS,
 } from '../constants';
 
-export interface AgentModelBarProps {
-  agent: Agent;
-  /** Applying a change restarts the agent: a running CLI cannot be reconfigured. */
-  onChange: (
-    agent: Agent,
-    patch: {
-      model?: string;
-      effort?: string;
-      thinking?: string;
-      permissionMode?: string;
-      autocompact?: string;
-      flags?: Agent['flags'];
-    },
-  ) => void;
+/** The launch settings the bar can change, as stored on the agent. */
+export interface AgentLaunchSettings {
+  model: string;
+  effort: string;
+  thinking: string;
+  permissionMode: string;
+  autocompact: string;
+  remoteControl: boolean;
 }
 
-export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange }) => {
+export const readLaunchSettings = (agent: Agent): AgentLaunchSettings => ({
+  autocompact: agent.autocompact ?? '',
+  effort: agent.effort ?? '',
+  model: agent.model ?? '',
+  permissionMode: agent.permissionMode ?? '',
+  remoteControl: Boolean(agent.flags?.remoteControl),
+  thinking: agent.thinking ?? '',
+});
+
+export const launchSettingsEqual = (a: AgentLaunchSettings, b: AgentLaunchSettings): boolean =>
+  a.model === b.model &&
+  a.effort === b.effort &&
+  a.thinking === b.thinking &&
+  a.permissionMode === b.permissionMode &&
+  a.autocompact === b.autocompact &&
+  a.remoteControl === b.remoteControl;
+
+export interface AgentModelBarProps {
+  agent: Agent;
+  /**
+   * Staged settings are held by the pane, not applied here: selecting an
+   * option must not restart the agent on its own.
+   */
+  draft: AgentLaunchSettings;
+  onDraftChange: (next: AgentLaunchSettings) => void;
+}
+
+export const AgentModelBar: React.FC<AgentModelBarProps> = ({
+  agent,
+  draft,
+  onDraftChange,
+}) => {
   const models = AGENT_MODEL_OPTIONS[agent.cli] ?? [];
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
   const thinkingModes = AGENT_THINKING_OPTIONS[agent.cli] ?? [];
@@ -37,39 +62,12 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
   const autocompacts = AGENT_AUTOCOMPACT_OPTIONS[agent.cli] ?? [];
   // Some models think unconditionally, so offering "off" there would lie.
   const thinkingLocked =
-    agent.cli === 'gemini' && AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
+    agent.cli === 'gemini' && AGENT_THINKING_ALWAYS_ON.includes(draft.model);
 
-  const changeModel = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(agent, { model: event.target.value });
-    },
-    [agent, onChange],
+  const set = useCallback(
+    (patch: Partial<AgentLaunchSettings>) => onDraftChange({ ...draft, ...patch }),
+    [draft, onDraftChange],
   );
-
-  const changeEffort = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(agent, { effort: event.target.value });
-    },
-    [agent, onChange],
-  );
-
-  const changeThinking = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(agent, { thinking: event.target.value });
-  };
-
-  const changeRemoteControl = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(agent, {
-      flags: { ...agent.flags, remoteControl: event.target.value === 'on' },
-    });
-  };
-
-  const changePermissionMode = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(agent, { permissionMode: event.target.value });
-  };
-
-  const changeAutocompact = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(agent, { autocompact: event.target.value });
-  };
 
   if (
     models.length === 0 &&
@@ -87,9 +85,9 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       {models.length > 0 ? (
         <select
           className="agent-model-bar__select"
-          onChange={changeModel}
-          title="Model — applying restarts the agent"
-          value={agent.model ?? ''}
+          onChange={(event) => set({ model: event.target.value })}
+          title="Model"
+          value={draft.model}
         >
           <option value="">Model: default</option>
           {models.map((model) => (
@@ -102,9 +100,9 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       {efforts.length > 0 ? (
         <select
           className="agent-model-bar__select"
-          onChange={changeEffort}
-          title="Reasoning effort — applying restarts the agent"
-          value={agent.effort ?? ''}
+          onChange={(event) => set({ effort: event.target.value })}
+          title="Reasoning effort"
+          value={draft.effort}
         >
           <option value="">Reasoning: default</option>
           {efforts.map((effort) => (
@@ -118,13 +116,13 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
         <select
           className="agent-model-bar__select"
           disabled={thinkingLocked}
-          onChange={changeThinking}
+          onChange={(event) => set({ thinking: event.target.value })}
           title={
             thinkingLocked
-              ? `${agent.model} always thinks; it cannot be turned off`
-              : 'Thinking mode — applying restarts the agent'
+              ? `${draft.model} always thinks; it cannot be turned off`
+              : 'Thinking mode'
           }
-          value={thinkingLocked ? 'enabled' : (agent.thinking ?? '')}
+          value={thinkingLocked ? 'enabled' : draft.thinking}
         >
           <option value="">Thinking: default</option>
           {thinkingModes.map((mode) => (
@@ -137,9 +135,9 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       {permissionModes.length > 0 ? (
         <select
           className="agent-model-bar__select"
-          onChange={changePermissionMode}
-          title="Permission mode — applying restarts the agent"
-          value={agent.permissionMode ?? ''}
+          onChange={(event) => set({ permissionMode: event.target.value })}
+          title="Permission mode"
+          value={draft.permissionMode}
         >
           <option value="">Permissions: default</option>
           {permissionModes.map((mode) => (
@@ -152,9 +150,9 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       {autocompacts.length > 0 ? (
         <select
           className="agent-model-bar__select"
-          onChange={changeAutocompact}
-          title="Auto-compact window — applying restarts the agent"
-          value={agent.autocompact ?? ''}
+          onChange={(event) => set({ autocompact: event.target.value })}
+          title="Auto-compact window"
+          value={draft.autocompact}
         >
           <option value="">Compact: default</option>
           {autocompacts.map((value) => (
@@ -167,9 +165,9 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       {showsRemoteControl ? (
         <select
           className="agent-model-bar__select"
-          onChange={changeRemoteControl}
-          title="Remote control — applying restarts the agent"
-          value={agent.flags?.remoteControl ? 'on' : 'off'}
+          onChange={(event) => set({ remoteControl: event.target.value === 'on' })}
+          title="Remote control"
+          value={draft.remoteControl ? 'on' : 'off'}
         >
           <option value="off">Remote control: off</option>
           <option value="on">Remote control: on</option>
@@ -177,4 +175,32 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
       ) : null}
     </div>
   );
+};
+
+/** Keeps a draft in sync with the agent until the user edits it. */
+export const useLaunchSettingsDraft = (agent: Agent) => {
+  const saved = useMemo(() => readLaunchSettings(agent), [agent]);
+  const [draft, setDraft] = useState<AgentLaunchSettings>(saved);
+
+  // Adopt values that changed on the server (another client, a reset) only
+  // while the user has nothing staged, so typing is never overwritten.
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    if (!dirty) setDraft(saved);
+  }, [dirty, saved]);
+
+  const onDraftChange = useCallback(
+    (next: AgentLaunchSettings) => {
+      setDraft(next);
+      setDirty(!launchSettingsEqual(next, saved));
+    },
+    [saved],
+  );
+
+  const reset = useCallback(() => {
+    setDraft(saved);
+    setDirty(false);
+  }, [saved]);
+
+  return { dirty, draft, onDraftChange, reset, saved };
 };

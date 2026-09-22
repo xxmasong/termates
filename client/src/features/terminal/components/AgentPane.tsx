@@ -3,7 +3,13 @@ import { useCallback, useMemo, type MouseEvent } from 'react';
 import type { Agent } from '@/types';
 
 import { Badge, Button, Icon } from '@/components';
-import { AgentModelBar, agentHue, agentInitials, useAgentModel } from '@/features/agents';
+import {
+  AgentModelBar,
+  agentHue,
+  agentInitials,
+  useAgentModel,
+  useLaunchSettingsDraft,
+} from '@/features/agents';
 import { classNames } from '@/lib/utils';
 
 import { AGENT_PANE_STATUS_LABELS, AGENT_PANE_STATUS_TONES } from '../constants';
@@ -50,11 +56,31 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
   }, [agent, onDelete]);
 
   const modelMutation = useAgentModel();
-  const changeModel = useCallback(
-    (target: Agent, patch: { model?: string; effort?: string; thinking?: string; permissionMode?: string; autocompact?: string; flags?: Agent['flags'] }) => {
-      modelMutation.mutate({ agent: target, patch });
+  const { dirty, draft, onDraftChange, reset } = useLaunchSettingsDraft(agent);
+
+  const applySettings = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      // A clean bar keeps the button clickable but inert, like the other
+      // header controls when there is nothing to do.
+      if (!dirty || modelMutation.isPending) return;
+
+      modelMutation.mutate(
+        {
+          agent,
+          patch: {
+            autocompact: draft.autocompact,
+            effort: draft.effort,
+            flags: { ...agent.flags, remoteControl: draft.remoteControl },
+            model: draft.model,
+            permissionMode: draft.permissionMode,
+            thinking: draft.thinking,
+          },
+        },
+        { onSuccess: () => reset() },
+      );
     },
-    [modelMutation],
+    [agent, dirty, draft, modelMutation, reset],
   );
 
   return (
@@ -114,6 +140,22 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
             variant="ghost"
           />
           <Button
+            aria-label={
+              dirty ? `Apply settings to ${agent.name}` : 'No setting changes to apply'
+            }
+            icon="check"
+            iconOnly
+            loading={modelMutation.isPending}
+            onClick={applySettings}
+            size="sm"
+            title={
+              dirty
+                ? 'Apply settings and restart the agent'
+                : 'No changes to apply'
+            }
+            variant={dirty ? 'success' : 'ghost'}
+          />
+          <Button
             aria-label={`Delete ${agent.name}`}
             icon="x"
             iconOnly
@@ -124,7 +166,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
           />
         </div>
       </header>
-      <AgentModelBar agent={agent} onChange={changeModel} />
+      <AgentModelBar agent={agent} draft={draft} onDraftChange={onDraftChange} />
       <div className="agent-pane__body">
         {alive ? (
           <AgentTerminal agentId={agent.id} focused={focused} onFocus={focusPane} />

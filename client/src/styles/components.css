@@ -59,6 +59,16 @@
   --btn-border: transparent;
 }
 
+.btn--success {
+  --btn-bg: color-mix(in oklch, var(--ok) 16%, transparent);
+  --btn-border: transparent;
+  --btn-color: var(--ok);
+}
+
+.btn--success:hover:not(:disabled) {
+  --btn-bg: color-mix(in oklch, var(--ok) 26%, transparent);
+}
+
 .btn--danger {
   --btn-bg: var(--err-soft);
   --btn-border: transparent;

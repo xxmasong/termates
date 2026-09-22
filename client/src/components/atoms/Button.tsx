@@ -6,7 +6,7 @@ import { classNames } from '@/lib/utils';
 import { Icon, type IconName } from './Icon';
 import { Spinner } from './Spinner';
 
-export type ButtonVariant = 'primary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'ghost' | 'danger' | 'success';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
