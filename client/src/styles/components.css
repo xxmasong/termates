@@ -1464,6 +1464,13 @@
   margin-top: 10px;
 }
 
+.usage-meters__approx {
+  color: var(--text-3);
+  cursor: help;
+  font-family: var(--ff-mono);
+  margin-left: 4px;
+}
+
 .usage-meters__title {
   align-items: center;
   color: var(--text-1);

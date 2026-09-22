@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 
 import { useUsage } from '../hooks';
-import { USAGE_METER_CLIS } from '../constants';
+import {
+  USAGE_APPROXIMATE_CLIS,
+  USAGE_METER_CLIS,
+  USAGE_SESSION_LABELS,
+} from '../constants';
 
 interface UsageMetersProps {
   children?: never;
@@ -62,6 +66,14 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
           <div className="usage-meters__title">
             <span className="usage-meters__mark" style={{ background: row.cli.color }} />
             {row.cli.label}
+            {USAGE_APPROXIMATE_CLIS.has(row.cli.key) ? (
+              <span
+                className="usage-meters__approx"
+                title="Counted locally from this machine's CLI logs against the published daily limit — Google exposes no quota API"
+              >
+                ~
+              </span>
+            ) : null}
           </div>
           {(['session', 'week'] as const).map((window) => {
             const entry = row[window];
@@ -76,7 +88,9 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
               <div key={window}>
                 <div className="usage-meters__row">
                   <span className="usage-meters__label">
-                    {window === 'session' ? 'Session' : 'Week'}
+                    {window === 'session'
+                      ? (USAGE_SESSION_LABELS[row.cli.key] ?? 'Session')
+                      : 'Week'}
                   </span>
                   <span className="usage-meters__pct">
                     {pct}%<span className="usage-meters__reset">· resets {formatReset(entry.resetsAt)}</span>

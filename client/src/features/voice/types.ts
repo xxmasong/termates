@@ -26,7 +26,7 @@ export interface CliUsage {
   updatedAt: string;
 }
 
-/** Keyed by CLI name — 'claude' and 'codex' today. */
+/** Keyed by CLI name — 'claude', 'codex' and 'gemini' today. */
 export type UsageSummary = Record<string, CliUsage | null | undefined>;
 
 export type SpeechResultHandler = (text: string, final: boolean) => void;

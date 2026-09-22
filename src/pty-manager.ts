@@ -277,6 +277,36 @@ function ensureInstructionFile(
   }
 }
 
+/**
+ * Gemini reads generation settings from `<cwd>/.gemini/settings.json`, which
+ * takes precedence over the shared user settings. Each agent has its own cwd,
+ * so this is how one agent's thinking mode stays out of the others'.
+ *   0 disables thinking, -1 restores dynamic allocation. Models that always
+ *   think (Gemini 3.x, 2.5 Pro) ignore it.
+ */
+function writeGeminiWorkspaceSettings(agent: Agent, cwd: string): void {
+  if (agent.cli !== 'gemini' || !agent.thinking) return;
+
+  try {
+    const dir = path.join(cwd, '.gemini');
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, 'settings.json');
+
+    let settings: Record<string, unknown> = {};
+    if (fs.existsSync(file)) {
+      try { settings = JSON.parse(fs.readFileSync(file, 'utf-8')); } catch { settings = {}; }
+    }
+
+    const generation = (settings.generation ?? {}) as Record<string, unknown>;
+    generation.thinkingBudget = agent.thinking === 'off' ? 0 : -1;
+    settings.generation = generation;
+
+    fs.writeFileSync(file, JSON.stringify(settings, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn(`[pty-manager] Could not write Gemini settings for ${agent.name}:`, err);
+  }
+}
+
 function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpConfigPath: string | null, hookConfigPath: string | null, cwd: string): { cmd: string; args: string[] } {
   const args: string[] = [];
   switch (agent.cli) {
@@ -315,6 +345,9 @@ function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpCo
       args.push('--include-directories', wikiPath);
       // Gemini takes a model but has no reasoning-effort flag.
       if (agent.model) args.push('--model', agent.model);
+      // Thinking has no CLI flag; it is a generation setting. Written to the
+      // agent's own workspace settings in writeGeminiWorkspaceSettings below,
+      // which override the shared user settings for this cwd only.
       return { cmd: 'gemini', args };
   }
 }
@@ -386,6 +419,8 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   };
   const instrFile = path.join(cwd, instructionFiles[agent.cli]);
   ensureInstructionFile(instrFile, projectName, sharedPath, wikiPath, agent, teammates);
+
+  writeGeminiWorkspaceSettings(agent, cwd);
 
   const { cmd, args } = getCliCommand(agent, sharedPath, wikiPath, claudeMcpConfigPath, claudeHookConfigPath, cwd);
   const shell = process.platform === 'win32' ? 'cmd.exe' : '/bin/bash';

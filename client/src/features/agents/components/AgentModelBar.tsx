@@ -2,17 +2,28 @@ import { useCallback } from 'react';
 
 import type { Agent } from '@/types';
 
-import { AGENT_EFFORT_OPTIONS, AGENT_MODEL_OPTIONS } from '../constants';
+import {
+  AGENT_EFFORT_OPTIONS,
+  AGENT_MODEL_OPTIONS,
+  AGENT_THINKING_ALWAYS_ON,
+  AGENT_THINKING_CLIS,
+} from '../constants';
 
 export interface AgentModelBarProps {
   agent: Agent;
   /** Applying a change restarts the agent: a running CLI cannot be reconfigured. */
-  onChange: (agent: Agent, patch: { model?: string; effort?: string }) => void;
+  onChange: (
+    agent: Agent,
+    patch: { model?: string; effort?: string; thinking?: string },
+  ) => void;
 }
 
 export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange }) => {
   const models = AGENT_MODEL_OPTIONS[agent.cli] ?? [];
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
+  const showsThinking = AGENT_THINKING_CLIS.includes(agent.cli);
+  // Some models think unconditionally, so offering "off" there would lie.
+  const thinkingLocked = AGENT_THINKING_ALWAYS_ON.includes(agent.model ?? '');
 
   const changeModel = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -28,7 +39,11 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
     [agent, onChange],
   );
 
-  if (models.length === 0 && efforts.length === 0) {
+  const changeThinking = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(agent, { thinking: event.target.value });
+  };
+
+  if (models.length === 0 && efforts.length === 0 && !showsThinking) {
     return null;
   }
 
@@ -62,6 +77,23 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, onChange })
               {effort}
             </option>
           ))}
+        </select>
+      ) : null}
+      {showsThinking ? (
+        <select
+          className="agent-model-bar__select"
+          disabled={thinkingLocked}
+          onChange={changeThinking}
+          title={
+            thinkingLocked
+              ? `${agent.model} always thinks; it cannot be turned off`
+              : 'Thinking mode — applying restarts the agent'
+          }
+          value={thinkingLocked ? 'on' : (agent.thinking ?? '')}
+        >
+          <option value="">Thinking: default</option>
+          <option value="on">Thinking: yes</option>
+          <option value="off">Thinking: no</option>
         </select>
       ) : null}
     </div>

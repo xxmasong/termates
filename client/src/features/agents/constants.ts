@@ -8,21 +8,52 @@ export const AGENT_CLI_OPTIONS: Array<{ value: AgentCli; label: string; icon: Ic
 ];
 
 /**
- * Model choices per CLI. These become launch flags, so changing one restarts
- * the agent. An empty value means "leave the CLI on its own default".
+ * Model choices per CLI, verified against each CLI's own help output / API:
+ *   claude  `--model` accepts the aliases fable | opus | sonnet
+ *   codex   `-c model="..."` (any model id the account can reach)
+ *   gemini  `--model`, names from the Generative Language models endpoint
+ * An empty value leaves the CLI on its own default.
  */
 export const AGENT_MODEL_OPTIONS: Record<AgentCli, string[]> = {
-  claude: ['opus', 'sonnet', 'haiku'],
-  codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'o3'],
-  gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
+  claude: ['fable', 'opus', 'sonnet'],
+  codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'gpt-5.2-codex', 'o3'],
+  gemini: [
+    'gemini-3.1-pro-preview',
+    'gemini-3-flash-preview',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-pro',
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+  ],
 };
 
-/** Reasoning effort per CLI. Gemini exposes no equivalent flag. */
+/**
+ * Reasoning effort per CLI.
+ *   claude  `--effort <low|medium|high|xhigh|max>`
+ *   codex   `-c model_reasoning_effort="<minimal|low|medium|high|xhigh>"`
+ *   gemini  no equivalent flag, so the control is hidden
+ */
 export const AGENT_EFFORT_OPTIONS: Record<AgentCli, string[]> = {
   claude: ['low', 'medium', 'high', 'xhigh', 'max'],
   codex: ['minimal', 'low', 'medium', 'high', 'xhigh'],
   gemini: [],
 };
+
+/**
+ * Thinking mode. Only Gemini exposes a real on/off switch, and only on models
+ * that allow it: thinking cannot be disabled on Gemini 3.x or 2.5 Pro, and
+ * Claude and Codex fold thinking into their effort setting rather than a
+ * separate toggle. The control is therefore shown for Gemini alone.
+ *   https://ai.google.dev/gemini-api/docs/thinking
+ */
+export const AGENT_THINKING_CLIS: AgentCli[] = ['gemini'];
+
+/** Gemini models whose thinking cannot be turned off. */
+export const AGENT_THINKING_ALWAYS_ON = [
+  'gemini-3.1-pro-preview',
+  'gemini-3-flash-preview',
+  'gemini-2.5-pro',
+];
 
 export const AGENT_FORM_FIELD_IDS = {
   CWD: 'agent-cwd',

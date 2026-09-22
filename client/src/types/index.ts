@@ -21,6 +21,8 @@ export interface Agent {
   model?: string;
   /** Launch-time reasoning effort; Gemini has no equivalent flag. */
   effort?: string;
+  /** Gemini thinking mode: 'on' | 'off'; absent leaves the model default. */
+  thinking?: string;
   flags?: {
     dangerouslySkipPermissions?: boolean;
     remoteControl?: boolean;

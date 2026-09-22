@@ -4,6 +4,15 @@ import path from 'path';
 const HOME = process.env.HOME || process.env.USERPROFILE || '.';
 const CLAUDE_CREDS = path.join(HOME, '.claude', '.credentials.json');
 const CODEX_AUTH = path.join(HOME, '.codex', 'auth.json');
+const GEMINI_TMP = path.join(HOME, '.gemini', 'tmp');
+/**
+ * Google exposes no quota endpoint for the Generative Language API, so the
+ * Gemini figure is counted locally from the CLI's own per-session logs and
+ * compared against the published free-tier limits. It is an approximation of
+ * this machine's usage, not an authoritative figure from Google.
+ *   https://ai.google.dev/gemini-api/docs/rate-limits
+ */
+const GEMINI_DAILY_REQUEST_LIMIT = 1000;
 const POLL_INTERVAL = 5 * 60 * 1000;
 const RETRY_AFTER_429 = 2 * 60 * 1000;
 /** Last good readings, so a restart during a 429 window still has something
@@ -19,9 +28,14 @@ interface UsageData {
 interface AllUsage {
   claude: UsageData | null;
   codex: UsageData | null;
+  gemini: UsageData | null;
 }
 
-function loadCache(): { claude?: UsageData | null; codex?: UsageData | null } {
+function loadCache(): {
+  claude?: UsageData | null;
+  codex?: UsageData | null;
+  gemini?: UsageData | null;
+} {
   try {
     if (!fs.existsSync(USAGE_CACHE_FILE)) return {};
     return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf-8'));
@@ -39,6 +53,7 @@ function saveCache(): void {
       JSON.stringify({
         claude: claudeCache ?? prev.claude ?? null,
         codex: codexCache ?? prev.codex ?? null,
+        gemini: geminiCache ?? prev.gemini ?? null,
       }),
     );
   } catch { /* cache is best-effort */ }
@@ -85,6 +100,74 @@ async function fetchClaudeUsage(): Promise<UsageData | null> {
     saveCache();
     return claudeCache;
   } catch { return claudeCache; }
+}
+
+// --- Gemini ---
+let geminiCache: UsageData | null = null;
+let geminiLastFetch = 0;
+
+/** Requests-per-day resets at midnight Pacific; approximate as UTC-8. */
+function geminiDayResetsAt(): string {
+  const now = new Date();
+  const pacificOffsetMs = 8 * 60 * 60 * 1000;
+  const pacificNow = new Date(now.getTime() - pacificOffsetMs);
+  const nextMidnight = Date.UTC(
+    pacificNow.getUTCFullYear(),
+    pacificNow.getUTCMonth(),
+    pacificNow.getUTCDate() + 1,
+  );
+  return new Date(nextMidnight + pacificOffsetMs).toISOString();
+}
+
+/** Count today's user turns across every Gemini CLI session on this machine. */
+function countGeminiRequestsToday(): number {
+  const cutoff = new Date(geminiDayResetsAt()).getTime() - 24 * 60 * 60 * 1000;
+  let total = 0;
+
+  let dirs: string[];
+  try {
+    dirs = fs.readdirSync(GEMINI_TMP);
+  } catch {
+    return 0;
+  }
+
+  for (const dir of dirs) {
+    const logFile = path.join(GEMINI_TMP, dir, 'logs.json');
+    try {
+      if (!fs.existsSync(logFile)) continue;
+      const entries = JSON.parse(fs.readFileSync(logFile, 'utf-8'));
+      if (!Array.isArray(entries)) continue;
+      for (const entry of entries) {
+        if (entry?.type !== 'user') continue;
+        const at = Date.parse(entry?.timestamp ?? '');
+        if (Number.isFinite(at) && at >= cutoff) total += 1;
+      }
+    } catch { /* skip an unreadable session log */ }
+  }
+
+  return total;
+}
+
+function readGeminiUsage(): UsageData | null {
+  try {
+    if (!fs.existsSync(GEMINI_TMP)) return null;
+    const used = countGeminiRequestsToday();
+    const resetsAt = geminiDayResetsAt();
+    const utilization = Math.min(100, Math.round((used / GEMINI_DAILY_REQUEST_LIMIT) * 100));
+
+    geminiCache = {
+      // Gemini publishes a per-day limit, not a rolling session/week pair, so
+      // the day figure is shown in the session row and the week row is left out.
+      session: { utilization, resetsAt },
+      week: null,
+      updatedAt: new Date().toISOString(),
+    };
+    geminiLastFetch = Date.now();
+    saveCache();
+    return geminiCache;
+  } catch {
+    return geminiCache;
+  }
 }
 
 // --- Codex ---
@@ -146,19 +229,24 @@ export async function getUsage(): Promise<AllUsage> {
   const now = Date.now();
   const claude = (claudeCache && now - claudeLastFetch < POLL_INTERVAL) ? claudeCache : await fetchClaudeUsage();
   const codex = (codexCache && now - codexLastFetch < POLL_INTERVAL) ? codexCache : await fetchCodexUsage();
-  return { claude, codex };
+  // Local read, so it is cheap enough to recompute whenever it is stale.
+  const gemini = (geminiCache && now - geminiLastFetch < POLL_INTERVAL) ? geminiCache : readGeminiUsage();
+  return { claude, codex, gemini };
 }
 
 export function startPolling() {
   const persisted = loadCache();
   if (!claudeCache && persisted.claude) claudeCache = persisted.claude;
   if (!codexCache && persisted.codex) codexCache = persisted.codex;
+  if (!geminiCache && persisted.gemini) geminiCache = persisted.gemini;
 
   const poll = async () => {
     const claude = await fetchClaudeUsage();
     const codex = await fetchCodexUsage();
     if (claude) console.log('[usage] Claude: session ' + claude.session?.utilization + '%, week ' + claude.week?.utilization + '%');
     if (codex) console.log('[usage] Codex: session ' + codex.session?.utilization + '%, week ' + codex.week?.utilization + '%');
+    const gemini = readGeminiUsage();
+    if (gemini) console.log('[usage] Gemini: day ' + gemini.session?.utilization + '% (local count)');
   };
   poll();
   setInterval(poll, POLL_INTERVAL);
