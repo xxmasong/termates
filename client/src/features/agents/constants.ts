@@ -29,7 +29,9 @@ export const AGENT_MODEL_OPTIONS: Record<AgentCli, string[]> = {
     'sonnet[1m]',
     'fable[1m]',
   ],
-  codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'gpt-5.2-codex', 'o3'],
+  // o3 is rejected at runtime on a ChatGPT-account login ("not supported when
+  // using Codex with a ChatGPT account"), so it is not offered.
+  codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'gpt-5.2-codex'],
   gemini: [
     'gemini-3.1-pro-preview',
     'gemini-3-flash-preview',

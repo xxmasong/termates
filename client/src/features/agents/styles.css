@@ -321,7 +321,20 @@
   display: flex;
   flex: none;
   gap: 6px;
+  /* A narrow pane cannot fit every control, so scroll the row rather than
+     letting it overflow the pane. */
+  overflow-x: auto;
+  overflow-y: hidden;
   padding: 6px 10px;
+  scrollbar-width: thin;
+}
+
+.agent-model-bar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.agent-model-bar__select {
+  flex: none;
 }
 
 .agent-model-bar__select {
