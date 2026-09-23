@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getUsage, getVoiceConfig, textToSpeech, updateVoiceConfig, voiceKeys } from '../api';
+import { getAuth, getUsage, getVoiceConfig, logoutCli, textToSpeech, updateVoiceConfig, voiceKeys } from '../api';
 import type { TextToSpeechInput, VoiceConfig } from '../types';
 
 export const useVoiceConfig = () =>
@@ -31,3 +31,20 @@ export const useUsage = () =>
     queryKey: voiceKeys.usage(),
   });
 
+
+export const useAuth = () =>
+  useQuery({
+    queryFn: getAuth,
+    queryKey: voiceKeys.auth(),
+  });
+
+export const useLogoutCli = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logoutCli,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: voiceKeys.auth() });
+    },
+  });
+};

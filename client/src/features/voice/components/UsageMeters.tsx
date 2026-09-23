@@ -1,6 +1,9 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { useUsage } from '../hooks';
+import { Button } from '@/components';
+
+import { useAuth, useLogoutCli, useUsage } from '../hooks';
+import { AuthModal } from './AuthModal';
 import {
   USAGE_APPROXIMATE_CLIS,
   USAGE_METER_CLIS,
@@ -44,6 +47,15 @@ const barColor = (pct: number): string => {
 
 export const UsageMeters: React.FC<UsageMetersProps> = () => {
   const { data } = useUsage();
+  const authQuery = useAuth();
+  const logoutMutation = useLogoutCli();
+  const [authCli, setAuthCli] = useState<{ key: string; label: string } | null>(null);
+
+  const closeAuth = useCallback(() => setAuthCli(null), []);
+  const logout = useCallback(
+    (cli: string) => logoutMutation.mutate(cli),
+    [logoutMutation],
+  );
 
   const rows = useMemo(
     () =>
@@ -60,6 +72,7 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
   }
 
   return (
+    <>
     <div className="usage-meters">
       {rows.map((row) => (
         <div className="usage-meters__block" key={row.cli.key}>
@@ -74,6 +87,16 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
                 ~
               </span>
             ) : null}
+            <Button
+              aria-label={`${row.cli.label} account`}
+              className="usage-meters__gear"
+              icon="gear"
+              iconOnly
+              onClick={() => setAuthCli({ key: row.cli.key, label: row.cli.label })}
+              size="sm"
+              title={`${row.cli.label} account`}
+              variant="ghost"
+            />
           </div>
           {(['session', 'week'] as const).map((window) => {
             const entry = row[window];
@@ -108,5 +131,15 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
         </div>
       ))}
     </div>
+    <AuthModal
+      auth={authCli ? authQuery.data?.[authCli.key] : undefined}
+      cli={authCli}
+      error={logoutMutation.error instanceof Error ? logoutMutation.error.message : null}
+      loading={authQuery.isLoading}
+      loggingOut={logoutMutation.isPending}
+      onClose={closeAuth}
+      onLogout={logout}
+    />
+    </>
   );
 };

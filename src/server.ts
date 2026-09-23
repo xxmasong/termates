@@ -11,6 +11,7 @@ import { createRouter } from './routes.js';
 import * as storage from './storage.js';
 import * as activity from './activity.js';
 import * as usage from './usage.js';
+import * as auth from './auth.js';
 import { DaemonClient } from './daemon/client.js';
 import type { WSClientMessage, WSServerMessage, ActivityEvent } from './types.js';
 import { PROVIDERS } from './voice/providers.js';
@@ -126,6 +127,21 @@ app.get('/api/activity', (req, res) => {
 app.get('/api/usage', async (_req, res) => {
   const data = await usage.getUsage();
   res.json(data);
+});
+
+// Which account each CLI is signed in as. Read-only: signing in happens in
+// the CLI's own flow, which the UI opens in a terminal.
+app.get('/api/auth', async (_req, res) => {
+  try {
+    res.json(await auth.getAuth());
+  } catch {
+    res.json({});
+  }
+});
+
+app.post('/api/auth/:cli/logout', async (req, res) => {
+  const result = await auth.logout(req.params.cli);
+  res.status(result.ok ? 200 : 400).json(result);
 });
 
 // Daemon health endpoint
