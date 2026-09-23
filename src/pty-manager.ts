@@ -284,6 +284,40 @@ function ensureInstructionFile(
  *   0 disables thinking, -1 restores dynamic allocation. Models that always
  *   think (Gemini 3.x, 2.5 Pro) ignore it.
  */
+/**
+ * Gemini refuses to add a directory to its workspace unless that directory is
+ * trusted, and inherits DO_NOT_TRUST from a parent. With `/root` marked
+ * DO_NOT_TRUST the shared-content and wiki roots are rejected outright and the
+ * agent never starts, so register exactly the directories we pass to it.
+ *
+ * Only ever adds TRUST_FOLDER for those specific paths; an existing entry is
+ * left alone so a deliberate DO_NOT_TRUST elsewhere is never overridden.
+ */
+function ensureGeminiTrustedFolders(agent: Agent, dirs: string[]): void {
+  if (agent.cli !== 'gemini') return;
+
+  try {
+    const file = path.join(os.homedir(), '.gemini', 'trustedFolders.json');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+
+    let trusted: Record<string, string> = {};
+    if (fs.existsSync(file)) {
+      try { trusted = JSON.parse(fs.readFileSync(file, 'utf-8')); } catch { trusted = {}; }
+    }
+
+    let changed = false;
+    for (const dir of dirs) {
+      if (!dir || trusted[dir]) continue;
+      trusted[dir] = 'TRUST_FOLDER';
+      changed = true;
+    }
+
+    if (changed) fs.writeFileSync(file, JSON.stringify(trusted, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn(`[pty-manager] Could not update Gemini trusted folders for ${agent.name}:`, err);
+  }
+}
+
 function writeGeminiWorkspaceSettings(agent: Agent, cwd: string): void {
   if (agent.cli !== 'gemini' || !agent.thinking) return;
 
@@ -377,6 +411,9 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   const projectName = projectData.project.name;
   const sharedPath = ensureSharedDir(projectName);
   const wikiPath = path.join(WIKI_DIR, projectName);
+  // Passed to every CLI as an --add-dir/--include-directories root, and Gemini
+  // rejects one that does not exist, so create it alongside the shared dir.
+  try { fs.mkdirSync(wikiPath, { recursive: true }); } catch { /* best-effort */ }
 
   const cwd = expandHome(agent.cwd);
 
@@ -433,6 +470,7 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   ensureInstructionFile(instrFile, projectName, sharedPath, wikiPath, agent, teammates);
 
   writeGeminiWorkspaceSettings(agent, cwd);
+  ensureGeminiTrustedFolders(agent, [cwd, sharedPath, wikiPath]);
 
   const { cmd, args } = getCliCommand(agent, sharedPath, wikiPath, claudeMcpConfigPath, claudeHookConfigPath, cwd);
   const shell = process.platform === 'win32' ? 'cmd.exe' : '/bin/bash';
