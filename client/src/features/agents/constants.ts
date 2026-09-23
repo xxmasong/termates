@@ -90,7 +90,9 @@ export const AGENT_REMOTE_CONTROL_CLIS: AgentCli[] = ['claude'];
  * separately below.
  */
 export const AGENT_PERMISSION_MODES: Record<AgentCli, string[]> = {
-  claude: ['manual', 'acceptEdits', 'auto', 'dontAsk', 'plan', 'bypassPermissions'],
+  // bypassPermissions is omitted: it maps to --dangerously-skip-permissions,
+  // which Claude refuses to run as root, and every agent here runs as root.
+  claude: ['manual', 'acceptEdits', 'auto', 'dontAsk', 'plan'],
   codex: ['read-only', 'workspace-write', 'danger-full-access'],
   gemini: ['default', 'auto_edit', 'yolo', 'plan'],
 };
