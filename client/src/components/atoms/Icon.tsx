@@ -61,6 +61,7 @@ const ICON_DEFINITIONS = {
   sun: { paths: ['M8 11a3 3 0 100-6 3 3 0 000 6zM8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.5 3.5l1 1M11.5 11.5l1 1M3.5 12.5l1-1M11.5 4.5l1-1'] },
   terminal: { paths: ['M2.5 3.5h11v9h-11zM4.5 6l2 2-2 2M8 10h3'] },
   threeup: { paths: ['M2 3h3v10H2zM6.5 3h3v10h-3zM11 3h3v10h-3z'] },
+  trash: { paths: ['M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5M7 7v3.5M9 7v3.5'] },
   twoup: { paths: ['M2.5 2.5h5v11h-5zM8.5 2.5h5v11h-5z'] },
   user: { paths: ['M8 8.5a3 3 0 100-6 3 3 0 000 6zM2 14c0-2.5 2.5-4 6-4s6 1.5 6 4'] },
   volume: { paths: ['M8.5 3L4.5 6H2v4h2.5l4 3V3Z', 'M11 6.2a3 3 0 010 3.6M13 4.6a6 6 0 010 6.8'] },

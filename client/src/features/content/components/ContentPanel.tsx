@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, EmptyState, FormField, Icon, Input, Textarea } from '@/components';
+import { Badge, Button, ConfirmDialog, EmptyState, Icon, IconButton, Input, Kbd, Textarea } from '@/components';
 import { renderMarkdown } from '@/lib/utils/markdown';
 
 import {
@@ -23,6 +23,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
   const [creating, setCreating] = useState(false);
   const [draftFilename, setDraftFilename] = useState('');
   const [draftContent, setDraftContent] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const listQuery = useContentList(projectId);
   const itemQuery = useContentItem(projectId, selectedFilename);
   const createMutation = useCreateContent();
@@ -32,6 +33,11 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
   const files = useMemo(() => listQuery.data ?? [], [listQuery.data]);
   const tree = useContentTree(files);
   const previewHtml = useMemo(() => renderMarkdown(draftContent), [draftContent]);
+  const savedContent = selectedFilename ? itemQuery.data?.content : undefined;
+  const isDirty = creating ? draftContent.length > 0 || draftFilename.trim().length > 0 : savedContent !== undefined && draftContent !== savedContent;
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const canSave = isDirty && draftFilename.trim().length > 0 && !isSaving;
+  const hasEditor = creating || Boolean(selectedFilename);
 
   useEffect(() => {
     setSelectedFilename(null);
@@ -99,6 +105,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       { filename: selectedFilename, projectId },
       {
         onSuccess: () => {
+          setConfirmingDelete(false);
           setCreating(false);
           setSelectedFilename(null);
           setDraftFilename('');
@@ -107,6 +114,32 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       },
     );
   }, [deleteMutation, projectId, selectedFilename]);
+  const onDiscard = useCallback(() => {
+    if (creating) {
+      setCreating(false);
+      setDraftFilename('');
+      setDraftContent('');
+      return;
+    }
+
+    setDraftContent(savedContent ?? '');
+  }, [creating, savedContent]);
+  const onEditorKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        if (canSave) {
+          onSave();
+        }
+      } else if (event.key === 'Escape' && isDirty) {
+        event.preventDefault();
+        onDiscard();
+      }
+    },
+    [canSave, isDirty, onDiscard, onSave],
+  );
+  const onRequestDelete = useCallback(() => setConfirmingDelete(true), []);
+  const onCancelDelete = useCallback(() => setConfirmingDelete(false), []);
 
   return (
     <section className="feature-panel content-panel">
@@ -136,31 +169,82 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
             ))
           )}
         </aside>
-        <div className="file-workspace__editor">
-          <FormField label="Filename">
-            <Input disabled={Boolean(selectedFilename)} onChange={onFilenameChange} value={draftFilename} />
-          </FormField>
-          <FormField label="Content">
-            <Textarea onChange={onContentChange} rows={12} value={draftContent} />
-          </FormField>
-          <div className="feature-panel__actions">
-            {selectedFilename ? (
-              <Button icon="x" loading={deleteMutation.isPending} onClick={onDelete} variant="danger">
-                Delete
-              </Button>
-            ) : null}
-            <Button
-              icon="check"
-              loading={createMutation.isPending || updateMutation.isPending}
-              onClick={onSave}
-              variant="primary"
-            >
-              Save
-            </Button>
+        {hasEditor ? (
+          <div className="file-workspace__editor" onKeyDown={onEditorKeyDown}>
+            <div className="file-editor__bar">
+              <Icon className="file-editor__icon" name="file" size={14} />
+              {creating ? (
+                <Input
+                  aria-label="Filename"
+                  autoFocus
+                  className="file-editor__name-input"
+                  onChange={onFilenameChange}
+                  placeholder="notes/new-file.md"
+                  value={draftFilename}
+                />
+              ) : (
+                <span className="file-editor__name" title={draftFilename}>
+                  {draftFilename}
+                </span>
+              )}
+              <span className="file-editor__status">
+                {isSaving ? (
+                  <Badge tone="idle">Saving…</Badge>
+                ) : creating ? (
+                  <Badge tone="attention" withDot>
+                    New file
+                  </Badge>
+                ) : isDirty ? (
+                  <Badge tone="attention" withDot>
+                    Unsaved
+                  </Badge>
+                ) : (
+                  <span className="file-editor__saved">
+                    <Icon name="check" size={11} /> Saved
+                  </span>
+                )}
+              </span>
+              <div className="file-editor__actions">
+                {isDirty || creating ? (
+                  <>
+                    <Button onClick={onDiscard} size="sm" variant="ghost">
+                      {creating ? 'Cancel' : 'Discard'}
+                    </Button>
+                    <Button disabled={!canSave} icon="check" loading={isSaving} onClick={onSave} size="sm" variant="primary">
+                      Save <Kbd className="file-editor__kbd">⌘S</Kbd>
+                    </Button>
+                  </>
+                ) : null}
+                {selectedFilename ? (
+                  <IconButton icon="trash" label={`Delete ${selectedFilename}`} onClick={onRequestDelete} size="sm" tone="danger" />
+                ) : null}
+              </div>
+            </div>
+            <Textarea
+              aria-label="Content"
+              className="file-editor__content"
+              onChange={onContentChange}
+              placeholder="Write markdown…"
+              value={draftContent}
+            />
           </div>
-        </div>
+        ) : (
+          <div className="file-workspace__editor file-workspace__editor--empty">
+            <EmptyState icon={<Icon name="file" size={18} />} title="Select a file or create a new one" />
+          </div>
+        )}
         <article className="markdown-preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
       </div>
+      <ConfirmDialog
+        confirmLabel="Delete"
+        danger
+        loading={deleteMutation.isPending}
+        message={`Delete ${selectedFilename ?? 'this file'}? Every agent in this project loses access to it.`}
+        onCancel={onCancelDelete}
+        onConfirm={onDelete}
+        open={confirmingDelete}
+        title="Delete shared file"
+      />
     </section>
   );
 };

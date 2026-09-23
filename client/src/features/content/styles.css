@@ -188,3 +188,92 @@
     border-bottom: 1px solid var(--border);
   }
 }
+
+/* Shared Content editor: one header bar holding filename, save state and the
+   actions, so Save/Discard only appear when there is something to save. */
+.file-workspace__editor--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.file-editor__bar {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  margin: -12px -12px 0;
+  min-height: 44px;
+  padding: 6px 12px;
+}
+
+.file-editor__icon {
+  color: var(--text-3);
+  flex: none;
+}
+
+.file-editor__name {
+  color: var(--text-0);
+  font-family: var(--ff-mono);
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-editor__name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-editor__status {
+  flex: none;
+  font-size: 11px;
+}
+
+.file-editor__saved {
+  align-items: center;
+  color: var(--text-3);
+  display: inline-flex;
+  gap: 4px;
+}
+
+.file-editor__actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.file-editor__kbd {
+  background: color-mix(in oklch, currentColor 14%, transparent);
+  border-color: transparent;
+  color: inherit;
+  font-size: 10px;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+.file-workspace__editor .file-editor__content {
+  flex: 1;
+  font-family: var(--ff-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  min-height: 240px;
+  resize: none;
+}
+
+.wiki-file-row {
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+
+.markdown-preview a {
+  color: var(--accent);
+  text-decoration-color: color-mix(in oklch, var(--accent) 40%, transparent);
+  text-underline-offset: 2px;
+}
+
+.markdown-preview a:hover {
+  color: var(--accent-hover);
+}
