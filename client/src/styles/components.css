@@ -1536,6 +1536,129 @@
   opacity: 1;
 }
 
+.usage-meters__connect {
+  justify-content: center;
+  width: 100%;
+}
+
+.login-terminal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-terminal__step {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+}
+
+.login-terminal__num {
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-1);
+  display: inline-flex;
+  flex: none;
+  font-size: 12px;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.login-terminal__step-body {
+  color: var(--text-0);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.login-terminal__muted {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.login-terminal__actions,
+.login-terminal__code-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.login-terminal__input {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-0);
+  flex: 1;
+  font-family: 'Consolas', 'Fira Code', monospace;
+  font-size: 13px;
+  min-width: 0;
+  padding: 7px 10px;
+}
+
+.login-terminal__input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.login-terminal__device-code {
+  align-self: flex-start;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-0);
+  font-size: 20px;
+  letter-spacing: 0.12em;
+  padding: 8px 14px;
+}
+
+.login-terminal__status {
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-terminal__status--ok { color: var(--ok); }
+.login-terminal__status--err { color: var(--err); }
+
+.login-terminal__toggle {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.login-terminal__toggle:hover {
+  color: var(--text-0);
+}
+
+.login-terminal__screen {
+  background: #1e1e1e;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  height: 260px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.login-terminal__screen--hidden {
+  border: 0;
+  height: 0;
+  padding: 0;
+}
+
+.login-terminal__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .auth-modal {
   display: flex;
   flex-direction: column;

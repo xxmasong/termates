@@ -71,7 +71,11 @@ export type WSClientMessage =
   | { type: 'brain:new' }
   | { type: 'brain:abort' }
   | { type: 'brain:switch'; conversationId: string }
-  | { type: 'brain:delete'; conversationId: string };
+  | { type: 'brain:delete'; conversationId: string }
+  | { type: 'login:start'; cli: string; cols: number; rows: number }
+  | { type: 'login:input'; data: string }
+  | { type: 'login:resize'; cols: number; rows: number }
+  | { type: 'login:stop' };
 
 export interface ActivityEvent {
   id: string;
@@ -103,4 +107,6 @@ export type WSServerMessage =
   | { type: 'activity'; event: ActivityEvent }
   | { type: 'brain:event'; payload: BrainEvent }
   | { type: 'org:changed' }
-  | { type: 'codex:item'; agentId: string; item: CodexItem };
+  | { type: 'codex:item'; agentId: string; item: CodexItem }
+  | { type: 'login:output'; data: string }
+  | { type: 'login:exit'; exitCode: number };

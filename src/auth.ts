@@ -128,6 +128,10 @@ function geminiAuth(): CliAuth {
   const hasApiKey = fs.existsSync(GEMINI_ENV) || Boolean(process.env.GEMINI_API_KEY);
 
   const active = (accounts?.active as string) ?? null;
+  const settings = readJson(path.join(HOME, '.gemini', 'settings.json'));
+  const selected = ((settings?.security as Record<string, any>)?.auth as Record<string, any>)?.selectedType;
+  // An API key in the env does not win over an explicit Google login.
+  const usesGoogle = selected === 'oauth-personal' && Boolean(oauth);
   const expiry = typeof oauth?.expiry_date === 'number' ? oauth.expiry_date : null;
 
   if (!active && !hasApiKey) return base;
@@ -138,7 +142,7 @@ function geminiAuth(): CliAuth {
     expired: expiry ? expiry < Date.now() : false,
     expiresAt: expiry ? new Date(expiry).toISOString() : null,
     loggedIn: true,
-    plan: hasApiKey ? 'api-key' : 'google-account',
+    plan: usesGoogle || !hasApiKey ? 'google-account' : 'api-key',
   };
 }
 

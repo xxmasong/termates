@@ -12,6 +12,8 @@ export interface AuthModalProps {
   error?: string | null;
   onClose: () => void;
   onLogout: (cli: string) => void;
+  /** Start the in-browser sign-in flow for this CLI. */
+  onConnect: (cli: { key: string; label: string }) => void;
 }
 
 const formatExpiry = (iso: string | null, expired: boolean): string => {
@@ -32,6 +34,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   error,
   onClose,
   onLogout,
+  onConnect,
 }) => {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
@@ -88,11 +91,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             ) : null}
           </dl>
 
-          <p className="auth-modal__note">
-            Signing in runs in the CLI itself — none of these tools can be signed in from a
-            browser. Run this in any agent terminal, or on the host:
-          </p>
-          <code className="auth-modal__command">{auth.loginCommand}</code>
+          {cli && !auth.loggedIn ? (
+            <Button onClick={() => onConnect(cli)} size="sm" variant="primary">
+              Connect {cli.label}
+            </Button>
+          ) : null}
+
+          {cli?.key === 'gemini' && auth.plan === 'api-key' ? (
+            <>
+              <p className="auth-modal__note">
+                Gemini is using an API key. Sign in with a Google account to use its
+                subscription quota instead.
+              </p>
+              <Button onClick={() => onConnect(cli)} size="sm" variant="primary">
+                Sign in with Google
+              </Button>
+            </>
+          ) : null}
 
           {error ? <div className="feature-error">{error}</div> : null}
 

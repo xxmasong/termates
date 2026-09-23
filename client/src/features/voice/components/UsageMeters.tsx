@@ -4,6 +4,7 @@ import { Button } from '@/components';
 
 import { useAuth, useLogoutCli, useUsage } from '../hooks';
 import { AuthModal } from './AuthModal';
+import { LoginTerminalModal } from './LoginTerminalModal';
 import {
   USAGE_APPROXIMATE_CLIS,
   USAGE_METER_CLIS,
@@ -50,8 +51,10 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
   const authQuery = useAuth();
   const logoutMutation = useLogoutCli();
   const [authCli, setAuthCli] = useState<{ key: string; label: string } | null>(null);
+  const [loginCli, setLoginCli] = useState<{ key: string; label: string } | null>(null);
 
   const closeAuth = useCallback(() => setAuthCli(null), []);
+  const closeLogin = useCallback(() => setLoginCli(null), []);
   const logout = useCallback(
     (cli: string) => logoutMutation.mutate(cli),
     [logoutMutation],
@@ -63,8 +66,11 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
         cli,
         session: data?.[cli.key]?.session,
         week: data?.[cli.key]?.week,
-      })).filter((row) => row.session != null || row.week != null),
-    [data],
+        // Usage readings are cached on disk, so a signed-out CLI can still
+        // have stale figures — trust the auth status over them.
+        signedOut: authQuery.data?.[cli.key]?.loggedIn === false,
+      })).filter((row) => row.signedOut || row.session != null || row.week != null),
+    [authQuery.data, data],
   );
 
   if (rows.length === 0) {
@@ -74,7 +80,19 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
   return (
     <>
     <div className="usage-meters">
-      {rows.map((row) => (
+      {rows.map((row) => row.signedOut ? (
+        <div className="usage-meters__block" key={row.cli.key}>
+          <Button
+            className="usage-meters__connect"
+            onClick={() => setLoginCli({ key: row.cli.key, label: row.cli.label })}
+            size="sm"
+            variant="primary"
+          >
+            <span className="usage-meters__mark" style={{ background: row.cli.color }} />
+            Connect {row.cli.label}
+          </Button>
+        </div>
+      ) : (
         <div className="usage-meters__block" key={row.cli.key}>
           <div className="usage-meters__title">
             <span className="usage-meters__mark" style={{ background: row.cli.color }} />
@@ -138,8 +156,13 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
       loading={authQuery.isLoading}
       loggingOut={logoutMutation.isPending}
       onClose={closeAuth}
+      onConnect={(cli) => {
+        setAuthCli(null);
+        setLoginCli(cli);
+      }}
       onLogout={logout}
     />
+    <LoginTerminalModal cli={loginCli} onClose={closeLogin} />
     </>
   );
 };

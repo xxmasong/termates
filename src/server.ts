@@ -12,6 +12,7 @@ import * as storage from './storage.js';
 import * as activity from './activity.js';
 import * as usage from './usage.js';
 import * as auth from './auth.js';
+import * as cliLogin from './cli-login.js';
 import { DaemonClient } from './daemon/client.js';
 import type { WSClientMessage, WSServerMessage, ActivityEvent } from './types.js';
 import { PROVIDERS } from './voice/providers.js';
@@ -420,11 +421,28 @@ wss.on('connection', (ws) => {
         daemon.deleteBrainConversation(msg.conversationId);
         break;
       }
+      case 'login:start': {
+        cliLogin.startLogin(ws, msg.cli, msg.cols, msg.rows);
+        break;
+      }
+      case 'login:input': {
+        cliLogin.writeLogin(ws, msg.data);
+        break;
+      }
+      case 'login:resize': {
+        cliLogin.resizeLogin(ws, msg.cols, msg.rows);
+        break;
+      }
+      case 'login:stop': {
+        cliLogin.stopLogin(ws);
+        break;
+      }
     }
   });
 
   ws.on('close', () => {
     clients.delete(ws);
+    cliLogin.stopLogin(ws);
     unsubscribeAll(ws);
   });
 });
