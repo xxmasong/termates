@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 
 import type { Agent } from '@/types';
 
-import { Button, Spinner } from '@/components';
+import { Button, GRID_LAYOUT_DRAG_MIME, Spinner } from '@/components';
 import { classNames } from '@/lib/utils';
 
 import { AGENT_CLI_OPTIONS } from '../constants';
@@ -70,7 +70,12 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
               'sidebar-agent-row',
               agent.id === selectedAgentId && 'sidebar-agent-row--selected',
             )}
+            draggable
             key={agent.id}
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = 'move';
+              event.dataTransfer.setData(GRID_LAYOUT_DRAG_MIME, agent.id);
+            }}
             style={{ '--agent-color': hue } as CSSProperties}
           >
             <button

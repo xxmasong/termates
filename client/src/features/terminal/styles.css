@@ -49,6 +49,7 @@
   align-items: center;
   background: var(--bg-1);
   border-bottom: 1px solid var(--border);
+  cursor: grab;
   display: grid;
   flex: 0 0 auto;
   gap: 8px;
@@ -57,10 +58,13 @@
   padding: 7px 8px;
 }
 
+.agent-pane__header:active {
+  cursor: grabbing;
+}
+
 .agent-pane__drag {
   align-items: center;
   color: var(--text-3);
-  cursor: grab;
   display: inline-flex;
 }
 
@@ -152,6 +156,7 @@
 }
 
 .agent-pane__actions .btn {
+  cursor: pointer;
   height: 24px;
   width: 24px;
 }

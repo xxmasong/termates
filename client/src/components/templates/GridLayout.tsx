@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { Button } from '@/components/atoms';
 import { GRID_LAYOUT } from '@/components/constants';
@@ -7,6 +7,7 @@ import { useLocalStorage } from '@/lib/hooks';
 import { classNames } from '@/lib/utils';
 
 export type GridLayoutMode = 'single' | '2up' | '3up' | 'grid' | 'canvas';
+export const GRID_LAYOUT_DRAG_MIME = 'application/x-termhive-pane';
 
 export interface GridLayoutPane {
   id: string;
@@ -37,8 +38,11 @@ interface CanvasRect {
 }
 
 type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+type DropZone = 'left' | 'right' | 'top' | 'bottom' | 'center';
 
 const CANVAS_RESIZE_DIRECTIONS: ResizeDirection[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+const GRID_DRAG_HANDLE_SELECTOR = '[data-grid-drag-handle]';
+const GRID_DRAG_BLOCK_SELECTOR = 'button, select, input, textarea, a, [role="button"], .agent-model-bar';
 
 const paneIds = (panes: GridLayoutPane[]): string[] => panes.map((pane) => pane.id);
 
@@ -177,6 +181,98 @@ const swapLeaves = (tree: SplitTree, firstId: string, secondId: string): SplitTr
   return { ...tree, a: swapLeaves(tree.a, firstId, secondId), b: swapLeaves(tree.b, firstId, secondId) };
 };
 
+const splitLeafAt = (tree: SplitTree, targetId: string, newId: string, zone: DropZone): SplitTree => {
+  if (tree.kind === 'leaf') {
+    if (tree.id !== targetId || zone === 'center') {
+      return tree;
+    }
+
+    const target: SplitTree = { kind: 'leaf', id: targetId };
+    const source: SplitTree = { kind: 'leaf', id: newId };
+    const direction: SplitDirection = zone === 'left' || zone === 'right' ? 'horizontal' : 'vertical';
+    const sourceFirst = zone === 'left' || zone === 'top';
+
+    return {
+      kind: 'split',
+      direction,
+      ratio: 0.5,
+      a: sourceFirst ? source : target,
+      b: sourceFirst ? target : source,
+    };
+  }
+
+  return { ...tree, a: splitLeafAt(tree.a, targetId, newId, zone), b: splitLeafAt(tree.b, targetId, newId, zone) };
+};
+
+const dataTransferHasPane = (dataTransfer: DataTransfer): boolean =>
+  Array.from(dataTransfer.types).includes(GRID_LAYOUT_DRAG_MIME);
+
+const isPaneDragHandleTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  if (target.closest(GRID_DRAG_BLOCK_SELECTOR)) {
+    return false;
+  }
+
+  return Boolean(target.closest(GRID_DRAG_HANDLE_SELECTOR));
+};
+
+const gridDropZone = (rect: DOMRect, clientX: number, clientY: number): DropZone => {
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  const edgeBandX = rect.width * 0.25;
+  const edgeBandY = rect.height * 0.25;
+  const edges: Array<{ zone: DropZone; distance: number }> = [];
+
+  if (x <= edgeBandX) {
+    edges.push({ zone: 'left', distance: x });
+  }
+
+  if (rect.width - x <= edgeBandX) {
+    edges.push({ zone: 'right', distance: rect.width - x });
+  }
+
+  if (y <= edgeBandY) {
+    edges.push({ zone: 'top', distance: y });
+  }
+
+  if (rect.height - y <= edgeBandY) {
+    edges.push({ zone: 'bottom', distance: rect.height - y });
+  }
+
+  return edges.sort((first, second) => first.distance - second.distance)[0]?.zone ?? 'center';
+};
+
+const rowDropZone = (rect: DOMRect, clientX: number, allowCenter: boolean): DropZone => {
+  const x = (clientX - rect.left) / rect.width;
+
+  if (!allowCenter) {
+    return x < 0.5 ? 'left' : 'right';
+  }
+
+  if (x < 0.25) {
+    return 'left';
+  }
+
+  if (x > 0.75) {
+    return 'right';
+  }
+
+  return 'center';
+};
+
+const rowVisibleIds = (orderedIds: string[], focusedId: string | null | undefined, count: number): string[] => {
+  const visible = orderedIds.slice(0, count);
+
+  if (focusedId && visible.length > 0 && orderedIds.includes(focusedId) && !visible.includes(focusedId)) {
+    visible[visible.length - 1] = focusedId;
+  }
+
+  return visible;
+};
+
 const createDefaultRects = (ids: string[]): Record<string, CanvasRect> => {
   const rects: Record<string, CanvasRect> = {};
 
@@ -231,27 +327,95 @@ const renderPane = (
   );
 };
 
+interface DropOverlayProps {
+  dragActive: boolean;
+  draggingId: string | null;
+  hoverTargetId: string | null;
+  hoverZone: DropZone | null;
+  paneId: string;
+  onDragLeave: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+  onDragOver: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+  onDrop: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+}
+
+const DropOverlay: React.FC<DropOverlayProps> = ({
+  dragActive,
+  draggingId,
+  hoverTargetId,
+  hoverZone,
+  paneId,
+  onDragLeave,
+  onDragOver,
+  onDrop,
+}) => {
+  if (!dragActive || draggingId === paneId) {
+    return null;
+  }
+
+  const activeZone = hoverTargetId === paneId ? hoverZone : null;
+
+  return (
+    <div
+      className="grid-layout__drop-overlay"
+      onDragLeave={(event) => onDragLeave(paneId, event)}
+      onDragOver={(event) => onDragOver(paneId, event)}
+      onDrop={(event) => onDrop(paneId, event)}
+    >
+      {activeZone ? (
+        <div
+          className={classNames(
+            'grid-layout__drop-indicator',
+            `grid-layout__drop-indicator--${activeZone}`,
+          )}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 interface SplitTreeViewProps {
+  dragActive: boolean;
+  draggingId: string | null;
+  dragReadyId: string | null;
+  hoverTargetId: string | null;
+  hoverZone: DropZone | null;
   tree: SplitTree;
   rootTree: SplitTree;
   panesById: Map<string, GridLayoutPane>;
   focusedId?: string | null;
+  onDragEnd: () => void;
+  onGridDragLeave: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+  onGridDragOver: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+  onGridDrop: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
   onFocus?: (id: string) => void;
+  onPaneDragStart: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
+  onPaneMouseDownCapture: (id: string, event: React.MouseEvent<HTMLDivElement>) => void;
+  onPaneMouseUpCapture: () => void;
   onTreeChange: (tree: SplitTree | null) => void;
   path?: SplitPath;
 }
 
 const SplitTreeView: React.FC<SplitTreeViewProps> = ({
+  dragActive,
+  draggingId,
+  dragReadyId,
+  hoverTargetId,
+  hoverZone,
   tree,
   rootTree,
   panesById,
   focusedId,
+  onDragEnd,
+  onGridDragLeave,
+  onGridDragOver,
+  onGridDrop,
   onFocus,
+  onPaneDragStart,
+  onPaneMouseDownCapture,
+  onPaneMouseUpCapture,
   onTreeChange,
   path = [],
 }) => {
-  const dragSourceRef = useRef<string | null>(null);
-
   const startResize = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (tree.kind === 'leaf') {
@@ -298,28 +462,27 @@ const SplitTreeView: React.FC<SplitTreeViewProps> = ({
 
     return (
       <div
-        className="grid-layout__pane-wrap"
-        draggable
-        onDragOver={(event) => {
-          if (dragSourceRef.current && dragSourceRef.current !== tree.id) {
-            event.preventDefault();
-          }
-        }}
-        onDragStart={(event) => {
-          dragSourceRef.current = tree.id;
-          event.dataTransfer.effectAllowed = 'move';
-          event.dataTransfer.setData('text/plain', tree.id);
-        }}
-        onDrop={(event) => {
-          event.preventDefault();
-          const sourceId = event.dataTransfer.getData('text/plain');
-          if (sourceId && sourceId !== tree.id) {
-            onTreeChange(swapLeaves(rootTree, sourceId, tree.id));
-          }
-          dragSourceRef.current = null;
-        }}
+        className={classNames(
+          'grid-layout__pane-wrap',
+          draggingId === tree.id && 'grid-layout__pane-wrap--dragging',
+        )}
+        draggable={dragReadyId === tree.id}
+        onDragEnd={onDragEnd}
+        onDragStart={(event) => onPaneDragStart(tree.id, event)}
+        onMouseDownCapture={(event) => onPaneMouseDownCapture(tree.id, event)}
+        onMouseUpCapture={onPaneMouseUpCapture}
       >
         {renderPane(pane, tree.id === focusedId, onFocus)}
+        <DropOverlay
+          dragActive={dragActive}
+          draggingId={draggingId}
+          hoverTargetId={hoverTargetId}
+          hoverZone={hoverZone}
+          onDragLeave={onGridDragLeave}
+          onDragOver={onGridDragOver}
+          onDrop={onGridDrop}
+          paneId={tree.id}
+        />
       </div>
     );
   }
@@ -341,8 +504,20 @@ const SplitTreeView: React.FC<SplitTreeViewProps> = ({
     >
       <div className="grid-layout__split-side" style={firstStyle}>
         <SplitTreeView
+          dragActive={dragActive}
+          draggingId={draggingId}
+          dragReadyId={dragReadyId}
           focusedId={focusedId}
+          hoverTargetId={hoverTargetId}
+          hoverZone={hoverZone}
+          onDragEnd={onDragEnd}
           onFocus={onFocus}
+          onGridDragLeave={onGridDragLeave}
+          onGridDragOver={onGridDragOver}
+          onGridDrop={onGridDrop}
+          onPaneDragStart={onPaneDragStart}
+          onPaneMouseDownCapture={onPaneMouseDownCapture}
+          onPaneMouseUpCapture={onPaneMouseUpCapture}
           onTreeChange={onTreeChange}
           panesById={panesById}
           path={[...path, 'a']}
@@ -362,8 +537,20 @@ const SplitTreeView: React.FC<SplitTreeViewProps> = ({
       />
       <div className="grid-layout__split-side" style={secondStyle}>
         <SplitTreeView
+          dragActive={dragActive}
+          draggingId={draggingId}
+          dragReadyId={dragReadyId}
           focusedId={focusedId}
+          hoverTargetId={hoverTargetId}
+          hoverZone={hoverZone}
+          onDragEnd={onDragEnd}
           onFocus={onFocus}
+          onGridDragLeave={onGridDragLeave}
+          onGridDragOver={onGridDragOver}
+          onGridDrop={onGridDrop}
+          onPaneDragStart={onPaneDragStart}
+          onPaneMouseDownCapture={onPaneMouseDownCapture}
+          onPaneMouseUpCapture={onPaneMouseUpCapture}
           onTreeChange={onTreeChange}
           panesById={panesById}
           path={[...path, 'b']}
@@ -398,6 +585,14 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
     {},
   );
   const rowRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [dragReadyId, setDragReadyId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [externalDragActive, setExternalDragActive] = useState(false);
+  const [hoverTargetId, setHoverTargetId] = useState<string | null>(null);
+  const [hoverZone, setHoverZone] = useState<DropZone | null>(null);
+  const dragStartAllowedRef = useRef<{ id: string; allowed: boolean } | null>(null);
+  const dragActive = Boolean(draggingId || externalDragActive);
 
   const orderedIds = useMemo(() => {
     const known = new Set(ids);
@@ -421,13 +616,122 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   ]);
   const effectiveRects = useMemo(() => normalizeRects(rects, orderedIds), [orderedIds, rects]);
 
-  const reorder = useCallback(
-    (from: number, to: number) => {
+  const resetDragState = useCallback(() => {
+    dragStartAllowedRef.current = null;
+    setDragReadyId(null);
+    setDraggingId(null);
+    setExternalDragActive(false);
+    setHoverTargetId(null);
+    setHoverZone(null);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('dragend', resetDragState);
+    window.addEventListener('drop', resetDragState);
+
+    return () => {
+      window.removeEventListener('dragend', resetDragState);
+      window.removeEventListener('drop', resetDragState);
+    };
+  }, [resetDragState]);
+
+  const notePaneDrag = useCallback((event: React.DragEvent<HTMLElement>) => {
+    if (dataTransferHasPane(event.dataTransfer)) {
+      setExternalDragActive(true);
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }, []);
+
+  const handleLayoutDrop = useCallback((event: React.DragEvent<HTMLElement>) => {
+    if (dataTransferHasPane(event.dataTransfer)) {
+      event.preventDefault();
+    }
+
+    resetDragState();
+  }, [resetDragState]);
+
+  const handlePaneMouseDownCapture = useCallback((id: string, event: React.MouseEvent<HTMLDivElement>) => {
+    const allowed = isPaneDragHandleTarget(event.target);
+    dragStartAllowedRef.current = { id, allowed };
+    setDragReadyId(allowed ? id : null);
+  }, []);
+
+  const handlePaneMouseUpCapture = useCallback(() => {
+    setDragReadyId(null);
+  }, []);
+
+  const handlePaneDragStart = useCallback((id: string, event: React.DragEvent<HTMLDivElement>) => {
+    const allowed = dragStartAllowedRef.current?.id === id && dragStartAllowedRef.current.allowed;
+
+    if (!allowed) {
+      event.preventDefault();
+      return;
+    }
+
+    const header = event.currentTarget.querySelector<HTMLElement>(GRID_DRAG_HANDLE_SELECTOR);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData(GRID_LAYOUT_DRAG_MIME, id);
+
+    if (header) {
+      event.dataTransfer.setDragImage(header, 20, 20);
+    }
+
+    // Mutating the DOM inside dragstart can abort the drag in Chromium, so
+    // mount the drop overlays on the next tick.
+    window.setTimeout(() => {
+      setDraggingId(id);
+      setExternalDragActive(false);
+    }, 0);
+  }, []);
+
+  const movePaneBeforeOrAfter = useCallback(
+    (sourceId: string, targetId: string, placement: 'before' | 'after') => {
       setOrder((current) => {
         const next = orderedIds.length > 0 ? orderedIds.slice() : current.slice();
-        const [moved] = next.splice(from, 1);
-        next.splice(to, 0, moved);
-        return next;
+        const sourceIndex = next.indexOf(sourceId);
+
+        if (sourceIndex === -1) {
+          next.push(sourceId);
+        }
+
+        const withoutSource = next.filter((id) => id !== sourceId);
+        const targetIndex = withoutSource.indexOf(targetId);
+
+        if (targetIndex === -1) {
+          return next;
+        }
+
+        withoutSource.splice(placement === 'before' ? targetIndex : targetIndex + 1, 0, sourceId);
+        return withoutSource;
+      });
+    },
+    [orderedIds, setOrder],
+  );
+
+  const movePaneToTargetPosition = useCallback(
+    (sourceId: string, targetId: string) => {
+      setOrder((current) => {
+        const next = orderedIds.length > 0 ? orderedIds.slice() : current.slice();
+        const targetIndex = next.indexOf(targetId);
+
+        if (targetIndex === -1) {
+          return next;
+        }
+
+        if (!next.includes(sourceId)) {
+          next.splice(targetIndex, 0, sourceId);
+          return next;
+        }
+
+        const withoutSource = next.filter((id) => id !== sourceId);
+        const adjustedTargetIndex = withoutSource.indexOf(targetId);
+
+        if (adjustedTargetIndex === -1) {
+          return next;
+        }
+
+        withoutSource.splice(adjustedTargetIndex, 0, sourceId);
+        return withoutSource;
       });
     },
     [orderedIds, setOrder],
@@ -476,38 +780,109 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
 
   const renderRow = useCallback(
     (count: number, sizes: number[], setSizes: (value: number[] | ((current: number[]) => number[])) => void) => {
-      const visiblePanes =
-        count === 2 && focusedId
-          ? [
-              orderedPanes.find((pane) => pane.id === focusedId),
-              ...orderedPanes.filter((pane) => pane.id !== focusedId),
-            ]
-              .filter((pane): pane is GridLayoutPane => Boolean(pane))
-              .slice(0, count)
-          : orderedPanes.slice(0, count);
+      const visibleIds = rowVisibleIds(orderedIds, focusedId, count);
+      const visiblePanes = visibleIds
+        .map((id) => panesMap.get(id))
+        .filter((pane): pane is GridLayoutPane => Boolean(pane));
+
+      const rowDragOver = (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+        if (!dataTransferHasPane(event.dataTransfer)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = 'move';
+        setExternalDragActive(true);
+
+        const allowCenter = !draggingId || !visibleIds.includes(draggingId);
+        setHoverTargetId(targetId);
+        setHoverZone(rowDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, allowCenter));
+      };
+
+      const rowDragLeave = (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          return;
+        }
+
+        if (hoverTargetId === targetId) {
+          setHoverTargetId(null);
+          setHoverZone(null);
+        }
+      };
+
+      const rowDrop = (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+        if (!dataTransferHasPane(event.dataTransfer)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const sourceId = event.dataTransfer.getData(GRID_LAYOUT_DRAG_MIME);
+
+        if (sourceId && ids.includes(sourceId)) {
+          const sourceVisible = visibleIds.includes(sourceId);
+          // Match the zone the indicator showed during dragover.
+          const allowCenter = !draggingId || !visibleIds.includes(draggingId);
+          const zone = rowDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, allowCenter);
+
+          if (zone === 'center') {
+            if (!sourceVisible) {
+              movePaneToTargetPosition(sourceId, targetId);
+            } else if (sourceId !== targetId) {
+              setOrder(() => {
+                const next = orderedIds.slice();
+                const sourceIndex = next.indexOf(sourceId);
+                const targetIndex = next.indexOf(targetId);
+                next[sourceIndex] = targetId;
+                next[targetIndex] = sourceId;
+                return next;
+              });
+            }
+          } else if (sourceId !== targetId) {
+            movePaneBeforeOrAfter(sourceId, targetId, zone === 'left' ? 'before' : 'after');
+          }
+
+          onFocus?.(sourceId);
+        }
+
+        resetDragState();
+      };
 
       return (
-        <div className="grid-layout grid-layout--row" ref={rowRef}>
+        <div
+          className="grid-layout grid-layout--row"
+          onDragEnter={notePaneDrag}
+          onDragOver={notePaneDrag}
+          onDrop={handleLayoutDrop}
+          ref={rowRef}
+        >
           {visiblePanes.map((pane, index) => (
             <div
-              className="grid-layout__pane-wrap"
-              draggable
+              className={classNames(
+                'grid-layout__pane-wrap',
+                draggingId === pane.id && 'grid-layout__pane-wrap--dragging',
+              )}
+              draggable={dragReadyId === pane.id}
               key={pane.id}
-              onDragStart={(event) => {
-                event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', String(index));
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                const source = Number(event.dataTransfer.getData('text/plain'));
-                if (Number.isInteger(source) && source !== index) {
-                  reorder(source, index);
-                }
-              }}
-              onDragOver={(event) => event.preventDefault()}
+              onDragEnd={resetDragState}
+              onDragStart={(event) => handlePaneDragStart(pane.id, event)}
+              onMouseDownCapture={(event) => handlePaneMouseDownCapture(pane.id, event)}
+              onMouseUpCapture={handlePaneMouseUpCapture}
               style={{ flex: `${sizes[index] ?? 100 / visiblePanes.length} 1 0` }}
             >
               {renderPane(pane, pane.id === focusedId, onFocus)}
+              <DropOverlay
+                dragActive={dragActive}
+                draggingId={draggingId}
+                hoverTargetId={hoverTargetId}
+                hoverZone={hoverZone}
+                onDragLeave={rowDragLeave}
+                onDragOver={rowDragOver}
+                onDrop={rowDrop}
+                paneId={pane.id}
+              />
               {index < visiblePanes.length - 1 ? (
                 <div className="grid-layout__resizer" onMouseDown={startRowResize(index, setSizes)} />
               ) : null}
@@ -516,7 +891,119 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
         </div>
       );
     },
-    [focusedId, onFocus, orderedPanes, reorder, startRowResize],
+    [
+      dragActive,
+      dragReadyId,
+      draggingId,
+      focusedId,
+      handleLayoutDrop,
+      handlePaneDragStart,
+      handlePaneMouseDownCapture,
+      handlePaneMouseUpCapture,
+      hoverTargetId,
+      hoverZone,
+      ids,
+      movePaneBeforeOrAfter,
+      movePaneToTargetPosition,
+      notePaneDrag,
+      onFocus,
+      orderedIds,
+      panesMap,
+      resetDragState,
+      setOrder,
+      startRowResize,
+    ],
+  );
+
+  const handleGridDragOver = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+    if (!dataTransferHasPane(event.dataTransfer)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    setExternalDragActive(true);
+    setHoverTargetId(targetId);
+    setHoverZone(gridDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY));
+  }, []);
+
+  const handleGridDragLeave = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      return;
+    }
+
+    if (hoverTargetId === targetId) {
+      setHoverTargetId(null);
+      setHoverZone(null);
+    }
+  }, [hoverTargetId]);
+
+  const handleGridDrop = useCallback(
+    (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+      if (!dataTransferHasPane(event.dataTransfer)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const sourceId = event.dataTransfer.getData(GRID_LAYOUT_DRAG_MIME);
+
+      if (sourceId && ids.includes(sourceId) && effectiveTree) {
+        const zone = gridDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY);
+
+        if (zone === 'center') {
+          if (sourceId !== targetId) {
+            setTree(swapLeaves(effectiveTree, sourceId, targetId));
+          }
+        } else if (sourceId !== targetId) {
+          const pruned = removeLeaf(effectiveTree, sourceId);
+
+          if (pruned) {
+            setTree(splitLeafAt(pruned, targetId, sourceId, zone));
+          }
+        }
+
+        onFocus?.(sourceId);
+      }
+
+      resetDragState();
+    },
+    [effectiveTree, ids, onFocus, resetDragState, setTree],
+  );
+
+  const handleSingleDragOver = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+    if (!dataTransferHasPane(event.dataTransfer)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    setExternalDragActive(true);
+    setHoverTargetId(targetId);
+    setHoverZone('center');
+  }, []);
+
+  const handleSingleDrop = useCallback(
+    (_targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+      if (!dataTransferHasPane(event.dataTransfer)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const sourceId = event.dataTransfer.getData(GRID_LAYOUT_DRAG_MIME);
+
+      if (sourceId && ids.includes(sourceId)) {
+        onFocus?.(sourceId);
+      }
+
+      resetDragState();
+    },
+    [ids, onFocus, resetDragState],
   );
 
   const bringCanvasPaneForward = useCallback(
@@ -631,10 +1118,20 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
       return;
     }
 
-    const columns = Math.ceil(Math.sqrt(count));
+    // Fit the tiles to the visible canvas width so tiling never scrolls
+    // horizontally; extra rows scroll vertically instead.
+    const gap = GRID_LAYOUT.CANVAS_GAP;
+    const top = GRID_LAYOUT.CANVAS_TOOLBAR_HEIGHT + gap;
+    const viewWidth = canvasRef.current?.clientWidth ?? window.innerWidth;
+    const viewHeight = canvasRef.current?.clientHeight ?? window.innerHeight;
+    const maxColumns = Math.max(1, Math.floor((viewWidth - gap) / (GRID_LAYOUT.CANVAS_MIN_WIDTH + gap)));
+    const columns = Math.min(Math.ceil(Math.sqrt(count)), maxColumns);
     const rows = Math.ceil(count / columns);
-    const cellWidth = GRID_LAYOUT.CANVAS_DEFAULT_WIDTH;
-    const cellHeight = GRID_LAYOUT.CANVAS_DEFAULT_HEIGHT;
+    const cellWidth = Math.floor((viewWidth - gap * (columns + 1)) / columns);
+    const cellHeight = Math.max(
+      GRID_LAYOUT.CANVAS_MIN_HEIGHT,
+      Math.floor((viewHeight - top - gap * rows) / rows),
+    );
 
     setRects(
       Object.fromEntries(
@@ -644,11 +1141,8 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
           return [
             id,
             {
-              x: GRID_LAYOUT.CANVAS_GAP + column * (cellWidth + GRID_LAYOUT.CANVAS_GAP),
-              y:
-                GRID_LAYOUT.CANVAS_TOOLBAR_HEIGHT +
-                GRID_LAYOUT.CANVAS_GAP +
-                row * (cellHeight + GRID_LAYOUT.CANVAS_GAP),
+              x: gap + column * (cellWidth + gap),
+              y: top + row * (cellHeight + gap),
               width: cellWidth,
               height: cellHeight,
               z: index + 1,
@@ -657,7 +1151,6 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
         }),
       ),
     );
-    void rows;
   }, [orderedIds, setRects]);
 
   if (orderedPanes.length === 0) {
@@ -670,9 +1163,38 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
 
   if (mode === 'single') {
     const pane = focusedId ? orderedPanes.find((item) => item.id === focusedId) : orderedPanes[0];
+    const visiblePane = pane ?? orderedPanes[0];
+
     return (
-      <div className="grid-layout grid-layout--single">
-        {renderPane(pane ?? orderedPanes[0], true, onFocus)}
+      <div
+        className="grid-layout grid-layout--single"
+        onDragEnter={notePaneDrag}
+        onDragOver={notePaneDrag}
+        onDrop={handleLayoutDrop}
+      >
+        <div
+          className={classNames(
+            'grid-layout__pane-wrap',
+            draggingId === visiblePane.id && 'grid-layout__pane-wrap--dragging',
+          )}
+          draggable={dragReadyId === visiblePane.id}
+          onDragEnd={resetDragState}
+          onDragStart={(event) => handlePaneDragStart(visiblePane.id, event)}
+          onMouseDownCapture={(event) => handlePaneMouseDownCapture(visiblePane.id, event)}
+          onMouseUpCapture={handlePaneMouseUpCapture}
+        >
+          {renderPane(visiblePane, true, onFocus)}
+          <DropOverlay
+            dragActive={dragActive}
+            draggingId={draggingId}
+            hoverTargetId={hoverTargetId}
+            hoverZone={hoverZone}
+            onDragLeave={handleGridDragLeave}
+            onDragOver={handleSingleDragOver}
+            onDrop={handleSingleDrop}
+            paneId={visiblePane.id}
+          />
+        </div>
       </div>
     );
   }
@@ -687,7 +1209,7 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
 
   if (mode === 'canvas') {
     return (
-      <div className="grid-layout grid-layout--canvas">
+      <div className="grid-layout grid-layout--canvas" ref={canvasRef}>
         <div className="grid-layout__canvas-toolbar">
           <Button icon="grid" onClick={tileCanvas} size="sm" variant="ghost">
             Tile
@@ -740,11 +1262,28 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   }
 
   return (
-    <div className="grid-layout grid-layout--grid">
+    <div
+      className="grid-layout grid-layout--grid"
+      onDragEnter={notePaneDrag}
+      onDragOver={notePaneDrag}
+      onDrop={handleLayoutDrop}
+    >
       {effectiveTree ? (
         <SplitTreeView
+          dragActive={dragActive}
+          draggingId={draggingId}
+          dragReadyId={dragReadyId}
           focusedId={focusedId}
+          hoverTargetId={hoverTargetId}
+          hoverZone={hoverZone}
+          onDragEnd={resetDragState}
           onFocus={onFocus}
+          onGridDragLeave={handleGridDragLeave}
+          onGridDragOver={handleGridDragOver}
+          onGridDrop={handleGridDrop}
+          onPaneDragStart={handlePaneDragStart}
+          onPaneMouseDownCapture={handlePaneMouseDownCapture}
+          onPaneMouseUpCapture={handlePaneMouseUpCapture}
           onTreeChange={setTree}
           panesById={panesMap}
           rootTree={effectiveTree}

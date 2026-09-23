@@ -904,12 +904,18 @@
   display: block;
   overflow: auto;
   position: relative;
+  scrollbar-gutter: stable;
 }
 
 .grid-layout__pane-wrap {
   display: flex;
   min-height: 0;
   min-width: 0;
+  position: relative;
+}
+
+.grid-layout__pane-wrap--dragging {
+  opacity: 0.45;
 }
 
 .grid-layout__pane {
@@ -921,6 +927,53 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+}
+
+.grid-layout__drop-overlay {
+  inset: 0;
+  position: absolute;
+  z-index: 20;
+}
+
+.grid-layout__drop-indicator {
+  background: var(--accent-soft);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent) 28%, transparent);
+  pointer-events: none;
+  position: absolute;
+}
+
+.grid-layout__drop-indicator--center {
+  inset: 8px;
+}
+
+.grid-layout__drop-indicator--left {
+  bottom: 8px;
+  left: 8px;
+  top: 8px;
+  width: calc(50% - 12px);
+}
+
+.grid-layout__drop-indicator--right {
+  bottom: 8px;
+  right: 8px;
+  top: 8px;
+  width: calc(50% - 12px);
+}
+
+.grid-layout__drop-indicator--top {
+  height: calc(50% - 12px);
+  left: 8px;
+  right: 8px;
+  top: 8px;
+}
+
+.grid-layout__drop-indicator--bottom {
+  bottom: 8px;
+  height: calc(50% - 12px);
+  left: 8px;
+  right: 8px;
 }
 
 .grid-layout__pane--focused {

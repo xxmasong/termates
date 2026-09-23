@@ -85,7 +85,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
 
   return (
     <article className={classNames('agent-pane', focused && 'agent-pane--focused')} onMouseDown={focusPane}>
-      <header className="agent-pane__header">
+      <header className="agent-pane__header" data-grid-drag-handle>
         <span className="agent-pane__drag" title="Drag pane">
           <Icon name="dots" size={12} />
         </span>
