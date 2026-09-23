@@ -97,17 +97,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </Button>
           ) : null}
 
-          {cli?.key === 'gemini' && auth.plan === 'api-key' ? (
-            <>
-              <p className="auth-modal__note">
-                Gemini is using an API key. Sign in with a Google account to use its
-                subscription quota instead.
-              </p>
-              <Button onClick={() => onConnect(cli)} size="sm" variant="primary">
-                Sign in with Google
-              </Button>
-            </>
-          ) : null}
 
           {error ? <div className="feature-error">{error}</div> : null}
 
