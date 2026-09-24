@@ -1,0 +1,1 @@
+interface KeeperHudProps { message: string; visible: boolean; } export const KeeperHud: React.FC<KeeperHudProps> = ({ message, visible }) => <aside className={`keeper-hud${visible ? ' keeper-hud--visible' : ''}`}><span>✦</span>{message}</aside>;
