@@ -1150,7 +1150,8 @@
   margin-left: 30px;
 }
 .landing-chat__message--tool p {
-  background: none;
+  background: transparent !important;
+  border: 0 !important;
   color: var(--l-text-3);
   font: 12px var(--l-ff-mono);
   padding: 3px 0;
