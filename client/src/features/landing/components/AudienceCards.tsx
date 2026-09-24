@@ -10,6 +10,7 @@ export const AudienceCards: React.FC<AudienceCardsProps> = () => (
     <div className="landing-audience">
       {AUDIENCE_ENTRIES.map((entry) => (
         <article key={entry.title}>
+          <span className="landing-audience__icon">⌁</span>
           <h3>{entry.title}</h3>
           <p>{entry.body}</p>
         </article>

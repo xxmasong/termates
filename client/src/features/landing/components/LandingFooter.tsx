@@ -12,7 +12,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = () => (
         <Icon name="logo" />
         {COPY.brand}
       </span>
-      <p>{COPY.footer}</p>
+      <p>{COPY.footerTagline}</p>
     </div>
     <div className="landing-footer__columns">
       <nav>
