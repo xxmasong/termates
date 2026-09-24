@@ -162,7 +162,12 @@ export const FAQ_ENTRIES: readonly FaqEntry[] = [
   {
     question: 'What does it cost?',
     answer:
-      'TermHive is free during early access. You only pay your AI vendors, through plans you likely already have.',
+      'Free covers 1 project and 3 agents. Pro raises that to 3 projects and 10 agents; Pro Plus gives you unlimited projects and 30 agents. Your AI usage stays on your own Claude, ChatGPT or Google plan.',
+  },
+  {
+    question: 'What counts as an agent?',
+    answer:
+      'Every agent you create, running or stopped, across all your projects. Delete an agent to free its slot.',
   },
 ];
 export const COMPARISON_ROWS: readonly ComparisonRow[] = [
