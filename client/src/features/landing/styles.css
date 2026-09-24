@@ -732,6 +732,26 @@
   margin: 42px 0 0;
   padding: 0;
 }
+.landing-steps {
+  position: relative;
+}
+.landing-steps::before {
+  background: var(--l-honey);
+  content: '';
+  height: 1px;
+  left: 16px;
+  position: absolute;
+  right: calc(66.666% + 16px);
+  top: 16px;
+  width: calc(66.666% - 32px);
+}
+.landing-steps li {
+  position: relative;
+  z-index: 1;
+}
+.landing-steps h3 {
+  margin-top: 16px;
+}
 .landing-steps b {
   align-items: center;
   border: 1px solid var(--l-honey);
@@ -783,6 +803,14 @@
   .landing-steps,
   .landing-keeper {
     grid-template-columns: 1fr;
+  }
+  .landing-steps::before {
+    bottom: 16px;
+    height: auto;
+    left: 16px;
+    right: auto;
+    top: 16px;
+    width: 1px;
   }
 }
 .landing-bento {
