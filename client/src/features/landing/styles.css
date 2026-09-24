@@ -1227,3 +1227,30 @@
     grid-column: auto;
   }
 }
+@media (max-width: 760px) {
+  .landing-bento {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .landing-bento > .landing-feature-card {
+    grid-column: auto !important;
+    min-width: 0;
+  }
+  .landing-problem__visual,
+  .landing-audience,
+  .landing-footer__columns {
+    min-width: 0;
+  }
+}
+@media (min-width: 761px) and (max-width: 1023px) {
+  .landing-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .landing-bento > .landing-feature-card {
+    grid-column: span 1;
+  }
+  .landing-bento > .landing-feature-card:nth-child(1),
+  .landing-bento > .landing-feature-card:nth-child(4),
+  .landing-bento > .landing-feature-card:nth-child(6) {
+    grid-column: span 2;
+  }
+}
