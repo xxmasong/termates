@@ -5,6 +5,7 @@ export const AUTH_COPY = {
   forgot: { title: 'Reset your password', body: "Enter your email and we'll send you a reset link." },
   reset: { title: 'Choose a new password' },
   genericError: 'Something went wrong. Please try again.',
+  inviteRequired: 'Sign-ups are invite-only right now. Enter your invite code.',
   legal: 'By creating an account you agree to the Terms and Privacy Policy.',
   panelTitle: 'Four agents. One team. Zero copy-paste.',
   panelAgents: 'Claude Code · Codex · Gemini CLI · OpenCode',
