@@ -3,6 +3,3 @@
 .auth-secondary{background:transparent;border:1px solid var(--l-line-strong);border-radius:999px;color:var(--l-text);height:44px;width:100%}.auth-envelope{align-items:center;border:2px solid var(--l-honey);border-radius:50%;color:var(--l-honey);display:flex;font-size:1.35rem;height:48px;justify-content:center;margin:0 0 22px;width:48px}.auth-success{color:var(--l-text-2);line-height:1.6}
 .auth-password .auth-field input{padding-right:64px}.auth-password button{right:12px;top:45px;transform:translateY(-50%)}
 .auth-oauth a{gap:10px}.auth-oauth__mark{height:18px;width:18px}
-.auth-plans>div{grid-auto-rows:1fr}.auth-plan{height:100%}
-.auth-field input.auth-invite-code{font-family:var(--l-ff-mono)}
-.auth-field input{width:100%}
