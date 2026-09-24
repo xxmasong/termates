@@ -1,0 +1,1 @@
+interface HexPatternProps { children?: never; } export const HexPattern: React.FC<HexPatternProps> = () => <svg aria-hidden="true" className="landing-hex" viewBox="0 0 56 49"><path d="M14 1 42 1 56 24.5 42 48 14 48 0 24.5Z" fill="none" /></svg>;
