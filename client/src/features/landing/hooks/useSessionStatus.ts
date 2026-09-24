@@ -1,2 +1,19 @@
-import { useEffect, useState } from 'react'; import type { SessionStatus } from '../types';
-export const useSessionStatus = () => { const [status, setStatus] = useState<SessionStatus>('unknown'); useEffect(() => { let active = true; void fetch('/api/auth/me').then((response) => { if (active) setStatus(response.ok ? 'signed-in' : 'signed-out'); }).catch(() => { if (active) setStatus('signed-out'); }); return () => { active = false; }; }, []); return status; };
+import { useEffect, useState } from 'react';
+import type { SessionStatus } from '../types';
+export const useSessionStatus = () => {
+  const [status, setStatus] = useState<SessionStatus>('unknown');
+  useEffect(() => {
+    let active = true;
+    void fetch('/api/auth/me')
+      .then((response) => {
+        if (active) setStatus(response.ok ? 'signed-in' : 'signed-out');
+      })
+      .catch(() => {
+        if (active) setStatus('signed-out');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return status;
+};

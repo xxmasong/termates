@@ -1,2 +1,36 @@
-import { ROUTES } from '@/constants'; import { COPY } from '../constants'; import { HexPattern } from './HexPattern'; import { HiveSim } from './HiveSim';
-interface HeroProps { children?: never; } export const Hero: React.FC<HeroProps> = () => <section className="landing-hero" id="top"><HexPattern /><div className="landing-hero__copy"><p className="landing-eyebrow">{COPY.hero.eyebrow}</p><h1>{COPY.hero.titleA}<br />{COPY.hero.titleB}</h1><p>{COPY.hero.body}</p><div className="landing-actions"><a className="landing-button landing-button--primary" href={ROUTES.SIGNUP}>{COPY.hero.primary}</a><a className="landing-button landing-button--secondary" href="#how">{COPY.hero.secondary}</a></div><small>{COPY.hero.micro}</small></div><div><HiveSim /><span className="sr-only">A live TermHive workspace where four coding agents coordinate checkout work.</span></div></section>;
+import { ROUTES } from '@/constants';
+import { COPY } from '../constants';
+import { HexPattern } from './HexPattern';
+import { HiveSim } from './HiveSim';
+interface HeroProps {
+  children?: never;
+}
+export const Hero: React.FC<HeroProps> = () => (
+  <section className="landing-hero" id="top">
+    <HexPattern />
+    <div className="landing-hero__copy">
+      <p className="landing-eyebrow">{COPY.hero.eyebrow}</p>
+      <h1>
+        {COPY.hero.titleA}
+        <br />
+        {COPY.hero.titleB}
+      </h1>
+      <p>{COPY.hero.body}</p>
+      <div className="landing-actions">
+        <a className="landing-button landing-button--primary" href={ROUTES.SIGNUP}>
+          {COPY.hero.primary}
+        </a>
+        <a className="landing-button landing-button--secondary" href="#how">
+          {COPY.hero.secondary}
+        </a>
+      </div>
+      <small>{COPY.hero.micro}</small>
+    </div>
+    <div>
+      <HiveSim />
+      <span className="sr-only">
+        A live TermHive workspace where four coding agents coordinate checkout work.
+      </span>
+    </div>
+  </section>
+);

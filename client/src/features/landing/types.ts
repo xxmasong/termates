@@ -16,7 +16,16 @@ export interface SimStep {
   keeper?: boolean;
 }
 
-export interface NavLink { label: string; href: string; }
-export interface FaqEntry { question: string; answer: string; }
-export interface ComparisonRow { label: string; values: readonly ComparisonValue[]; }
+export interface NavLink {
+  label: string;
+  href: string;
+}
+export interface FaqEntry {
+  question: string;
+  answer: string;
+}
+export interface ComparisonRow {
+  label: string;
+  values: readonly ComparisonValue[];
+}
 export type ComparisonValue = 'yes' | 'partial' | 'no';

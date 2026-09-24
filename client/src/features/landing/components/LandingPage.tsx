@@ -1,4 +1,4 @@
-import { COPY, LANDING_TITLE } from '../constants';
+import { LANDING_TITLE } from '../constants';
 import { useDocumentTitle } from '../hooks';
 import { Hero } from './Hero';
 import { LandingFooter } from './LandingFooter';
@@ -11,5 +11,16 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = () => {
   useDocumentTitle(LANDING_TITLE);
-  return <div className="landing"><a className="landing-skip" href="#main">Skip to content</a><LandingNav /><main id="main"><Hero /></main><LandingFooter /></div>;
+  return (
+    <div className="landing">
+      <a className="landing-skip" href="#main">
+        Skip to content
+      </a>
+      <LandingNav />
+      <main id="main">
+        <Hero />
+      </main>
+      <LandingFooter />
+    </div>
+  );
 };

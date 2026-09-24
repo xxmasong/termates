@@ -1,1 +1,14 @@
-import type { ReactNode } from 'react'; interface SectionProps { id?: string; eyebrow?: string; title?: string; children: ReactNode; } export const Section: React.FC<SectionProps> = ({ id, eyebrow, title, children }) => <section className="landing-section" id={id}>{eyebrow ? <p className="landing-eyebrow">{eyebrow}</p> : null}{title ? <h2>{title}</h2> : null}{children}</section>;
+import type { ReactNode } from 'react';
+interface SectionProps {
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  children: ReactNode;
+}
+export const Section: React.FC<SectionProps> = ({ id, eyebrow, title, children }) => (
+  <section className="landing-section" id={id}>
+    {eyebrow ? <p className="landing-eyebrow">{eyebrow}</p> : null}
+    {title ? <h2>{title}</h2> : null}
+    {children}
+  </section>
+);
