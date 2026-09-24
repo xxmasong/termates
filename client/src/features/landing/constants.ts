@@ -207,13 +207,22 @@ export const KEEPER_BULLETS = [
   'Remembers every conversation',
 ] as const;
 export const CHAT_MESSAGES = [
-  'You: Set up a team to add Stripe checkout to the shop repo.',
-  '▸ create_project  shop-checkout',
-  '▸ create_agent  claude · frontend    ▸ create_agent  codex · backend',
-  'Keeper: Done — two agents are running. Codex is drafting the payments endpoint; Claude will build the form once the contract is in shared files.',
-  "You: How's backend doing?",
-  '▸ ask_agent  codex',
-  'Keeper: Codex says: "Endpoint and webhook handler done, 12 tests passing. Waiting on the Stripe test key."',
+  { speaker: 'You', type: 'user', text: 'Set up a team to add Stripe checkout to the shop repo.' },
+  { type: 'tool', text: '▸ create_project  shop-checkout' },
+  { type: 'tool', text: '▸ create_agent  claude · frontend' },
+  { type: 'tool', text: '▸ create_agent  codex · backend' },
+  {
+    speaker: 'Keeper',
+    type: 'keeper',
+    text: 'Done — two agents are running. Codex is drafting the payments endpoint; Claude will build the form once the contract is in shared files.',
+  },
+  { speaker: 'You', type: 'user', text: "How's backend doing?" },
+  { type: 'tool', text: '▸ ask_agent  codex' },
+  {
+    speaker: 'Keeper',
+    type: 'keeper',
+    text: 'Codex says: "Endpoint and webhook handler done, 12 tests passing. Waiting on the Stripe test key."',
+  },
 ] as const;
 export const AUDIENCE_ENTRIES: readonly AudienceEntry[] = [
   {
