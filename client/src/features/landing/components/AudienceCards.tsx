@@ -1,4 +1,5 @@
 import { AUDIENCE_ENTRIES, COPY } from '../constants';
+import { Icon } from '@/components';
 import { Section } from './Section';
 
 interface AudienceCardsProps {
@@ -10,7 +11,9 @@ export const AudienceCards: React.FC<AudienceCardsProps> = () => (
     <div className="landing-audience">
       {AUDIENCE_ENTRIES.map((entry) => (
         <article key={entry.title}>
-          <span className="landing-audience__icon">⌁</span>
+          <span className="landing-audience__icon">
+            <Icon name="user" size={16} />
+          </span>
           <h3>{entry.title}</h3>
           <p>{entry.body}</p>
         </article>
