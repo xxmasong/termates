@@ -4,6 +4,8 @@ import { Hero } from './Hero';
 import { FeatureBento } from './FeatureBento';
 import { LandingFooter } from './LandingFooter';
 import { LandingNav } from './LandingNav';
+import { HowItWorks } from './HowItWorks';
+import { KeeperSpotlight } from './KeeperSpotlight';
 import { ProblemSection } from './ProblemSection';
 import { WorksWith } from './WorksWith';
 import '../styles.css';
@@ -25,6 +27,8 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
         <WorksWith />
         <ProblemSection />
         <FeatureBento />
+        <HowItWorks />
+        <KeeperSpotlight />
       </main>
       <LandingFooter />
     </div>

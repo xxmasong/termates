@@ -12,3 +12,6 @@ export * from './ProblemSection';
 export * from './WorksWith';
 export * from './FeatureBento';
 export * from './FeatureCard';
+export * from './HowItWorks';
+export * from './KeeperSpotlight';
+export * from './ChatMock';
