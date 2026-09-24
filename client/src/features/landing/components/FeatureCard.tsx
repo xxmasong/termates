@@ -11,6 +11,21 @@ const ICON_PATHS = [
   'M2 8h3l2-4 2 7 2-4h3',
 ] as const;
 const Illustration: React.FC<{ index: number; lines: readonly string[] }> = ({ index, lines }) => {
+  if (index === 1)
+    return (
+      <div className="landing-agent-message">
+        <div>
+          <span className="landing-agent-message__pill landing-agent-message__pill--codex">
+            codex
+          </span>
+          <i />
+          <span className="landing-agent-message__pill landing-agent-message__pill--claude">
+            claude
+          </span>
+        </div>
+        <small>✉ orders API now returns {'{total, currency}'}</small>
+      </div>
+    );
   if (index === 3)
     return (
       <div className="landing-layout-glyphs">

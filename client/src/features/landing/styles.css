@@ -1254,3 +1254,51 @@
     grid-column: span 2;
   }
 }
+.landing-feature-card__illustration--4 span::after,
+.landing-feature-card__illustration--5 span::before {
+  content: none !important;
+}
+.landing-agent-message {
+  display: grid;
+  gap: 14px;
+}
+.landing-agent-message > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+.landing-agent-message__pill {
+  border: 1px solid var(--l-line-strong);
+  border-radius: 99px;
+  padding: 4px 7px;
+}
+.landing-agent-message__pill::before {
+  background: var(--l-codex);
+  border-radius: 50%;
+  content: '';
+  display: inline-block;
+  height: 6px;
+  margin-right: 5px;
+  width: 6px;
+}
+.landing-agent-message__pill--claude::before {
+  background: var(--l-claude);
+}
+.landing-agent-message i {
+  border-top: 1px dashed var(--l-text-3);
+  height: 1px;
+  position: relative;
+  width: 32px;
+}
+.landing-agent-message i::after {
+  border-left: 4px solid var(--l-text-3);
+  border-block: 3px solid transparent;
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -4px;
+}
+.landing-agent-message small {
+  color: var(--l-text-3);
+  font: 11px var(--l-ff-mono);
+}
