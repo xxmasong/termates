@@ -16,3 +16,7 @@ export * from './HowItWorks';
 export * from './KeeperSpotlight';
 export * from './ChatMock';
 export * from './ComparisonTable';
+export * from './AudienceCards';
+export * from './Faq';
+export * from './FaqItem';
+export * from './FinalCta';

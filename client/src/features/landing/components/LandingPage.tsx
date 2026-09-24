@@ -7,6 +7,9 @@ import { LandingNav } from './LandingNav';
 import { HowItWorks } from './HowItWorks';
 import { KeeperSpotlight } from './KeeperSpotlight';
 import { ComparisonTable } from './ComparisonTable';
+import { AudienceCards } from './AudienceCards';
+import { Faq } from './Faq';
+import { FinalCta } from './FinalCta';
 import { ProblemSection } from './ProblemSection';
 import { WorksWith } from './WorksWith';
 import '../styles.css';
@@ -31,6 +34,9 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
         <HowItWorks />
         <KeeperSpotlight />
         <ComparisonTable />
+        <AudienceCards />
+        <Faq />
+        <FinalCta />
       </main>
       <LandingFooter />
     </div>
