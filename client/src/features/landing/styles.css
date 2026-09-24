@@ -1067,7 +1067,7 @@
 }
 .landing-steps::before {
   left: 16px;
-  right: 16px;
+  right: calc(33.333% - 37px);
   width: auto;
 }
 .landing-keeper {
