@@ -152,6 +152,13 @@ export const COMPARISON_ROWS: readonly ComparisonRow[] = [
   { label: 'Keeps running with the browser closed', values: ['yes', 'no', 'no', 'yes', 'partial'] },
   { label: 'Works from your phone', values: ['yes', 'no', 'no', 'partial', 'no'] },
 ];
+export const COMPARISON_HEADERS = [
+  { title: 'TermHive', subtitle: '' },
+  { title: 'Single-agent CLIs', subtitle: 'Claude Code, Codex CLI…' },
+  { title: 'AI IDEs', subtitle: 'Cursor, Windsurf…' },
+  { title: 'Cloud agents', subtitle: 'Devin, Copilot agent…' },
+  { title: 'Parallel runners', subtitle: 'Conductor, Claude Squad…' },
+] as const;
 export const FEATURE_ENTRIES: readonly FeatureEntry[] = [
   {
     title: 'Real terminals, not wrappers',

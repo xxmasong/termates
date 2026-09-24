@@ -724,6 +724,52 @@
   background: var(--l-honey-soft);
   color: var(--l-honey);
 }
+.landing-comparison th small {
+  color: var(--l-text-3);
+  display: block;
+  font: 11px var(--l-ff-mono);
+  margin-top: 5px;
+}
+.landing-comparison__icon {
+  fill: none;
+  height: 14px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 14px;
+}
+.landing-comparison__hint {
+  display: none;
+  color: var(--l-text-3);
+  font: 11px var(--l-ff-mono);
+}
+.landing-section > small {
+  color: var(--l-text-3);
+}
+@media (max-width: 760px) {
+  .landing-comparison {
+    position: relative;
+  }
+  .landing-comparison::after {
+    background: linear-gradient(90deg, transparent, var(--l-bg));
+    content: '';
+    inset: 0 0 0 auto;
+    pointer-events: none;
+    position: absolute;
+    width: 32px;
+  }
+  .landing-comparison th:first-child {
+    min-width: 150px;
+  }
+  .landing-comparison td,
+  .landing-comparison thead th:not(:first-child) {
+    min-width: 110px;
+  }
+  .landing-comparison__hint {
+    display: block;
+  }
+}
 .landing-steps {
   display: grid;
   gap: 32px;
