@@ -16,7 +16,10 @@ export const HiveSimPane: React.FC<HiveSimPaneProps> = ({
   paneRef,
   toastRef,
 }) => (
-  <article className={`hive-pane hive-pane--${pane.id}`} ref={paneRef}>
+  <article
+    className={`hive-pane hive-pane--${pane.id}${toast ? ' hive-pane--has-toast' : ''}`}
+    ref={paneRef}
+  >
     <header>
       <span className={`hive-dot${running ? ' hive-dot--running' : ''}`} />
       <strong>{pane.cli}</strong>

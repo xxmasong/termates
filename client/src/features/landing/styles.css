@@ -256,6 +256,9 @@
 .hive-toast {
   z-index: 2;
 }
+.hive-pane--claude.hive-pane--has-toast pre {
+  -webkit-line-clamp: 3;
+}
 .hive-sim {
   background: var(--l-bg-sunken);
   border: 1px solid var(--l-line-strong);
@@ -420,7 +423,7 @@
   border: 2px solid var(--l-honey);
   border-radius: 50%;
   color: var(--l-honey);
-  padding: 3px;
+  padding: 2px;
 }
 .keeper-hud--visible {
   opacity: 1;
@@ -589,7 +592,8 @@
   width: 44px;
 }
 .landing-layout-glyph i {
-  border: 1px solid var(--l-line-strong);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   display: none;
 }
 .landing-layout-glyph--0 i:first-child {
@@ -682,7 +686,7 @@
   gap: 7px;
 }
 .landing-feed-lines__row::before {
-  background: var(--l-claude);
+  background: var(--l-codex);
   border-radius: 50%;
   content: '';
   display: inline-block;
@@ -691,7 +695,7 @@
   width: 6px;
 }
 .landing-feed-lines__row--1::before {
-  background: var(--l-codex);
+  background: var(--l-claude);
 }
 .landing-feed-lines__row--2::before {
   background: var(--l-gemini);
@@ -732,7 +736,9 @@
   color: #e8e6e3 !important;
   margin-top: auto;
   min-height: 96px;
+  overflow-wrap: anywhere;
   padding: 14px;
+  white-space: pre-wrap;
 }
 .landing-feature-card__icon svg {
   fill: none;
