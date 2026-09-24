@@ -15,3 +15,4 @@ export * from './FeatureCard';
 export * from './HowItWorks';
 export * from './KeeperSpotlight';
 export * from './ChatMock';
+export * from './ComparisonTable';

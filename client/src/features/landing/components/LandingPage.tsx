@@ -6,6 +6,7 @@ import { LandingFooter } from './LandingFooter';
 import { LandingNav } from './LandingNav';
 import { HowItWorks } from './HowItWorks';
 import { KeeperSpotlight } from './KeeperSpotlight';
+import { ComparisonTable } from './ComparisonTable';
 import { ProblemSection } from './ProblemSection';
 import { WorksWith } from './WorksWith';
 import '../styles.css';
@@ -29,6 +30,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
         <FeatureBento />
         <HowItWorks />
         <KeeperSpotlight />
+        <ComparisonTable />
       </main>
       <LandingFooter />
     </div>

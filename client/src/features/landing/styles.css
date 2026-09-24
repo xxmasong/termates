@@ -559,6 +559,31 @@
     transition: none !important;
   }
 }
+.landing-comparison {
+  overflow: auto;
+  margin: 32px 0;
+}
+.landing-comparison table {
+  border-collapse: collapse;
+  min-width: 760px;
+  width: 100%;
+}
+.landing-comparison th,
+.landing-comparison td {
+  border-bottom: 1px solid var(--l-line);
+  padding: 13px;
+  text-align: center;
+}
+.landing-comparison th:first-child {
+  background: var(--l-bg);
+  left: 0;
+  position: sticky;
+  text-align: left;
+}
+.landing-comparison__ours {
+  background: var(--l-honey-soft);
+  color: var(--l-honey);
+}
 .landing-steps {
   display: grid;
   gap: 32px;
