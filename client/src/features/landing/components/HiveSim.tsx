@@ -49,7 +49,7 @@ export const HiveSim: React.FC<HiveSimProps> = () => {
               <path d="M0 0 5 2.5 0 5z" />
             </marker>
           </defs>
-          <path d="M50 25H2" markerEnd="url(#hive-arrow)" />
+          <path d="M50 58H4" markerEnd="url(#hive-arrow)" />
         </svg>
       </div>
       <KeeperHud message={COPY.sim.keeper} visible={keeper} />
