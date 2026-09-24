@@ -901,10 +901,33 @@
   justify-content: center;
   width: 32px;
 }
+.landing-steps b {
+  background: var(--l-bg);
+  position: relative;
+  z-index: 1;
+}
+.landing-steps::before {
+  left: 16px;
+  right: 16px;
+  width: auto;
+}
 .landing-keeper {
   display: grid;
   gap: 48px;
   grid-template-columns: 1fr 1fr;
+}
+@media (min-width: 1024px) {
+  .landing-keeper {
+    align-items: center;
+  }
+}
+.landing-chat__message--tool + .landing-chat__message--tool p {
+  margin-top: 3px;
+}
+.landing-chat__message--tool p {
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin-bottom: 3px !important;
 }
 .landing-keeper ul {
   list-style: '✓  ';
