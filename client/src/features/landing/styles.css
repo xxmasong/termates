@@ -559,6 +559,31 @@
     transition: none !important;
   }
 }
+.landing-section {
+  padding-block: clamp(64px, 9vw, 112px);
+}
+.landing-section > .landing-eyebrow + h2 {
+  margin: 14px 0 18px;
+}
+.landing-section > h2 + p {
+  margin-bottom: 56px;
+}
+.landing-section h3 + p {
+  margin-top: 8px;
+}
+.landing-feature-card p,
+.landing-audience p,
+.landing-steps p {
+  font-size: 0.975rem;
+}
+.landing h1 {
+  font-size: clamp(2.6rem, 5.2vw, 4rem);
+}
+@media (max-width: 760px) {
+  .landing-section > h2 + p {
+    margin-bottom: 40px;
+  }
+}
 .landing-audience {
   display: grid;
   gap: 16px;

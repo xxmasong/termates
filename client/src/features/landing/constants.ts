@@ -66,12 +66,14 @@ export const COPY = {
       'Categories summarize typical products as of 2026. Individual tools vary and change quickly.',
   },
   audience: { eyebrow: "WHO IT'S FOR", title: 'Made for people who ship.' },
+  faq: { eyebrow: 'FAQ', title: 'Questions, answered.', hint: 'Swipe to compare →' },
   cta: {
     title: 'Put your agents to work — together.',
     body: 'Create your hive in under a minute.',
     primary: 'Get started free',
   },
   footer: '© 2026 TermHive. Built for the multi-agent era.',
+  footerTagline: 'The control room for your coding agents.',
 } as const;
 export const SIM_PANES: readonly SimPane[] = [
   {
