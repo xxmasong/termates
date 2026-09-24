@@ -1,4 +1,13 @@
-import type { ComparisonRow, FaqEntry, NavLink, SimPane, SimStep } from './types';
+import type {
+  AudienceEntry,
+  ComparisonRow,
+  FaqEntry,
+  FeatureEntry,
+  NavLink,
+  SimPane,
+  SimStep,
+  StepEntry,
+} from './types';
 
 export const MOBILE_BREAKPOINT = 760;
 export const SCROLL_THRESHOLD = 8;
@@ -140,4 +149,81 @@ export const COMPARISON_ROWS: readonly ComparisonRow[] = [
   },
   { label: 'Keeps running with the browser closed', values: ['yes', 'no', 'no', 'yes', 'partial'] },
   { label: 'Works from your phone', values: ['yes', 'no', 'no', 'partial', 'no'] },
+];
+export const FEATURE_ENTRIES: readonly FeatureEntry[] = [
+  {
+    title: 'Real terminals, not wrappers',
+    body: 'Every agent is the actual CLI in a full PTY — slash commands, plans, permissions, all of it. Sessions live in a daemon, so closing the browser never kills a run.',
+    lines: ['$ claude', '> /plan', '● session restored · 2,418 lines'],
+    wide: true,
+  },
+  {
+    title: 'Agents that talk',
+    body: 'Built-in messaging lets Claude ask Codex, Codex brief Gemini, anyone ping the team.',
+    lines: ['codex → claude'],
+  },
+  {
+    title: 'Shared memory',
+    body: 'A project wiki and shared files every agent reads and writes. Context survives restarts and handoffs.',
+    lines: ['wiki/architecture.md', 'wiki/decisions.md', 'shared/api-contract.json'],
+  },
+  {
+    title: 'Any layout, any device',
+    body: 'Single, split, grid or a free canvas — drag panes where you want them. Install it on your phone and check on the hive from the train.',
+    lines: ['□ □ □ □  ▯'],
+    wide: true,
+  },
+  {
+    title: 'Pay nothing extra',
+    body: 'TermHive drives your existing Claude, ChatGPT and Google plans through their own CLIs. No per-token markup.',
+    lines: ['claude 34%', 'codex 12%', 'gemini 5%'],
+  },
+  {
+    title: 'See every move',
+    body: "Structured Codex view, a live activity feed and per-CLI usage meters — know what ran, what changed and what's left.",
+    lines: ['● codex ran pnpm test', '● claude edited 2 files', '● gemini → qa passed'],
+  },
+];
+export const HOW_STEPS: readonly StepEntry[] = [
+  {
+    title: 'Connect your CLIs',
+    body: 'Sign in to Claude, Codex, Gemini or OpenCode right in the browser. Your credentials stay in your own workspace.',
+  },
+  {
+    title: 'Assemble a team',
+    body: 'Create a project, add agents, give each a role — frontend, backend, QA, docs. Mix vendors freely.',
+  },
+  {
+    title: 'Direct the hive',
+    body: 'Type into any terminal, broadcast to all of them, or just tell the Keeper what you want done.',
+  },
+];
+export const KEEPER_BULLETS = [
+  'Creates projects and agents on request',
+  'Asks any agent a question and waits for the answer',
+  'Broadcasts instructions to the whole team',
+  'Remembers every conversation',
+] as const;
+export const CHAT_MESSAGES = [
+  'You: Set up a team to add Stripe checkout to the shop repo.',
+  '▸ create_project  shop-checkout',
+  '▸ create_agent  claude · frontend    ▸ create_agent  codex · backend',
+  'Keeper: Done — two agents are running. Codex is drafting the payments endpoint; Claude will build the form once the contract is in shared files.',
+  "You: How's backend doing?",
+  '▸ ask_agent  codex',
+  'Keeper: Codex says: "Endpoint and webhook handler done, 12 tests passing. Waiting on the Stripe test key."',
+] as const;
+export const AUDIENCE_ENTRIES: readonly AudienceEntry[] = [
+  {
+    title: 'Solo builders',
+    body: 'Run a whole team by yourself. Let agents parallelize while you review.',
+  },
+  {
+    title: 'Small teams',
+    body: 'Give every project its own hive, share the memory, and stop re-explaining context.',
+  },
+  {
+    title: 'Agent tinkerers',
+    body: 'Pit Claude against Codex on the same task, or chain them. Every vendor, one screen.',
+  },
 ];

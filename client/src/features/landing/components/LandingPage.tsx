@@ -1,6 +1,7 @@
 import { LANDING_TITLE } from '../constants';
 import { useDocumentTitle } from '../hooks';
 import { Hero } from './Hero';
+import { FeatureBento } from './FeatureBento';
 import { LandingFooter } from './LandingFooter';
 import { LandingNav } from './LandingNav';
 import { ProblemSection } from './ProblemSection';
@@ -23,6 +24,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
         <Hero />
         <WorksWith />
         <ProblemSection />
+        <FeatureBento />
       </main>
       <LandingFooter />
     </div>

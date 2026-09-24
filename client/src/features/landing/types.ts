@@ -29,3 +29,17 @@ export interface ComparisonRow {
   values: readonly ComparisonValue[];
 }
 export type ComparisonValue = 'yes' | 'partial' | 'no';
+export interface FeatureEntry {
+  title: string;
+  body: string;
+  lines: readonly string[];
+  wide?: boolean;
+}
+export interface StepEntry {
+  title: string;
+  body: string;
+}
+export interface AudienceEntry {
+  title: string;
+  body: string;
+}

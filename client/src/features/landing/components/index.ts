@@ -10,3 +10,5 @@ export * from './Section';
 export * from './ThemeToggle';
 export * from './ProblemSection';
 export * from './WorksWith';
+export * from './FeatureBento';
+export * from './FeatureCard';
