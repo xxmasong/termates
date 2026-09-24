@@ -37,7 +37,19 @@ export const HiveSim: React.FC<HiveSimProps> = () => {
           className={`hive-message-path${message ? ' hive-message-path--visible' : ''}`}
           viewBox="0 0 100 100"
         >
-          <path d="M75 65C65 53 48 53 25 32" />
+          <defs>
+            <marker
+              id="hive-arrow"
+              markerHeight="5"
+              markerWidth="5"
+              orient="auto"
+              refX="4"
+              refY="2.5"
+            >
+              <path d="M0 0 5 2.5 0 5z" />
+            </marker>
+          </defs>
+          <path d="M50 25H2" markerEnd="url(#hive-arrow)" />
         </svg>
       </div>
       <KeeperHud message={COPY.sim.keeper} visible={keeper} />

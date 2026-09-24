@@ -15,6 +15,7 @@
   --l-codex: #e8e6e3;
   --l-gemini: #7aa7ff;
   --l-opencode: #8fd18f;
+  --l-ok: oklch(68% 0.11 155);
   --l-radius: 14px;
   --l-radius-sm: 8px;
   --l-max: 1200px;
@@ -54,7 +55,8 @@
   text-wrap: balance;
 }
 .landing h1 {
-  font-size: clamp(2.6rem, 6vw, 4.75rem);
+  font-size: clamp(2.6rem, 6vw, 4.25rem);
+  letter-spacing: -0.025em;
   line-height: 1.02;
   margin: 16px 0 22px;
 }
@@ -153,8 +155,8 @@
 }
 .landing-hero {
   display: grid;
-  gap: clamp(42px, 7vw, 90px);
-  grid-template-columns: 5fr 7fr;
+  gap: 64px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   margin: auto;
   max-width: var(--l-max);
   min-height: calc(100vh - 64px);
@@ -178,11 +180,11 @@
 }
 .landing-hex {
   height: 600px;
-  left: 42%;
+  left: 45%;
   mask-image: radial-gradient(circle, black, transparent 70%);
-  opacity: 0.28;
+  opacity: 1;
   position: absolute;
-  stroke: var(--l-line);
+  stroke: rgba(255, 255, 255, 0.09);
   top: 0;
   width: 700px;
   z-index: 0;
@@ -261,9 +263,12 @@
   padding: 2px 5px;
 }
 .hive-pane header em {
-  color: #777;
+  color: var(--l-text-3);
   font-style: normal;
   margin-left: auto;
+}
+.hive-pane--codex header em {
+  color: var(--l-ok);
 }
 .hive-dot {
   background: var(--l-claude);
@@ -300,8 +305,9 @@
   font: 10px/1.45 var(--l-ff-mono) !important;
   padding: 7px;
   position: absolute;
-  right: 8px;
-  top: 42px;
+  bottom: 10px;
+  right: 10px;
+  animation: hive-toast-in 0.25s ease-out;
 }
 .hive-message-path {
   height: 100%;
@@ -317,6 +323,10 @@
   stroke: var(--l-codex);
   stroke-dasharray: 5;
   stroke-width: 1;
+}
+.hive-message-path defs path {
+  fill: var(--l-codex);
+  stroke: none;
 }
 .hive-message-path--visible path {
   animation: hive-dash 1s linear infinite;
@@ -351,9 +361,9 @@
 }
 .landing-footer {
   border-top: 1px solid var(--l-line);
-  display: flex;
+  display: grid;
   gap: 30px;
-  justify-content: space-between;
+  grid-template-columns: 1.4fr 2fr;
   margin: auto;
   max-width: var(--l-max);
   padding: 42px 24px;
@@ -361,11 +371,18 @@
 .landing-footer p {
   font-size: 0.8rem;
 }
+.landing-footer__columns {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+}
 .landing-footer nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  max-width: 420px;
+  display: grid;
+  gap: 9px;
+}
+.landing-footer nav h3 {
+  font-size: 0.8rem;
+  margin: 0 0 4px;
 }
 .landing-footer nav a {
   color: var(--l-text-2);
@@ -378,6 +395,12 @@
   color: var(--l-text);
   height: 34px;
   width: 34px;
+}
+.landing-footer__bottom {
+  align-items: center;
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
 }
 .landing-mobile-sheet {
   background: var(--l-bg);
@@ -429,6 +452,12 @@
     stroke-dashoffset: -10;
   }
 }
+@keyframes hive-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
 @media (max-width: 760px) {
   .landing-nav {
     padding: 0 16px;
@@ -464,8 +493,14 @@
     font-size: 8px !important;
   }
   .landing-footer {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     padding: 38px 16px;
+  }
+  .landing-footer__columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .landing-footer__bottom {
+    grid-column: auto;
   }
 }
 @media (prefers-reduced-motion: reduce) {

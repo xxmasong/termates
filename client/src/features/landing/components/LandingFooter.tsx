@@ -14,15 +14,27 @@ export const LandingFooter: React.FC<LandingFooterProps> = () => (
       </span>
       <p>{COPY.footer}</p>
     </div>
-    <nav>
-      <a href="#features">Features</a>
-      <a href="#keeper">The Keeper</a>
-      <a href="#compare">Compare</a>
-      <a href="#faq">FAQ</a>
-      <a href="https://github.com/xxmasong/termhive-v2">GitHub</a>
-      <a href={ROUTES.LOGIN}>{COPY.signIn}</a>
-      <a href={ROUTES.SIGNUP}>{COPY.getStarted}</a>
-    </nav>
-    <ThemeToggle />
+    <div className="landing-footer__columns">
+      <nav>
+        <h3>Product</h3>
+        <a href="#features">Features</a>
+        <a href="#keeper">The Keeper</a>
+        <a href="#compare">Compare</a>
+      </nav>
+      <nav>
+        <h3>Resources</h3>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/xxmasong/termhive-v2">GitHub</a>
+      </nav>
+      <nav>
+        <h3>Account</h3>
+        <a href={ROUTES.LOGIN}>{COPY.signIn}</a>
+        <a href={ROUTES.SIGNUP}>{COPY.getStarted}</a>
+      </nav>
+    </div>
+    <div className="landing-footer__bottom">
+      <p>{COPY.footer}</p>
+      <ThemeToggle />
+    </div>
   </footer>
 );
