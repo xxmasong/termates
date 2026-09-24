@@ -10,17 +10,23 @@ interface FaqProps {
 export const Faq: React.FC<FaqProps> = () => {
   const { openIndex, toggle } = useFaqAccordion();
   return (
-    <Section id="faq" eyebrow={COPY.faq.eyebrow} title={COPY.faq.title}>
-      <div className="landing-faq">
-        {FAQ_ENTRIES.map((entry, index) => (
-          <FaqItem
-            entry={entry}
-            index={index}
-            key={entry.question}
-            onToggle={toggle}
-            open={openIndex === index}
-          />
-        ))}
+    <Section id="faq">
+      <div className="landing-faq-layout">
+        <div className="landing-faq__heading">
+          <p className="landing-eyebrow">{COPY.faq.eyebrow}</p>
+          <h2>{COPY.faq.title}</h2>
+        </div>
+        <div className="landing-faq">
+          {FAQ_ENTRIES.map((entry, index) => (
+            <FaqItem
+              entry={entry}
+              index={index}
+              key={entry.question}
+              onToggle={toggle}
+              open={openIndex === index}
+            />
+          ))}
+        </div>
       </div>
     </Section>
   );

@@ -617,6 +617,15 @@
   stroke-width: 1.5;
   width: 16px;
 }
+.landing-audience__icon svg {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 16px;
+}
 .landing-feature-card__illustration--4 span {
   align-items: center;
   display: grid;
@@ -718,6 +727,33 @@
 .landing-final-cta .landing-actions {
   margin-left: auto;
   margin-right: auto;
+}
+.landing-final-cta h2 + p {
+  margin-top: 14px;
+}
+.landing-final-cta p + .landing-actions {
+  margin-top: 28px;
+}
+.landing-faq-layout {
+  display: grid;
+  gap: 48px;
+  grid-template-columns: 4fr 8fr;
+}
+.landing-faq__heading {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+}
+.landing-faq__heading h2 {
+  margin-top: 14px;
+}
+@media (max-width: 1023px) {
+  .landing-faq-layout {
+    grid-template-columns: 1fr;
+  }
+  .landing-faq__heading {
+    position: static;
+  }
 }
 .landing-final-cta .landing-actions {
   justify-content: center;
