@@ -3,6 +3,8 @@ import { useDocumentTitle } from '../hooks';
 import { Hero } from './Hero';
 import { LandingFooter } from './LandingFooter';
 import { LandingNav } from './LandingNav';
+import { ProblemSection } from './ProblemSection';
+import { WorksWith } from './WorksWith';
 import '../styles.css';
 
 interface LandingPageProps {
@@ -19,6 +21,8 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
       <LandingNav />
       <main id="main">
         <Hero />
+        <WorksWith />
+        <ProblemSection />
       </main>
       <LandingFooter />
     </div>

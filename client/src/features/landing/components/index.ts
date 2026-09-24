@@ -8,3 +8,5 @@ export * from './LandingNav';
 export * from './MobileNavSheet';
 export * from './Section';
 export * from './ThemeToggle';
+export * from './ProblemSection';
+export * from './WorksWith';
