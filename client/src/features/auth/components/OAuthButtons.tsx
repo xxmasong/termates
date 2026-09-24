@@ -1,0 +1,2 @@
+interface OAuthButtonsProps { mode: 'login' | 'signup'; plan?: string; }
+export const OAuthButtons: React.FC<OAuthButtonsProps> = ({ mode, plan }) => { const query = plan ? `?plan=${plan}` : ''; const verb = mode === 'login' ? 'Continue with' : 'Sign up with'; return <div className="auth-oauth"><a href={`/auth/google${query}`}>{verb} Google</a><a href={`/auth/github${query}`}>{verb} GitHub</a></div>; };
