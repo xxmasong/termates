@@ -608,6 +608,34 @@
   min-height: 96px;
   padding: 14px;
 }
+.landing-feature-card__icon svg {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 16px;
+}
+.landing-feature-card__illustration--4 span {
+  align-items: center;
+  display: grid;
+  grid-template-columns: 64px 1fr 30px;
+}
+.landing-feature-card__illustration--4 span::after {
+  background: var(--l-gemini);
+  border-radius: 3px;
+  content: '';
+  grid-column: 2;
+  height: 6px;
+}
+.landing-feature-card__illustration--5 span::before {
+  background: var(--l-opencode);
+  border-radius: 50%;
+  content: '';
+  height: 6px;
+  width: 6px;
+}
 @media (max-width: 760px) {
   .landing-feature-card:nth-child(n) {
     grid-column: auto;
@@ -746,6 +774,70 @@
 }
 .landing-section > small {
   color: var(--l-text-3);
+}
+.landing-problem {
+  display: grid;
+  gap: 48px;
+  grid-template-columns: 5fr 7fr;
+}
+.landing-problem__terminal header {
+  align-items: center;
+  display: flex;
+  font: 11px var(--l-ff-mono);
+  gap: 6px;
+}
+.landing-problem__terminal header i {
+  background: var(--l-claude);
+  border-radius: 50%;
+  height: 7px;
+  width: 7px;
+}
+.landing-problem__terminal--codex header i {
+  background: var(--l-codex);
+}
+.landing-problem__terminal--gemini header i {
+  background: var(--l-gemini);
+}
+.landing-problem__terminal--opencode header i {
+  background: var(--l-opencode);
+}
+.landing-problem__terminal pre {
+  color: var(--l-text-3);
+  font: 11px/1.6 var(--l-ff-mono);
+}
+.landing-problem__terminal pre span {
+  display: block;
+}
+.landing-problem__terminal p {
+  color: #e57865;
+  font: 11px var(--l-ff-mono);
+}
+.landing-problem__visual article:nth-child(1) {
+  transform: rotate(-6deg) translate(-14px, 8px);
+}
+.landing-problem__visual article:nth-child(2) {
+  transform: rotate(4deg) translate(12px, -5px);
+}
+.landing-problem__visual article:nth-child(3) {
+  transform: rotate(-3deg) translate(-7px, 4px);
+}
+.landing-problem__visual article:nth-child(4) {
+  transform: rotate(7deg) translate(10px, 2px);
+}
+.landing-problem__visual--ready article {
+  transform: none !important;
+}
+.landing-problem__visual--ready article p {
+  opacity: 0;
+}
+.landing-problem small {
+  color: var(--l-text-3);
+  font: 12px var(--l-ff-mono);
+}
+@media (max-width: 1023px) {
+  .landing-problem {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 760px) {
   .landing-comparison {

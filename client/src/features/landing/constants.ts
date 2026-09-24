@@ -99,6 +99,12 @@ export const SIM_PANES: readonly SimPane[] = [
     lines: ['Reviewing project wiki…'],
   },
 ];
+export const PROBLEM_TERMINALS = [
+  { cli: 'claude', lines: ['$ claude', '> refactor checkout…'] },
+  { cli: 'codex', lines: ['$ codex', '> add orders API…'] },
+  { cli: 'gemini', lines: ['$ gemini', '> write e2e tests…'] },
+  { cli: 'opencode', lines: ['$ opencode', '> update docs…'] },
+] as const;
 export const SIM_STEPS: readonly SimStep[] = [
   { paneId: 'codex', lines: ['✓ 42 passed'] },
   { message: true },
