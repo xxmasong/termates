@@ -28,7 +28,7 @@ export const useMessagePath = (
       setPath({
         width: grid.width,
         height: grid.height,
-        d: `M ${codex.left - grid.left + 12} ${y} H ${toast.right - grid.left + 4}`,
+        d: `M ${codex.left - grid.left + codex.width * 0.45} ${y} H ${toast.right - grid.left + 4}`,
       });
     };
     const observer = new ResizeObserver(update);
