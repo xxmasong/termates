@@ -10,6 +10,67 @@ const ICON_PATHS = [
   'M3 5h10v7H3zM5 5V3h6v2',
   'M2 8h3l2-4 2 7 2-4h3',
 ] as const;
+const Illustration: React.FC<{ index: number; lines: readonly string[] }> = ({ index, lines }) => {
+  if (index === 3)
+    return (
+      <div className="landing-layout-glyphs">
+        {[0, 1, 2, 3, 4].map((glyph) => (
+          <span className={`landing-layout-glyph landing-layout-glyph--${glyph}`} key={glyph}>
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+        ))}
+        <span className="landing-phone">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+    );
+  if (index === 4)
+    return (
+      <div className="landing-usage-bars">
+        {lines.map((line, lineIndex) => {
+          const [label, value] = line.split(' ');
+          return (
+            <span
+              className={`landing-usage-bars__row landing-usage-bars__row--${lineIndex}`}
+              key={line}
+            >
+              <b>{label}</b>
+              <i>
+                <em style={{ width: value }} />
+              </i>
+              <strong>{value}</strong>
+            </span>
+          );
+        })}
+      </div>
+    );
+  if (index === 5)
+    return (
+      <div className="landing-feed-lines">
+        {lines.map((line, lineIndex) => (
+          <span
+            className={`landing-feed-lines__row landing-feed-lines__row--${lineIndex}`}
+            key={line}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
+    );
+  return (
+    <>
+      {lines.map((line) => (
+        <span key={line}>{line}</span>
+      ))}
+    </>
+  );
+};
 export const FeatureCard: React.FC<FeatureCardProps> = ({ entry }) => {
   const index = [
     'Real terminals, not wrappers',
@@ -31,9 +92,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({ entry }) => {
       <pre
         className={`landing-feature-card__illustration landing-feature-card__illustration--${index}`}
       >
-        {entry.lines.map((line) => (
-          <span key={line}>{line}</span>
-        ))}
+        <Illustration index={index} lines={entry.lines} />
       </pre>
     </article>
   );
