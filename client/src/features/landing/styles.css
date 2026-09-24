@@ -444,12 +444,15 @@
   grid-template-columns: repeat(3, 1fr);
 }
 .landing-footer nav {
-  display: grid;
-  gap: 9px;
+  display: block;
 }
 .landing-footer nav h3 {
   font-size: 0.8rem;
-  margin: 0 0 4px;
+  margin: 0 0 12px;
+}
+.landing-footer__links {
+  display: grid;
+  gap: 10px;
 }
 .landing-footer nav a {
   color: var(--l-text-2);
