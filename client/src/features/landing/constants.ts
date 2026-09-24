@@ -18,6 +18,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Product', href: '#product' },
   { label: 'The Keeper', href: '#keeper' },
   { label: 'Compare', href: '#compare' },
+  { label: 'Pricing', href: '#pricing' },
   { label: 'FAQ', href: '#faq' },
 ];
 export const COPY = {
@@ -65,6 +66,18 @@ export const COPY = {
     footnote:
       'Categories summarize typical products as of 2026. Individual tools vary and change quickly.',
   },
+  pricing: {
+    eyebrow: 'PRICING',
+    title: 'Start free. Grow your hive.',
+    body: 'Every plan gets every CLI, the Keeper, agent messaging, shared memory and mobile access. Plans differ only in how big your hive can get.',
+    includedTitle: 'Everything included',
+    earlyAccess: 'Early access',
+    popular: 'Most popular',
+    freeCta: 'Start free',
+    proCta: 'Choose Pro',
+    proPlusCta: 'Choose Pro Plus',
+    note: 'Agents count across all projects, running or stopped. AI usage is billed by your own Claude, ChatGPT or Google plan.',
+  },
   audience: { eyebrow: "WHO IT'S FOR", title: 'Made for people who ship.' },
   faq: { eyebrow: 'FAQ', title: 'Questions, answered.', hint: 'Swipe to compare →' },
   cta: {
@@ -75,6 +88,13 @@ export const COPY = {
   footer: '© 2026 TermHive. Built for the multi-agent era.',
   footerTagline: 'The control room for your coding agents.',
 } as const;
+export const PRICING_INCLUDED = [
+  'Claude Code, Codex, Gemini CLI & OpenCode',
+  'The Keeper orchestrator',
+  'Agent-to-agent messaging',
+  'Shared wiki & files',
+  'Works on any device',
+] as const;
 export const SIM_PANES: readonly SimPane[] = [
   {
     id: 'claude',

@@ -21,6 +21,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = () => (
           <a href="#features">Features</a>
           <a href="#keeper">The Keeper</a>
           <a href="#compare">Compare</a>
+          <a href="#pricing">Pricing</a>
         </div>
       </nav>
       <nav>

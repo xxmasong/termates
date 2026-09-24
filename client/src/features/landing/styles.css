@@ -819,6 +819,141 @@
   border-radius: var(--l-radius);
   padding: 24px;
 }
+.landing-pricing {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 42px;
+}
+.landing-pricing-card {
+  background: var(--l-bg-raised);
+  border: 1px solid var(--l-line);
+  border-radius: var(--l-radius);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px;
+  position: relative;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+.landing-pricing-card:hover {
+  border-color: var(--l-line-strong);
+  transform: translateY(-2px);
+}
+.landing-pricing-card--highlighted {
+  border-color: var(--l-honey);
+  box-shadow: 0 20px 48px var(--l-honey-glow);
+}
+.landing-pricing-card--highlighted:hover {
+  border-color: var(--l-honey);
+}
+.landing-pricing-card h3 {
+  font: 600 1.125rem var(--l-ff-sans);
+  margin: 0;
+}
+.landing-pricing-card > p {
+  font-size: 0.925rem;
+  margin: 8px 0 24px;
+  min-height: 3em;
+}
+.landing-pricing-card__popular,
+.landing-pricing-card__early-access {
+  background: var(--l-honey-soft);
+  border: 1px solid var(--l-honey-glow);
+  border-radius: 999px;
+  color: var(--l-honey);
+  font: 500 11px var(--l-ff-mono);
+  padding: 5px 8px;
+}
+.landing-pricing-card__popular {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+.landing-pricing-card__price {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  height: 42px;
+  margin-bottom: 24px;
+}
+.landing-pricing-card__price > strong {
+  font: 600 2.25rem/1 var(--l-ff-display);
+  letter-spacing: -0.03em;
+}
+.landing-pricing-card__price > span:not(.landing-pricing-card__early-access) {
+  color: var(--l-text-3);
+  font: 12px var(--l-ff-mono);
+}
+.landing-pricing-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  margin-bottom: 28px;
+}
+.landing-pricing-card__stats::before {
+  background: var(--l-line);
+  content: '';
+  grid-column: 2;
+  grid-row: 1;
+}
+.landing-plan-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.landing-plan-stat:first-child {
+  grid-column: 1;
+}
+.landing-plan-stat:last-child {
+  grid-column: 3;
+  padding-left: 20px;
+}
+.landing-plan-stat strong {
+  font: 600 2.25rem/1 var(--l-ff-display);
+  letter-spacing: -0.03em;
+}
+.landing-plan-stat span {
+  color: var(--l-text-3);
+  font: 12px var(--l-ff-mono);
+}
+.landing-pricing-card > .landing-button {
+  width: 100%;
+}
+.landing-pricing-card__included {
+  border-top: 1px solid var(--l-line);
+  margin-top: 28px;
+  padding-top: 22px;
+}
+.landing-pricing-card__included h4 {
+  font-size: 0.925rem;
+  margin: 0 0 14px;
+}
+.landing-pricing-card__included ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.landing-pricing-card__included li {
+  color: var(--l-text-2);
+  font-size: 0.925rem;
+}
+.landing-pricing-card__included li::before {
+  color: var(--l-honey);
+  content: '✓';
+  font-weight: 600;
+  margin-right: 9px;
+}
+.landing-pricing__note {
+  color: var(--l-text-3);
+  font-size: 0.8rem;
+  margin: 22px auto 0;
+  text-align: center;
+}
 .landing-faq {
   margin-top: 30px;
   max-width: 760px;
@@ -893,6 +1028,20 @@
 @media (max-width: 760px) {
   .landing-audience {
     grid-template-columns: 1fr;
+  }
+  .landing-pricing {
+    grid-template-columns: 1fr;
+  }
+  .landing-pricing-card--highlighted {
+    order: -1;
+  }
+}
+@media (min-width: 761px) {
+  .landing-pricing-card--highlighted {
+    transform: translateY(-8px);
+  }
+  .landing-pricing-card--highlighted:hover {
+    transform: translateY(-10px);
   }
 }
 .landing-comparison {
