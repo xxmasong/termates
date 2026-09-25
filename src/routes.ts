@@ -4,7 +4,7 @@ import * as activity from './activity.js';
 import { AGENT_CLIS } from './types.js';
 import type { DaemonClient } from './daemon/client.js';
 import { appendTranscript } from './transcript.js';
-import { PlanLimitError } from './workspace-limits.js';
+import { CwdOutsideHomeError, PlanLimitError } from './workspace-limits.js';
 
 /**
  * REST API. Agent runtime operations (start/stop/status/inject) are delegated
@@ -17,10 +17,14 @@ export function createRouter(
 ) {
   const router = Router();
 
-  /** Map a workspace-limit error to its HTTP response; false if it is not one. */
+  /** Map a plan-limit / confinement error to its HTTP response; false if neither. */
   function sendLimitError(res: Response, err: unknown): boolean {
     if (err instanceof PlanLimitError) {
       res.status(403).json(err.toJSON());
+      return true;
+    }
+    if (err instanceof CwdOutsideHomeError) {
+      res.status(400).json(err.toJSON());
       return true;
     }
     return false;
@@ -57,9 +61,13 @@ export function createRouter(
   });
 
   router.put('/projects/:id', (req: Request, res: Response) => {
-    const project = storage.updateProject(req.params.id, req.body);
-    if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-    res.json(project);
+    try {
+      const project = storage.updateProject(req.params.id, req.body);
+      if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
+      res.json(project);
+    } catch (err) {
+      if (!sendLimitError(res, err)) throw err;
+    }
   });
 
   router.delete('/projects/:id', (req: Request, res: Response) => {
@@ -118,9 +126,13 @@ export function createRouter(
   });
 
   router.put('/projects/:id/agents/:aid', (req: Request, res: Response) => {
-    const agent = storage.updateAgent(req.params.id, req.params.aid, req.body);
-    if (!agent) { res.status(404).json({ error: 'Agent not found' }); return; }
-    res.json(agent);
+    try {
+      const agent = storage.updateAgent(req.params.id, req.params.aid, req.body);
+      if (!agent) { res.status(404).json({ error: 'Agent not found' }); return; }
+      res.json(agent);
+    } catch (err) {
+      if (!sendLimitError(res, err)) throw err;
+    }
   });
 
   router.delete('/projects/:id/agents/:aid', async (req: Request, res: Response) => {

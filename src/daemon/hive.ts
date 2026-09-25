@@ -16,6 +16,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import * as storage from '../storage.js';
+import { assertCwdAllowed } from '../workspace-limits.js';
 import * as runtime from './runtime.js';
 import { AGENT_CLIS, type Agent, type Project } from '../types.js';
 import { hookEvents } from './hook-events.js';
@@ -700,6 +701,7 @@ export function createProjectDispatch(
 
   const resolved = path.resolve(expandHome(cwd.trim()));
   try {
+    assertCwdAllowed(resolved);
     storage.assertCanCreateProject();
   } catch (err) {
     return { ok: false, status: 'error', error: errorMessage(err) };
@@ -790,6 +792,11 @@ export function createAgentDispatch(
   let agentCwd = project.cwd;
   if (cwd && cwd.trim()) {
     agentCwd = path.resolve(expandHome(cwd.trim()));
+    try {
+      assertCwdAllowed(agentCwd);
+    } catch (err) {
+      return { ok: false, status: 'error', projectName: project.name, error: errorMessage(err) };
+    }
     try { fs.mkdirSync(agentCwd, { recursive: true }); } catch { /* best-effort */ }
   }
 

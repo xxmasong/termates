@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 import type { Project, Agent, ProjectData, SharedContent } from './types.js';
-import { assertCanCreate } from './workspace-limits.js';
+import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
 
 const BASE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive');
 const PROJECTS_DIR = path.join(BASE_DIR, 'projects');
@@ -76,6 +76,7 @@ export function assertCanCreateAgent(): void {
 }
 
 export function createProject(name: string, cwd: string, description?: string): Project {
+  assertCwdAllowed(cwd);
   assertCanCreateProject();
   const project: Project = {
     id: uuid(),
@@ -94,6 +95,7 @@ export function createProject(name: string, cwd: string, description?: string): 
 export function updateProject(projectId: string, updates: Partial<Pick<Project, 'name' | 'description' | 'cwd'>>): Project | null {
   const data = getProjectData(projectId);
   if (!data) return null;
+  if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
   Object.assign(data.project, updates);
   saveProjectData(data);
   return data.project;
@@ -131,6 +133,7 @@ export function getAgent(projectId: string, agentId: string): Agent | null {
 export function createAgent(projectId: string, name: string, cli: Agent['cli'], cwd: string, role?: string, flags?: Agent['flags']): Agent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
+  assertCwdAllowed(cwd);
   assertCanCreateAgent();
   const agent: Agent = {
     id: uuid(),
@@ -152,6 +155,7 @@ export function updateAgent(projectId: string, agentId: string, updates: Partial
   if (!data) return null;
   const agent = data.agents.find(a => a.id === agentId);
   if (!agent) return null;
+  if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
   Object.assign(agent, updates);
   saveProjectData(data);
   return agent;

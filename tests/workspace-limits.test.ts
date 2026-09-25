@@ -4,7 +4,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
 
-import { assertCanCreate, PlanLimitError, readLimit } from '../src/workspace-limits.js';
+import {
+  assertCanCreate,
+  assertCwdAllowed,
+  CwdOutsideHomeError,
+  PlanLimitError,
+  readLimit,
+} from '../src/workspace-limits.js';
 
 describe('readLimit', () => {
   it('treats unset and blank as unlimited', () => {
@@ -94,5 +100,49 @@ describe('storage enforcement', () => {
     const [agent] = storage.listAgents(first.id);
     storage.deleteAgent(first.id, agent.id);
     assert.ok(storage.createAgent(first.id, 'e', 'claude', first.cwd));
+  });
+});
+
+describe('assertCwdAllowed', () => {
+  let home = '';
+  let outside = '';
+
+  before(() => {
+    home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-home-')));
+    outside = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-outside-')));
+    fs.mkdirSync(path.join(home, 'code'));
+    fs.symlinkSync(outside, path.join(home, 'escape'));
+  });
+
+  after(() => {
+    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(outside, { recursive: true, force: true });
+  });
+
+  const confined = () => ({ HOME: home, TERMHIVE_CONFINE_HOME: '1' });
+
+  it('is a no-op unless TERMHIVE_CONFINE_HOME=1', () => {
+    assert.equal(assertCwdAllowed('/etc', { HOME: home }), '/etc');
+  });
+
+  it('accepts HOME itself, children, ~ paths and not-yet-created dirs', () => {
+    for (const cwd of [home, path.join(home, 'code'), '~', '~/code', '~/new/deep/dir']) {
+      assert.equal(assertCwdAllowed(cwd, confined()), cwd);
+    }
+  });
+
+  it('rejects outside paths, traversal, relative paths and symlink escapes', () => {
+    for (const cwd of [
+      '/etc',
+      outside,
+      `${home}-sibling`,
+      path.join(home, '..'),
+      '~/../',
+      'relative/dir',
+      path.join(home, 'escape'),
+      path.join(home, 'escape', 'sub'),
+    ]) {
+      assert.throws(() => assertCwdAllowed(cwd, confined()), CwdOutsideHomeError, cwd);
+    }
   });
 });
