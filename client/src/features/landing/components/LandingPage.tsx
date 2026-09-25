@@ -1,5 +1,5 @@
 import { LANDING_TITLE } from '../constants';
-import { useDocumentTitle } from '../hooks';
+import { useDocumentTitle, usePageScroll } from '../hooks';
 import { Hero } from './Hero';
 import { FeatureBento } from './FeatureBento';
 import { LandingFooter } from './LandingFooter';
@@ -21,6 +21,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = () => {
   useDocumentTitle(LANDING_TITLE);
+  usePageScroll();
   return (
     <div className="landing">
       <a className="landing-skip" href="#main">
