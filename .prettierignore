@@ -1,4 +1,5 @@
-node_modules
-client/dist
-src
-reference
+/node_modules
+/client/dist
+/dist
+/src
+/reference
