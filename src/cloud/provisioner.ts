@@ -9,6 +9,7 @@
 import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import {
@@ -29,15 +30,14 @@ export interface RunResult {
 }
 
 /** Runs a command without a shell; rejects on a non-zero exit. */
-export type Runner = (command: string, args: string[], input?: string) => Promise<RunResult>;
+export type Runner = (command: string, args: string[]) => Promise<RunResult>;
 
-export const execRunner: Runner = (command, args, input) =>
+export const execRunner: Runner = (command, args) =>
   new Promise((resolve, reject) => {
-    const child = execFile(command, args, { timeout: 60_000 }, (err, stdout, stderr) => {
+    execFile(command, args, { timeout: 60_000 }, (err, stdout, stderr) => {
       if (err) reject(new Error(`${command} ${args.join(' ')}: ${stderr.trim() || err.message}`));
       else resolve({ stdout });
     });
-    if (input !== undefined) child.stdin?.end(input);
   });
 
 const READY_TIMEOUT_MS = 90_000;
@@ -225,7 +225,15 @@ export class Provisioner {
         `add rule ${NFT_TABLE} ${NFT_ALLOW_CHAIN} meta skuid ${uid} tcp dport ${ws.port_base}-${ws.port_base + 2} accept comment "${ws.unix_user}"`,
       );
     }
-    await this.run('nft', ['-f', '-'], `${rules.join('\n')}\n`);
+    // nft -f refuses pipes ("Not a regular file"), so go through a temp file.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-nft-'));
+    const file = path.join(dir, 'ws_allow.nft');
+    try {
+      fs.writeFileSync(file, `${rules.join('\n')}\n`, { mode: 0o600 });
+      await this.run('nft', ['-f', file]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   }
 
   private async waitReady(ws: WorkspaceRow): Promise<void> {

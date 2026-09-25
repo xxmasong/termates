@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { describe, it } from 'node:test';
 
 import { loadConfig } from '../../src/cloud/config.js';
@@ -90,7 +91,9 @@ describe('provisioner', () => {
       state: 'error',
     });
     const calls: Array<{ command: string; args: string[]; input?: string }> = [];
-    const run: Runner = async (command, args, input) => {
+    const run: Runner = async (command, args) => {
+      // The ruleset file is deleted after the call, so read it now.
+      const input = command === 'nft' ? fs.readFileSync(args[1], 'utf-8') : undefined;
       calls.push({ command, args, input });
       if (command === 'id' && args[1] === 'th-b') return { stdout: '20001\n' };
       if (command === 'id') throw new Error('no such user');
@@ -98,7 +101,8 @@ describe('provisioner', () => {
     };
     await new Provisioner(db, loadConfig({}), run, () => {}).syncFirewall();
     const nft = calls.find((call) => call.command === 'nft');
-    assert.deepEqual(nft?.args, ['-f', '-']);
+    assert.equal(nft?.args[0], '-f');
+    assert.equal(fs.existsSync(nft?.args[1] ?? ''), false);
     assert.equal(
       nft?.input,
       'flush chain inet termhive ws_allow\n' +
