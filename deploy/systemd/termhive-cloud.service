@@ -1,0 +1,15 @@
+[Unit]
+Description=TermHive Cloud control plane (landing, auth, workspace proxy)
+After=network-online.target nftables.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/termhive/cloud.env
+WorkingDirectory=/opt/termhive-v2
+ExecStart=/usr/local/bin/node --disable-warning=ExperimentalWarning dist/cloud/server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
