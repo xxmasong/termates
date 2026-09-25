@@ -25,7 +25,16 @@
   background: var(--l-bg);
   color: var(--l-text);
   min-height: 100vh;
-  overflow: hidden;
+  /* clip, not hidden: hidden makes .landing a scroll container, which pins
+     the sticky nav and FAQ heading to it instead of the viewport. */
+  overflow-x: clip;
+}
+html.landing-document body {
+  overflow: auto;
+}
+html.landing-document {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
 }
 [data-theme='light'] .landing {
   --l-bg: #f7f5f0;
@@ -1461,4 +1470,9 @@
 .landing-agent-message small {
   color: var(--l-text-3);
   font: 11px var(--l-ff-mono);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.landing-document {
+    scroll-behavior: auto;
+  }
 }
