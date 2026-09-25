@@ -108,7 +108,9 @@ export class CloudDb {
   constructor(file: string) {
     if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
     this.raw = new DatabaseSync(file);
-    this.raw.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;');
+    this.raw.exec(
+      'PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;',
+    );
     this.migrate();
   }
 
@@ -150,8 +152,7 @@ export class CloudDb {
 
   userByFirebaseUid(uid: string): UserRow | undefined {
     return this.raw.prepare('SELECT * FROM users WHERE firebase_uid = ?').get(uid) as
-      | UserRow
-      | undefined;
+      UserRow | undefined;
   }
 
   userById(id: number): UserRow | undefined {
@@ -186,13 +187,26 @@ export class CloudDb {
         `INSERT INTO users (firebase_uid, email, name, avatar_url, plan, role, status, created_at)
          VALUES (?, ?, ?, ?, ?, ?, 'active', ?)`,
       )
-      .run(input.firebaseUid, input.email, input.name, input.avatarUrl, input.plan, input.role, now());
+      .run(
+        input.firebaseUid,
+        input.email,
+        input.name,
+        input.avatarUrl,
+        input.plan,
+        input.role,
+        now(),
+      );
     return this.userById(Number(result.lastInsertRowid)) as UserRow;
   }
 
-  updateUserProfile(id: number, profile: { email: string; name: string | null; avatarUrl: string | null }): void {
+  updateUserProfile(
+    id: number,
+    profile: { email: string; name: string | null; avatarUrl: string | null },
+  ): void {
     this.raw
-      .prepare('UPDATE users SET email = ?, name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url) WHERE id = ?')
+      .prepare(
+        'UPDATE users SET email = ?, name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url) WHERE id = ?',
+      )
       .run(profile.email, profile.name, profile.avatarUrl, id);
   }
 
@@ -208,18 +222,18 @@ export class CloudDb {
 
   workspaceByUser(userId: number): WorkspaceRow | undefined {
     return this.raw.prepare('SELECT * FROM workspaces WHERE user_id = ?').get(userId) as
-      | WorkspaceRow
-      | undefined;
+      WorkspaceRow | undefined;
   }
 
   workspaceByUnixUser(unixUser: string): WorkspaceRow | undefined {
     return this.raw.prepare('SELECT * FROM workspaces WHERE unix_user = ?').get(unixUser) as
-      | WorkspaceRow
-      | undefined;
+      WorkspaceRow | undefined;
   }
 
   listWorkspaces(): WorkspaceRow[] {
-    return this.raw.prepare('SELECT * FROM workspaces ORDER BY port_base').all() as unknown as WorkspaceRow[];
+    return this.raw
+      .prepare('SELECT * FROM workspaces ORDER BY port_base')
+      .all() as unknown as WorkspaceRow[];
   }
 
   maxPortBase(): number | null {
@@ -229,7 +243,12 @@ export class CloudDb {
     return row.max;
   }
 
-  insertWorkspace(input: { userId: number; unixUser: string; portBase: number; state: WorkspaceState }): WorkspaceRow {
+  insertWorkspace(input: {
+    userId: number;
+    unixUser: string;
+    portBase: number;
+    state: WorkspaceState;
+  }): WorkspaceRow {
     this.raw
       .prepare(
         `INSERT INTO workspaces (user_id, unix_user, port_base, state, created_at, last_active_at)
@@ -244,7 +263,9 @@ export class CloudDb {
   }
 
   touchWorkspace(userId: number): void {
-    this.raw.prepare('UPDATE workspaces SET last_active_at = ? WHERE user_id = ?').run(now(), userId);
+    this.raw
+      .prepare('UPDATE workspaces SET last_active_at = ? WHERE user_id = ?')
+      .run(now(), userId);
   }
 
   // ── sessions ───────────────────────────────────────────────────────────
@@ -260,8 +281,7 @@ export class CloudDb {
 
   sessionByHash(idHash: string): SessionRow | undefined {
     return this.raw.prepare('SELECT * FROM sessions WHERE id_hash = ?').get(idHash) as
-      | SessionRow
-      | undefined;
+      SessionRow | undefined;
   }
 
   deleteSession(idHash: string): void {
@@ -280,7 +300,9 @@ export class CloudDb {
 
   insertInvite(codeHash: string, maxUses: number, expiresAt: string | null): void {
     this.raw
-      .prepare('INSERT INTO invites (code_hash, max_uses, uses, expires_at, created_at) VALUES (?, ?, 0, ?, ?)')
+      .prepare(
+        'INSERT INTO invites (code_hash, max_uses, uses, expires_at, created_at) VALUES (?, ?, 0, ?, ?)',
+      )
       .run(codeHash, maxUses, expiresAt, now());
   }
 
@@ -296,7 +318,9 @@ export class CloudDb {
   }
 
   listInvites(): InviteRow[] {
-    return this.raw.prepare('SELECT * FROM invites ORDER BY created_at').all() as unknown as InviteRow[];
+    return this.raw
+      .prepare('SELECT * FROM invites ORDER BY created_at')
+      .all() as unknown as InviteRow[];
   }
 
   // ── audit ──────────────────────────────────────────────────────────────

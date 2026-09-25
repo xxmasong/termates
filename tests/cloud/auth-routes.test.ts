@@ -89,7 +89,12 @@ describe('auth routes (Firebase configured)', () => {
   });
 
   it('refuses cross-site and origin-less POSTs', async () => {
-    const cross = await post(ctx.base, '/auth/session', { idToken: token() }, { Origin: 'https://evil.example' });
+    const cross = await post(
+      ctx.base,
+      '/auth/session',
+      { idToken: token() },
+      { Origin: 'https://evil.example' },
+    );
     assert.equal(cross.status, 403);
     assert.equal((await cross.json()).code, 'BAD_ORIGIN');
     const none = await fetch(`${ctx.base}/auth/logout`, { method: 'POST' });
@@ -97,7 +102,9 @@ describe('auth routes (Firebase configured)', () => {
   });
 
   it('rejects bad tokens and unverified password accounts', async () => {
-    const bad = await post(ctx.base, '/auth/session', { idToken: token().replace(/.$/, 'A') + 'x' });
+    const bad = await post(ctx.base, '/auth/session', {
+      idToken: token().replace(/.$/, 'A') + 'x',
+    });
     assert.equal(bad.status, 401);
     const unverified = await post(ctx.base, '/auth/session', {
       idToken: token({ sub: 'uid-u', email_verified: false }),
@@ -110,7 +117,10 @@ describe('auth routes (Firebase configured)', () => {
     const response = await post(ctx.base, '/auth/session', { idToken: token(), plan: 'pro' });
     assert.equal(response.status, 200);
     const cookie = response.headers.get('set-cookie') ?? '';
-    assert.match(cookie, /^th_session=[\w-]{43}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure$/);
+    assert.match(
+      cookie,
+      /^th_session=[\w-]{43}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure$/,
+    );
     assert.equal(ctx.provisioned.length, 1);
 
     const session = cookie.split(';')[0];
@@ -123,7 +133,10 @@ describe('auth routes (Firebase configured)', () => {
 
     const logout = await post(ctx.base, '/auth/logout', {}, { Cookie: session });
     assert.match(logout.headers.get('set-cookie') ?? '', /Max-Age=0/);
-    assert.equal((await fetch(`${ctx.base}/auth/me`, { headers: { Cookie: session } })).status, 401);
+    assert.equal(
+      (await fetch(`${ctx.base}/auth/me`, { headers: { Cookie: session } })).status,
+      401,
+    );
   });
 });
 
@@ -147,7 +160,9 @@ describe('auth routes (not configured)', () => {
   it('rate-limits session exchange per IP', async () => {
     const statuses: number[] = [];
     for (let i = 0; i < 22; i += 1) {
-      statuses.push((await post(ctx.base, '/auth/session', {}, { 'X-Forwarded-For': '203.0.113.9' })).status);
+      statuses.push(
+        (await post(ctx.base, '/auth/session', {}, { 'X-Forwarded-For': '203.0.113.9' })).status,
+      );
     }
     assert.equal(statuses.filter((status) => status === 429).length, 2);
   });

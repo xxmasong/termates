@@ -98,7 +98,10 @@ export interface VerifyOptions {
   now?: number;
 }
 
-export async function verifyIdToken(token: string, options: VerifyOptions): Promise<FirebaseClaims> {
+export async function verifyIdToken(
+  token: string,
+  options: VerifyOptions,
+): Promise<FirebaseClaims> {
   if (typeof token !== 'string' || !token) throw new TokenError('Missing token.');
   const parts = token.split('.');
   if (parts.length !== 3) throw new TokenError('Malformed token.');

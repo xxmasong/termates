@@ -12,15 +12,37 @@ import {
 } from '../../src/cloud/provisioner.js';
 
 const addUser = (db: CloudDb, uid: string) =>
-  db.insertUser({ firebaseUid: uid, email: `${uid}@x.test`, name: null, avatarUrl: null, plan: 'free', role: 'user' });
+  db.insertUser({
+    firebaseUid: uid,
+    email: `${uid}@x.test`,
+    name: null,
+    avatarUrl: null,
+    plan: 'free',
+    role: 'user',
+  });
 
 describe('provisioner', () => {
   it('allocates port blocks from 4010 in steps of 10, reusing gaps', () => {
     const db = new CloudDb(':memory:');
     assert.equal(nextPortBase(db), 4010);
-    db.insertWorkspace({ userId: addUser(db, 'a').id, unixUser: 'root', portBase: 4000, state: 'running' });
-    db.insertWorkspace({ userId: addUser(db, 'b').id, unixUser: 'th-b', portBase: 4010, state: 'running' });
-    db.insertWorkspace({ userId: addUser(db, 'c').id, unixUser: 'th-c', portBase: 4030, state: 'running' });
+    db.insertWorkspace({
+      userId: addUser(db, 'a').id,
+      unixUser: 'root',
+      portBase: 4000,
+      state: 'running',
+    });
+    db.insertWorkspace({
+      userId: addUser(db, 'b').id,
+      unixUser: 'th-b',
+      portBase: 4010,
+      state: 'running',
+    });
+    db.insertWorkspace({
+      userId: addUser(db, 'c').id,
+      unixUser: 'th-c',
+      portBase: 4030,
+      state: 'running',
+    });
     assert.equal(nextPortBase(db), 4020);
   });
 
@@ -49,9 +71,24 @@ describe('provisioner', () => {
 
   it('rebuilds the per-user nft allow chain, skipping root and missing users', async () => {
     const db = new CloudDb(':memory:');
-    db.insertWorkspace({ userId: addUser(db, 'a').id, unixUser: 'root', portBase: 4000, state: 'running' });
-    db.insertWorkspace({ userId: addUser(db, 'b').id, unixUser: 'th-b', portBase: 4010, state: 'running' });
-    db.insertWorkspace({ userId: addUser(db, 'c').id, unixUser: 'th-gone', portBase: 4020, state: 'error' });
+    db.insertWorkspace({
+      userId: addUser(db, 'a').id,
+      unixUser: 'root',
+      portBase: 4000,
+      state: 'running',
+    });
+    db.insertWorkspace({
+      userId: addUser(db, 'b').id,
+      unixUser: 'th-b',
+      portBase: 4010,
+      state: 'running',
+    });
+    db.insertWorkspace({
+      userId: addUser(db, 'c').id,
+      unixUser: 'th-gone',
+      portBase: 4020,
+      state: 'error',
+    });
     const calls: Array<{ command: string; args: string[]; input?: string }> = [];
     const run: Runner = async (command, args, input) => {
       calls.push({ command, args, input });

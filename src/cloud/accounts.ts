@@ -66,8 +66,8 @@ export class Accounts {
   private isAdmin(claims: FirebaseClaims): boolean {
     return Boolean(
       claims.email &&
-        claims.email_verified === true &&
-        this.config.adminEmails.includes(claims.email.toLowerCase()),
+      claims.email_verified === true &&
+      this.config.adminEmails.includes(claims.email.toLowerCase()),
     );
   }
 

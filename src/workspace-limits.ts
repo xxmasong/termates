@@ -36,14 +36,23 @@ export class PlanLimitError extends Error {
   }
 
   toJSON() {
-    return { error: this.message, code: this.code, kind: this.kind, limit: this.limit, used: this.used };
+    return {
+      error: this.message,
+      code: this.code,
+      kind: this.kind,
+      limit: this.limit,
+      used: this.used,
+    };
   }
 }
 
 export class CwdOutsideHomeError extends Error {
   readonly code = 'CWD_OUTSIDE_HOME';
 
-  constructor(readonly cwd: string, readonly home: string) {
+  constructor(
+    readonly cwd: string,
+    readonly home: string,
+  ) {
     super(`The working directory must be inside ${home}.`);
     this.name = 'CwdOutsideHomeError';
   }
@@ -63,7 +72,11 @@ export function readLimit(kind: LimitKind, env: NodeJS.ProcessEnv = process.env)
 }
 
 /** Throw PlanLimitError when creating one more `kind` would exceed the plan. */
-export function assertCanCreate(kind: LimitKind, used: number, env: NodeJS.ProcessEnv = process.env): void {
+export function assertCanCreate(
+  kind: LimitKind,
+  used: number,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
   const limit = readLimit(kind, env);
   if (limit !== null && used >= limit) throw new PlanLimitError(kind, limit, used);
 }

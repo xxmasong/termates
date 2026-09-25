@@ -16,7 +16,12 @@ describe('CloudDb', () => {
     });
     assert.equal(db.userByFirebaseUid('uid-1')?.id, user.id);
     assert.equal(db.maxPortBase(), null);
-    db.insertWorkspace({ userId: user.id, unixUser: 'th-00000001', portBase: 4010, state: 'provisioning' });
+    db.insertWorkspace({
+      userId: user.id,
+      unixUser: 'th-00000001',
+      portBase: 4010,
+      state: 'provisioning',
+    });
     assert.equal(db.maxPortBase(), 4010);
     db.setWorkspaceState(user.id, 'running');
     assert.equal(db.workspaceByUser(user.id)?.state, 'running');

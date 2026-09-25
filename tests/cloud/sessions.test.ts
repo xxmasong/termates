@@ -31,7 +31,14 @@ describe('sessions', () => {
 
   it('builds a hardened cookie', () => {
     const cookie = sessionCookie('tok', true);
-    for (const part of ['th_session=tok', 'HttpOnly', 'SameSite=Lax', 'Secure', 'Path=/', 'Max-Age=2592000']) {
+    for (const part of [
+      'th_session=tok',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Secure',
+      'Path=/',
+      'Max-Age=2592000',
+    ]) {
       assert.ok(cookie.includes(part), part);
     }
     assert.ok(!sessionCookie('tok', false).includes('Secure'));
@@ -51,7 +58,9 @@ describe('sessions', () => {
   it('drops expired sessions and suspended users', () => {
     const { db, user } = setup();
     const { token } = createSession(db, user.id, { ip: null, userAgent: null });
-    db.raw.prepare('UPDATE sessions SET expires_at = ?').run(new Date(Date.now() - 1).toISOString());
+    db.raw
+      .prepare('UPDATE sessions SET expires_at = ?')
+      .run(new Date(Date.now() - 1).toISOString());
     assert.equal(resolveSession(db, { headers: { cookie: `th_session=${token}` } }), null);
     assert.equal(db.sessionByHash(hashToken(token)), undefined);
 

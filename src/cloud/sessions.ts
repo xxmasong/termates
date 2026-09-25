@@ -69,7 +69,10 @@ export interface ResolvedSession {
 }
 
 /** The active session + user for a request, or null. Expired rows are deleted. */
-export function resolveSession(db: CloudDb, req: Pick<IncomingMessage, 'headers'>): ResolvedSession | null {
+export function resolveSession(
+  db: CloudDb,
+  req: Pick<IncomingMessage, 'headers'>,
+): ResolvedSession | null {
   const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
   if (!token) return null;
   const tokenHash = hashToken(token);

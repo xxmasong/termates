@@ -50,7 +50,11 @@ export interface CloudConfig {
 }
 
 /** The existing root workspace (termhive2.service) the first admin inherits. */
-export const ROOT_WORKSPACE = { unixUser: 'root', portBase: 4000, unit: 'termhive2.service' } as const;
+export const ROOT_WORKSPACE = {
+  unixUser: 'root',
+  portBase: 4000,
+  unit: 'termhive2.service',
+} as const;
 export const PORT_STEP = 10;
 export const PORT_BASE_MIN = 4010;
 export const PORT_BASE_MAX = 4990;

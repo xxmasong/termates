@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { AccountError, Accounts, generateInviteCode, hashInvite } from '../../src/cloud/accounts.js';
+import {
+  AccountError,
+  Accounts,
+  generateInviteCode,
+  hashInvite,
+} from '../../src/cloud/accounts.js';
 import { loadConfig } from '../../src/cloud/config.js';
 import { CloudDb } from '../../src/cloud/db.js';
 import type { FirebaseClaims } from '../../src/cloud/firebase-token.js';
@@ -61,10 +66,16 @@ describe('Accounts.signIn', () => {
 
   it('requires a verified email for password accounts only', () => {
     const { accounts } = setup();
-    assert.equal(code(() => accounts.signIn(claims({ email_verified: false }), {})), 'EMAIL_UNVERIFIED');
+    assert.equal(
+      code(() => accounts.signIn(claims({ email_verified: false }), {})),
+      'EMAIL_UNVERIFIED',
+    );
     assert.equal(
       code(() =>
-        accounts.signIn(claims({ email_verified: false, firebase: { sign_in_provider: 'github.com' } }), {}),
+        accounts.signIn(
+          claims({ email_verified: false, firebase: { sign_in_provider: 'github.com' } }),
+          {},
+        ),
       ),
       'OK',
     );
@@ -75,16 +86,31 @@ describe('Accounts.signIn', () => {
     const invite = generateInviteCode();
     assert.match(invite, /^HIVE-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
     db.insertInvite(hashInvite(invite), 1, null);
-    assert.equal(code(() => accounts.signIn(claims(), {})), 'SIGNUPS_CLOSED');
-    assert.equal(code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })), 'INVALID_INVITE');
-    assert.equal(code(() => accounts.signIn(claims(), { inviteCode: ` ${invite.toLowerCase()} ` })), 'OK');
-    assert.equal(code(() => accounts.signIn(claims({ sub: 'uid-2' }), { inviteCode: invite })), 'INVALID_INVITE');
+    assert.equal(
+      code(() => accounts.signIn(claims(), {})),
+      'SIGNUPS_CLOSED',
+    );
+    assert.equal(
+      code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })),
+      'INVALID_INVITE',
+    );
+    assert.equal(
+      code(() => accounts.signIn(claims(), { inviteCode: ` ${invite.toLowerCase()} ` })),
+      'OK',
+    );
+    assert.equal(
+      code(() => accounts.signIn(claims({ sub: 'uid-2' }), { inviteCode: invite })),
+      'INVALID_INVITE',
+    );
     assert.equal(db.listUsers().length, 1);
   });
 
   it('open mode ignores a bad invite code', () => {
     const { accounts } = setup();
-    assert.equal(code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })), 'OK');
+    assert.equal(
+      code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })),
+      'OK',
+    );
   });
 
   it('links the first verified admin to the root workspace, later admins get their own', () => {
@@ -96,7 +122,11 @@ describe('Accounts.signIn', () => {
     assert.equal(boss.workspace.port_base, 4000);
     assert.equal(boss.needsProvision, false);
     const second = accounts.signIn(
-      claims({ sub: 'boss-github', email: 'boss@example.com', firebase: { sign_in_provider: 'github.com' } }),
+      claims({
+        sub: 'boss-github',
+        email: 'boss@example.com',
+        firebase: { sign_in_provider: 'github.com' },
+      }),
       {},
     );
     assert.equal(second.workspace.port_base, 4010);
@@ -105,7 +135,12 @@ describe('Accounts.signIn', () => {
   it('never grants admin on an unverified email', () => {
     const { accounts } = setup();
     const result = accounts.signIn(
-      claims({ sub: 'x', email: 'boss@example.com', email_verified: false, firebase: { sign_in_provider: 'github.com' } }),
+      claims({
+        sub: 'x',
+        email: 'boss@example.com',
+        email_verified: false,
+        firebase: { sign_in_provider: 'github.com' },
+      }),
       {},
     );
     assert.equal(result.user.role, 'user');
@@ -116,6 +151,9 @@ describe('Accounts.signIn', () => {
     const { db, accounts } = setup();
     const { user } = accounts.signIn(claims(), {});
     db.setUserStatus(user.id, 'suspended');
-    assert.equal(code(() => accounts.signIn(claims(), {})), 'ACCOUNT_SUSPENDED');
+    assert.equal(
+      code(() => accounts.signIn(claims(), {})),
+      'ACCOUNT_SUSPENDED',
+    );
   });
 });

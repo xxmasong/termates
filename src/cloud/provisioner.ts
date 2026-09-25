@@ -46,7 +46,9 @@ const NFT_TABLE = 'inet termhive';
 const NFT_ALLOW_CHAIN = 'ws_allow';
 
 export const unitFor = (ws: Pick<WorkspaceRow, 'unix_user'>): string =>
-  ws.unix_user === ROOT_WORKSPACE.unixUser ? ROOT_WORKSPACE.unit : `termhive-ws@${ws.unix_user}.service`;
+  ws.unix_user === ROOT_WORKSPACE.unixUser
+    ? ROOT_WORKSPACE.unit
+    : `termhive-ws@${ws.unix_user}.service`;
 
 export const isRootWorkspace = (ws: Pick<WorkspaceRow, 'unix_user'>): boolean =>
   ws.unix_user === ROOT_WORKSPACE.unixUser;
@@ -62,7 +64,10 @@ export function nextPortBase(db: CloudDb): number | null {
   return null;
 }
 
-export function workspaceEnv(ws: Pick<WorkspaceRow, 'unix_user' | 'port_base'>, plan: PlanId): string {
+export function workspaceEnv(
+  ws: Pick<WorkspaceRow, 'unix_user' | 'port_base'>,
+  plan: PlanId,
+): string {
   const limits = PLANS[plan];
   const home = `/home/${ws.unix_user}`;
   const lines = [
@@ -90,7 +95,8 @@ export class Provisioner {
     private readonly db: CloudDb,
     private readonly config: CloudConfig,
     private readonly run: Runner = execRunner,
-    private readonly log: (message: string) => void = (message) => console.log(`[provisioner] ${message}`),
+    private readonly log: (message: string) => void = (message) =>
+      console.log(`[provisioner] ${message}`),
   ) {}
 
   /** Provision (or finish provisioning) a user's workspace. Never throws. */
@@ -117,7 +123,10 @@ export class Provisioner {
       await this.run('systemctl', ['enable', '--now', unitFor(ws)]);
       await this.waitReady(ws);
       this.db.setWorkspaceState(user.id, 'running');
-      this.db.audit(user.id, 'workspace.provisioned', { unixUser: ws.unix_user, portBase: ws.port_base });
+      this.db.audit(user.id, 'workspace.provisioned', {
+        unixUser: ws.unix_user,
+        portBase: ws.port_base,
+      });
       this.log(`${ws.unix_user} ready on ${ws.port_base}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -140,7 +149,9 @@ export class Provisioner {
         this.db.setWorkspaceState(user.id, 'running');
       } catch (err) {
         this.db.setWorkspaceState(user.id, 'error');
-        this.db.audit(user.id, 'workspace.error', { error: err instanceof Error ? err.message : String(err) });
+        this.db.audit(user.id, 'workspace.error', {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     })().finally(() => this.inflight.delete(user.id));
     this.inflight.set(user.id, job);
@@ -168,9 +179,20 @@ export class Provisioner {
       await this.run('id', ['-u', name]);
     } catch {
       await this.run('useradd', [
-        '-m', '-d', `/home/${name}`, '-s', '/bin/bash', '-U',
-        '-K', `UID_MIN=${UID_MIN}`, '-K', `UID_MAX=${UID_MAX}`,
-        '-K', `GID_MIN=${UID_MIN}`, '-K', `GID_MAX=${UID_MAX}`,
+        '-m',
+        '-d',
+        `/home/${name}`,
+        '-s',
+        '/bin/bash',
+        '-U',
+        '-K',
+        `UID_MIN=${UID_MIN}`,
+        '-K',
+        `UID_MAX=${UID_MAX}`,
+        '-K',
+        `GID_MIN=${UID_MIN}`,
+        '-K',
+        `GID_MAX=${UID_MAX}`,
         name,
       ]);
     }
@@ -221,6 +243,8 @@ export class Provisioner {
       }
       await new Promise((resolve) => setTimeout(resolve, READY_POLL_MS));
     }
-    throw new Error(`workspace on ${ws.port_base} not ready after ${READY_TIMEOUT_MS / 1000}s (${last})`);
+    throw new Error(
+      `workspace on ${ws.port_base} not ready after ${READY_TIMEOUT_MS / 1000}s (${last})`,
+    );
   }
 }
