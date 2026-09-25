@@ -27,7 +27,10 @@ export const broadcastMessage = (
     method: 'POST',
   });
 
-export const getAgentTeammates = async (projectId: string, agentId: string): Promise<Teammate[]> => {
+export const getAgentTeammates = async (
+  projectId: string,
+  agentId: string,
+): Promise<Teammate[]> => {
   const response = await apiRequest<AgentTeammatesResponse>(
     `/projects/${projectId}/agents/${agentId}/teammates`,
   );

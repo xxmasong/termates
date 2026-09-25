@@ -49,11 +49,7 @@ export interface AgentModelBarProps {
   onDraftChange: (next: AgentLaunchSettings) => void;
 }
 
-export const AgentModelBar: React.FC<AgentModelBarProps> = ({
-  agent,
-  draft,
-  onDraftChange,
-}) => {
+export const AgentModelBar: React.FC<AgentModelBarProps> = ({ agent, draft, onDraftChange }) => {
   const models = AGENT_MODEL_OPTIONS[agent.cli] ?? [];
   const efforts = AGENT_EFFORT_OPTIONS[agent.cli] ?? [];
   const thinkingModes = AGENT_THINKING_OPTIONS[agent.cli] ?? [];
@@ -61,8 +57,7 @@ export const AgentModelBar: React.FC<AgentModelBarProps> = ({
   const permissionModes = AGENT_PERMISSION_MODES[agent.cli] ?? [];
   const autocompacts = AGENT_AUTOCOMPACT_OPTIONS[agent.cli] ?? [];
   // Some models think unconditionally, so offering "off" there would lie.
-  const thinkingLocked =
-    agent.cli === 'gemini' && AGENT_THINKING_ALWAYS_ON.includes(draft.model);
+  const thinkingLocked = agent.cli === 'gemini' && AGENT_THINKING_ALWAYS_ON.includes(draft.model);
 
   const set = useCallback(
     (patch: Partial<AgentLaunchSettings>) => onDraftChange({ ...draft, ...patch }),

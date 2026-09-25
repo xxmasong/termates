@@ -78,16 +78,20 @@ export const useKeeperHud = ({ headerListening }: UseKeeperHudOptions) => {
     phrase: wakePhrase,
   });
 
-  const lastReply = useMemo(() => getLastAssistantMessage(brainState.messages), [brainState.messages]);
+  const lastReply = useMemo(
+    () => getLastAssistantMessage(brainState.messages),
+    [brainState.messages],
+  );
   const replyHtml = useMemo(
     () => (lastReply && lastReply.id !== hiddenReplyId ? renderMarkdown(lastReply.text) : ''),
     [hiddenReplyId, lastReply],
   );
-  const state = brainState.status === 'thinking'
-    ? 'thinking'
-    : speech.listening || wake.armed || headerListening
-      ? 'listening'
-      : 'idle';
+  const state =
+    brainState.status === 'thinking'
+      ? 'thinking'
+      : speech.listening || wake.armed || headerListening
+        ? 'listening'
+        : 'idle';
 
   const submit = useCallback(() => submitText(input), [input, submitText]);
   const clearReply = useCallback(() => setHiddenReplyId(lastReply?.id ?? null), [lastReply]);

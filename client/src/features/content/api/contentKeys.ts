@@ -7,4 +7,3 @@ export const contentKeys = {
   list: (projectId: string | null) => [...contentKeys.project(projectId), 'list'] as const,
   project: (projectId: string | null) => [...contentKeys.all, projectId] as const,
 };
-

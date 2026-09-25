@@ -42,7 +42,8 @@ type DropZone = 'left' | 'right' | 'top' | 'bottom' | 'center';
 
 const CANVAS_RESIZE_DIRECTIONS: ResizeDirection[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 const GRID_DRAG_HANDLE_SELECTOR = '[data-grid-drag-handle]';
-const GRID_DRAG_BLOCK_SELECTOR = 'button, select, input, textarea, a, [role="button"], .agent-model-bar';
+const GRID_DRAG_BLOCK_SELECTOR =
+  'button, select, input, textarea, a, [role="button"], .agent-model-bar';
 
 const paneIds = (panes: GridLayoutPane[]): string[] => panes.map((pane) => pane.id);
 
@@ -107,7 +108,12 @@ const normalizeTree = (tree: SplitTree | null, ids: string[]): SplitTree | null 
   ids.forEach((id) => {
     if (!existing.has(id)) {
       next = next
-        ? splitLeaf(next, leafIds(next)[0], leafIds(next).length % 2 === 0 ? 'vertical' : 'horizontal', id)
+        ? splitLeaf(
+            next,
+            leafIds(next)[0],
+            leafIds(next).length % 2 === 0 ? 'vertical' : 'horizontal',
+            id,
+          )
         : { kind: 'leaf', id };
       existing.add(id);
     }
@@ -134,7 +140,11 @@ const splitLeaf = (
       : tree;
   }
 
-  return { ...tree, a: splitLeaf(tree.a, leafId, direction, newId), b: splitLeaf(tree.b, leafId, direction, newId) };
+  return {
+    ...tree,
+    a: splitLeaf(tree.a, leafId, direction, newId),
+    b: splitLeaf(tree.b, leafId, direction, newId),
+  };
 };
 
 const removeLeaf = (tree: SplitTree, leafId: string): SplitTree | null => {
@@ -178,10 +188,19 @@ const swapLeaves = (tree: SplitTree, firstId: string, secondId: string): SplitTr
     return tree;
   }
 
-  return { ...tree, a: swapLeaves(tree.a, firstId, secondId), b: swapLeaves(tree.b, firstId, secondId) };
+  return {
+    ...tree,
+    a: swapLeaves(tree.a, firstId, secondId),
+    b: swapLeaves(tree.b, firstId, secondId),
+  };
 };
 
-const splitLeafAt = (tree: SplitTree, targetId: string, newId: string, zone: DropZone): SplitTree => {
+const splitLeafAt = (
+  tree: SplitTree,
+  targetId: string,
+  newId: string,
+  zone: DropZone,
+): SplitTree => {
   if (tree.kind === 'leaf') {
     if (tree.id !== targetId || zone === 'center') {
       return tree;
@@ -189,7 +208,8 @@ const splitLeafAt = (tree: SplitTree, targetId: string, newId: string, zone: Dro
 
     const target: SplitTree = { kind: 'leaf', id: targetId };
     const source: SplitTree = { kind: 'leaf', id: newId };
-    const direction: SplitDirection = zone === 'left' || zone === 'right' ? 'horizontal' : 'vertical';
+    const direction: SplitDirection =
+      zone === 'left' || zone === 'right' ? 'horizontal' : 'vertical';
     const sourceFirst = zone === 'left' || zone === 'top';
 
     return {
@@ -201,7 +221,11 @@ const splitLeafAt = (tree: SplitTree, targetId: string, newId: string, zone: Dro
     };
   }
 
-  return { ...tree, a: splitLeafAt(tree.a, targetId, newId, zone), b: splitLeafAt(tree.b, targetId, newId, zone) };
+  return {
+    ...tree,
+    a: splitLeafAt(tree.a, targetId, newId, zone),
+    b: splitLeafAt(tree.b, targetId, newId, zone),
+  };
 };
 
 const dataTransferHasPane = (dataTransfer: DataTransfer): boolean =>
@@ -263,10 +287,19 @@ const rowDropZone = (rect: DOMRect, clientX: number, allowCenter: boolean): Drop
   return 'center';
 };
 
-const rowVisibleIds = (orderedIds: string[], focusedId: string | null | undefined, count: number): string[] => {
+const rowVisibleIds = (
+  orderedIds: string[],
+  focusedId: string | null | undefined,
+  count: number,
+): string[] => {
   const visible = orderedIds.slice(0, count);
 
-  if (focusedId && visible.length > 0 && orderedIds.includes(focusedId) && !visible.includes(focusedId)) {
+  if (
+    focusedId &&
+    visible.length > 0 &&
+    orderedIds.includes(focusedId) &&
+    !visible.includes(focusedId)
+  ) {
     visible[visible.length - 1] = focusedId;
   }
 
@@ -574,11 +607,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   const panesMap = useMemo(() => paneById(panes), [panes]);
   const [order, setOrder] = useLocalStorage<string[]>(`${storageKeyPrefix}:order`, ids);
   const [sizes2, setSizes2] = useLocalStorage<number[]>(`${storageKeyPrefix}:sizes:2up`, [50, 50]);
-  const [sizes3, setSizes3] = useLocalStorage<number[]>(`${storageKeyPrefix}:sizes:3up`, [
-    33.33,
-    33.33,
-    33.34,
-  ]);
+  const [sizes3, setSizes3] = useLocalStorage<number[]>(
+    `${storageKeyPrefix}:sizes:3up`,
+    [33.33, 33.33, 33.34],
+  );
   const [tree, setTree] = useLocalStorage<SplitTree | null>(`${storageKeyPrefix}:tree`, null);
   const [rects, setRects] = useLocalStorage<Record<string, CanvasRect>>(
     `${storageKeyPrefix}:canvas`,
@@ -606,14 +638,17 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   }, [ids, order]);
 
   const orderedPanes = useMemo(
-    () => orderedIds.map((id) => panesMap.get(id)).filter((pane): pane is GridLayoutPane => Boolean(pane)),
+    () =>
+      orderedIds
+        .map((id) => panesMap.get(id))
+        .filter((pane): pane is GridLayoutPane => Boolean(pane)),
     [orderedIds, panesMap],
   );
 
-  const effectiveTree = useMemo(() => normalizeTree(tree ?? buildTree(orderedIds), orderedIds), [
-    orderedIds,
-    tree,
-  ]);
+  const effectiveTree = useMemo(
+    () => normalizeTree(tree ?? buildTree(orderedIds), orderedIds),
+    [orderedIds, tree],
+  );
   const effectiveRects = useMemo(() => normalizeRects(rects, orderedIds), [orderedIds, rects]);
 
   const resetDragState = useCallback(() => {
@@ -642,19 +677,25 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
     }
   }, []);
 
-  const handleLayoutDrop = useCallback((event: React.DragEvent<HTMLElement>) => {
-    if (dataTransferHasPane(event.dataTransfer)) {
-      event.preventDefault();
-    }
+  const handleLayoutDrop = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      if (dataTransferHasPane(event.dataTransfer)) {
+        event.preventDefault();
+      }
 
-    resetDragState();
-  }, [resetDragState]);
+      resetDragState();
+    },
+    [resetDragState],
+  );
 
-  const handlePaneMouseDownCapture = useCallback((id: string, event: React.MouseEvent<HTMLDivElement>) => {
-    const allowed = isPaneDragHandleTarget(event.target);
-    dragStartAllowedRef.current = { id, allowed };
-    setDragReadyId(allowed ? id : null);
-  }, []);
+  const handlePaneMouseDownCapture = useCallback(
+    (id: string, event: React.MouseEvent<HTMLDivElement>) => {
+      const allowed = isPaneDragHandleTarget(event.target);
+      dragStartAllowedRef.current = { id, allowed };
+      setDragReadyId(allowed ? id : null);
+    },
+    [],
+  );
 
   const handlePaneMouseUpCapture = useCallback(() => {
     setDragReadyId(null);
@@ -738,7 +779,11 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   );
 
   const resizeRow = useCallback(
-    (index: number, dx: number, setSizes: (value: number[] | ((current: number[]) => number[])) => void) => {
+    (
+      index: number,
+      dx: number,
+      setSizes: (value: number[] | ((current: number[]) => number[])) => void,
+    ) => {
       const width = rowRef.current?.clientWidth ?? 1000;
       const deltaPercent = (dx / width) * 100;
 
@@ -764,7 +809,8 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
       (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
 
-        const move = (moveEvent: MouseEvent): void => resizeRow(index, moveEvent.movementX, setSizes);
+        const move = (moveEvent: MouseEvent): void =>
+          resizeRow(index, moveEvent.movementX, setSizes);
         const up = (): void => {
           window.removeEventListener('mousemove', move);
           window.removeEventListener('mouseup', up);
@@ -779,7 +825,11 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   );
 
   const renderRow = useCallback(
-    (count: number, sizes: number[], setSizes: (value: number[] | ((current: number[]) => number[])) => void) => {
+    (
+      count: number,
+      sizes: number[],
+      setSizes: (value: number[] | ((current: number[]) => number[])) => void,
+    ) => {
       const visibleIds = rowVisibleIds(orderedIds, focusedId, count);
       const visiblePanes = visibleIds
         .map((id) => panesMap.get(id))
@@ -797,7 +847,9 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
 
         const allowCenter = !draggingId || !visibleIds.includes(draggingId);
         setHoverTargetId(targetId);
-        setHoverZone(rowDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, allowCenter));
+        setHoverZone(
+          rowDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, allowCenter),
+        );
       };
 
       const rowDragLeave = (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
@@ -825,7 +877,11 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
           const sourceVisible = visibleIds.includes(sourceId);
           // Match the zone the indicator showed during dragover.
           const allowCenter = !draggingId || !visibleIds.includes(draggingId);
-          const zone = rowDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, allowCenter);
+          const zone = rowDropZone(
+            event.currentTarget.getBoundingClientRect(),
+            event.clientX,
+            allowCenter,
+          );
 
           if (zone === 'center') {
             if (!sourceVisible) {
@@ -884,7 +940,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
                 paneId={pane.id}
               />
               {index < visiblePanes.length - 1 ? (
-                <div className="grid-layout__resizer" onMouseDown={startRowResize(index, setSizes)} />
+                <div
+                  className="grid-layout__resizer"
+                  onMouseDown={startRowResize(index, setSizes)}
+                />
               ) : null}
             </div>
           ))}
@@ -915,29 +974,37 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
     ],
   );
 
-  const handleGridDragOver = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
-    if (!dataTransferHasPane(event.dataTransfer)) {
-      return;
-    }
+  const handleGridDragOver = useCallback(
+    (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+      if (!dataTransferHasPane(event.dataTransfer)) {
+        return;
+      }
 
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect = 'move';
-    setExternalDragActive(true);
-    setHoverTargetId(targetId);
-    setHoverZone(gridDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY));
-  }, []);
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = 'move';
+      setExternalDragActive(true);
+      setHoverTargetId(targetId);
+      setHoverZone(
+        gridDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY),
+      );
+    },
+    [],
+  );
 
-  const handleGridDragLeave = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
-      return;
-    }
+  const handleGridDragLeave = useCallback(
+    (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+      if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+        return;
+      }
 
-    if (hoverTargetId === targetId) {
-      setHoverTargetId(null);
-      setHoverZone(null);
-    }
-  }, [hoverTargetId]);
+      if (hoverTargetId === targetId) {
+        setHoverTargetId(null);
+        setHoverZone(null);
+      }
+    },
+    [hoverTargetId],
+  );
 
   const handleGridDrop = useCallback(
     (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
@@ -951,7 +1018,11 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
       const sourceId = event.dataTransfer.getData(GRID_LAYOUT_DRAG_MIME);
 
       if (sourceId && ids.includes(sourceId) && effectiveTree) {
-        const zone = gridDropZone(event.currentTarget.getBoundingClientRect(), event.clientX, event.clientY);
+        const zone = gridDropZone(
+          event.currentTarget.getBoundingClientRect(),
+          event.clientX,
+          event.clientY,
+        );
 
         if (zone === 'center') {
           if (sourceId !== targetId) {
@@ -973,18 +1044,21 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
     [effectiveTree, ids, onFocus, resetDragState, setTree],
   );
 
-  const handleSingleDragOver = useCallback((targetId: string, event: React.DragEvent<HTMLDivElement>) => {
-    if (!dataTransferHasPane(event.dataTransfer)) {
-      return;
-    }
+  const handleSingleDragOver = useCallback(
+    (targetId: string, event: React.DragEvent<HTMLDivElement>) => {
+      if (!dataTransferHasPane(event.dataTransfer)) {
+        return;
+      }
 
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect = 'move';
-    setExternalDragActive(true);
-    setHoverTargetId(targetId);
-    setHoverZone('center');
-  }, []);
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = 'move';
+      setExternalDragActive(true);
+      setHoverTargetId(targetId);
+      setHoverZone('center');
+    },
+    [],
+  );
 
   const handleSingleDrop = useCallback(
     (_targetId: string, event: React.DragEvent<HTMLDivElement>) => {
@@ -1078,7 +1152,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
           }
 
           if (direction.includes('s')) {
-            next.height = Math.max(GRID_LAYOUT.CANVAS_MIN_HEIGHT, next.height + moveEvent.movementY);
+            next.height = Math.max(
+              GRID_LAYOUT.CANVAS_MIN_HEIGHT,
+              next.height + moveEvent.movementY,
+            );
           }
 
           if (direction.includes('w')) {
@@ -1088,7 +1165,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
           }
 
           if (direction.includes('n')) {
-            const height = Math.max(GRID_LAYOUT.CANVAS_MIN_HEIGHT, next.height - moveEvent.movementY);
+            const height = Math.max(
+              GRID_LAYOUT.CANVAS_MIN_HEIGHT,
+              next.height - moveEvent.movementY,
+            );
             next.y += next.height - height;
             next.height = height;
           }
@@ -1105,7 +1185,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
 
       window.addEventListener('mousemove', move);
       window.addEventListener('mouseup', up);
-      document.body.style.cursor = direction.length === 1 ? `${direction === 'n' || direction === 's' ? 'ns' : 'ew'}-resize` : 'nwse-resize';
+      document.body.style.cursor =
+        direction.length === 1
+          ? `${direction === 'n' || direction === 's' ? 'ns' : 'ew'}-resize`
+          : 'nwse-resize';
     },
     [bringCanvasPaneForward, orderedIds, setRects],
   );
@@ -1124,7 +1207,10 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
     const top = GRID_LAYOUT.CANVAS_TOOLBAR_HEIGHT + gap;
     const viewWidth = canvasRef.current?.clientWidth ?? window.innerWidth;
     const viewHeight = canvasRef.current?.clientHeight ?? window.innerHeight;
-    const maxColumns = Math.max(1, Math.floor((viewWidth - gap) / (GRID_LAYOUT.CANVAS_MIN_WIDTH + gap)));
+    const maxColumns = Math.max(
+      1,
+      Math.floor((viewWidth - gap) / (GRID_LAYOUT.CANVAS_MIN_WIDTH + gap)),
+    );
     const columns = Math.min(Math.ceil(Math.sqrt(count)), maxColumns);
     const rows = Math.ceil(count / columns);
     const cellWidth = Math.floor((viewWidth - gap * (columns + 1)) / columns);

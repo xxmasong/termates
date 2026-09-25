@@ -25,7 +25,13 @@ import { MOBILE_BREAKPOINT } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
 import { ActivityFeed } from '@/features/activity';
 import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
-import { BrainPanel, KeeperHud, useBrainActions, useBrainState, type KeeperHudNotice } from '@/features/brain';
+import {
+  BrainPanel,
+  KeeperHud,
+  useBrainActions,
+  useBrainState,
+  type KeeperHudNotice,
+} from '@/features/brain';
 import { ContentPanel } from '@/features/content';
 import { MessagesPanel } from '@/features/messages';
 import {
@@ -35,7 +41,11 @@ import {
   ProjectList,
 } from '@/features/projects';
 import { SettingsModal, THEMES, useThemePreference, type ThemeName } from '@/features/settings';
-import { TerminalWorkspace, TERMINAL_LAYOUT_OPTIONS, useTerminalLayoutMode } from '@/features/terminal';
+import {
+  TerminalWorkspace,
+  TERMINAL_LAYOUT_OPTIONS,
+  useTerminalLayoutMode,
+} from '@/features/terminal';
 import { UsageMeters, useSpeechInput } from '@/features/voice';
 import { WikiPanel } from '@/features/wiki';
 import { useLocalStorage } from '@/lib/hooks';
@@ -144,8 +154,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
   const statusCounts = useMemo<StatusBarCount[]>(
     () =>
       (['running', 'awaiting_input', 'idle', 'stopped'] as const).map((tone) => ({
-        label:
-          tone === 'awaiting_input' ? 'awaiting you' : tone === 'running' ? 'running' : tone,
+        label: tone === 'awaiting_input' ? 'awaiting you' : tone === 'running' ? 'running' : tone,
         tone,
         value: vm.agents.filter((agent) => agent.status === tone).length,
       })),
@@ -378,7 +387,12 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
     }));
 
     return [
-      { group: 'System', icon: <Icon name="settings" size={14} />, id: 'settings:open', label: 'Open Settings' },
+      {
+        group: 'System',
+        icon: <Icon name="settings" size={14} />,
+        id: 'settings:open',
+        label: 'Open Settings',
+      },
       ...workspaceCommands,
       ...layoutCommands,
       ...projectCommands,
@@ -432,7 +446,11 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
       return (
         <EmptyState
           action={
-            <button className="empty-state__primary-action" onClick={vm.openCreateProject} type="button">
+            <button
+              className="empty-state__primary-action"
+              onClick={vm.openCreateProject}
+              type="button"
+            >
               <Icon name="plus" size={11} />
               <span>New Project</span>
             </button>
@@ -565,9 +583,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             themeIcon={theme === 'light' ? 'sun' : 'moon'}
           />
         }
-        statusBar={
-          <StatusBar connected={wsStatus === 'open'} counts={statusCounts} />
-        }
+        statusBar={<StatusBar connected={wsStatus === 'open'} counts={statusCounts} />}
         sidebar={
           <SidebarShell collapsed={sidebarCollapsed} onLayoutChange={onSidebarLayoutChange}>
             <ProjectList
@@ -635,12 +651,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         placeholder="Run a command"
       />
       <SettingsModal onClose={closeSettings} open={settingsOpen} />
-      <Modal
-        onClose={closeCommandPanel}
-        open={commandPanelOpen}
-        title="The Keeper"
-        width={620}
-      >
+      <Modal onClose={closeCommandPanel} open={commandPanelOpen} title="The Keeper" width={620}>
         <BrainPanel />
       </Modal>
       <KeeperHud

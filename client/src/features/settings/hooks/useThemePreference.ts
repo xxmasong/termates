@@ -24,4 +24,3 @@ export const useThemePreference = () => {
 
   return [theme, setTheme] as const;
 };
-

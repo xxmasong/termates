@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Badge, Button, ConfirmDialog, EmptyState, Icon, IconButton, Input, Kbd, Textarea } from '@/components';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  Icon,
+  IconButton,
+  Input,
+  Kbd,
+  Textarea,
+} from '@/components';
 import { renderMarkdown } from '@/lib/utils/markdown';
 
 import {
@@ -34,7 +44,9 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
   const tree = useContentTree(files);
   const previewHtml = useMemo(() => renderMarkdown(draftContent), [draftContent]);
   const savedContent = selectedFilename ? itemQuery.data?.content : undefined;
-  const isDirty = creating ? draftContent.length > 0 || draftFilename.trim().length > 0 : savedContent !== undefined && draftContent !== savedContent;
+  const isDirty = creating
+    ? draftContent.length > 0 || draftFilename.trim().length > 0
+    : savedContent !== undefined && draftContent !== savedContent;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canSave = isDirty && draftFilename.trim().length > 0 && !isSaving;
   const hasEditor = creating || Boolean(selectedFilename);
@@ -82,7 +94,11 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
     }
 
     if (selectedFilename) {
-      updateMutation.mutate({ filename: selectedFilename, input: { content: draftContent }, projectId });
+      updateMutation.mutate({
+        filename: selectedFilename,
+        input: { content: draftContent },
+        projectId,
+      });
       return;
     }
 
@@ -95,7 +111,15 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
         },
       },
     );
-  }, [author, createMutation, draftContent, draftFilename, projectId, selectedFilename, updateMutation]);
+  }, [
+    author,
+    createMutation,
+    draftContent,
+    draftFilename,
+    projectId,
+    selectedFilename,
+    updateMutation,
+  ]);
   const onDelete = useCallback(() => {
     if (!selectedFilename) {
       return;
@@ -146,7 +170,10 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
       <header className="feature-panel__header">
         <div>
           <h2>Shared Content</h2>
-          <p>Files and folders visible to every agent in this project · {files.length} {files.length === 1 ? 'item' : 'items'}</p>
+          <p>
+            Files and folders visible to every agent in this project · {files.length}{' '}
+            {files.length === 1 ? 'item' : 'items'}
+          </p>
         </div>
         <Button icon="plus" onClick={onNew} size="sm" variant="ghost">
           New
@@ -210,13 +237,26 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
                     <Button onClick={onDiscard} size="sm" variant="ghost">
                       {creating ? 'Cancel' : 'Discard'}
                     </Button>
-                    <Button disabled={!canSave} icon="check" loading={isSaving} onClick={onSave} size="sm" variant="primary">
+                    <Button
+                      disabled={!canSave}
+                      icon="check"
+                      loading={isSaving}
+                      onClick={onSave}
+                      size="sm"
+                      variant="primary"
+                    >
                       Save <Kbd className="file-editor__kbd">⌘S</Kbd>
                     </Button>
                   </>
                 ) : null}
                 {selectedFilename ? (
-                  <IconButton icon="trash" label={`Delete ${selectedFilename}`} onClick={onRequestDelete} size="sm" tone="danger" />
+                  <IconButton
+                    icon="trash"
+                    label={`Delete ${selectedFilename}`}
+                    onClick={onRequestDelete}
+                    size="sm"
+                    tone="danger"
+                  />
                 ) : null}
               </div>
             </div>
@@ -230,7 +270,10 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
           </div>
         ) : (
           <div className="file-workspace__editor file-workspace__editor--empty">
-            <EmptyState icon={<Icon name="file" size={18} />} title="Select a file or create a new one" />
+            <EmptyState
+              icon={<Icon name="file" size={18} />}
+              title="Select a file or create a new one"
+            />
           </div>
         )}
         <article className="markdown-preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />

@@ -7,18 +7,18 @@
 
 const NAMED_HUES: Record<string, string> = {
   frontend: 'var(--h-frontend)',
-  backend:  'var(--h-backend)',
-  qa:       'var(--h-qa)',
-  test:     'var(--h-qa)',
-  docs:     'var(--h-docs)',
-  doc:      'var(--h-docs)',
-  wiki:     'var(--h-docs)',
-  devops:   'var(--h-devops)',
-  infra:    'var(--h-devops)',
-  design:   'oklch(66% 0.14 290)',
-  ml:       'oklch(66% 0.14 190)',
-  ai:       'oklch(66% 0.14 190)',
-  architect:'oklch(68% 0.10 240)',
+  backend: 'var(--h-backend)',
+  qa: 'var(--h-qa)',
+  test: 'var(--h-qa)',
+  docs: 'var(--h-docs)',
+  doc: 'var(--h-docs)',
+  wiki: 'var(--h-docs)',
+  devops: 'var(--h-devops)',
+  infra: 'var(--h-devops)',
+  design: 'oklch(66% 0.14 290)',
+  ml: 'oklch(66% 0.14 190)',
+  ai: 'oklch(66% 0.14 190)',
+  architect: 'oklch(68% 0.10 240)',
   reporter: 'oklch(70% 0.12 100)',
 };
 
@@ -37,7 +37,10 @@ export function agentHue(name: string): string {
 }
 
 export function agentInitials(name: string): string {
-  const parts = name.trim().split(/[\s_-]+/).filter(Boolean);
+  const parts = name
+    .trim()
+    .split(/[\s_-]+/)
+    .filter(Boolean);
   if (parts.length === 0) return '?';
   if (parts.length === 1) {
     const p = parts[0];

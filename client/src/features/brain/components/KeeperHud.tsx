@@ -27,24 +27,55 @@ export const KeeperHud: React.FC<KeeperHudProps> = ({
       {hud.expanded ? (
         <div className="keeper-hud__panel">
           <header className="keeper-hud__header">
-            <div className={classNames('keeper-hud__mini-orb', `keeper-hud__mini-orb--${hud.state}`)}>
+            <div
+              className={classNames('keeper-hud__mini-orb', `keeper-hud__mini-orb--${hud.state}`)}
+            >
               <Icon name="logo" size={12} />
             </div>
             <span className="keeper-hud__title">The Keeper</span>
-            <Button icon="message" iconOnly onClick={onOpenFull} size="sm" title="Open full conversation" variant="ghost" />
-            <Button icon="x" iconOnly onClick={hud.close} size="sm" title="Collapse" variant="ghost" />
+            <Button
+              icon="message"
+              iconOnly
+              onClick={onOpenFull}
+              size="sm"
+              title="Open full conversation"
+              variant="ghost"
+            />
+            <Button
+              icon="x"
+              iconOnly
+              onClick={hud.close}
+              size="sm"
+              title="Collapse"
+              variant="ghost"
+            />
           </header>
 
           <div className="keeper-hud__wake">
             <Icon name="mic" size={11} />
-            <span>{hud.wake.supported ? (hud.wake.enabled ? 'Wake word on' : 'Wake word off') : 'Wake word unavailable'}</span>
+            <span>
+              {hud.wake.supported
+                ? hud.wake.enabled
+                  ? 'Wake word on'
+                  : 'Wake word off'
+                : 'Wake word unavailable'}
+            </span>
             {hud.wake.enabled ? <code>{hud.wake.phrase}</code> : null}
           </div>
 
           <div className="keeper-hud__status">
-            <span><i className="status-dot status-dot--running" />{runningCount} running</span>
-            <span><i className="status-dot status-dot--awaiting_input" />{awaiting.length} awaiting</span>
-            <span><i className="status-dot status-dot--idle" />{idleCount} idle</span>
+            <span>
+              <i className="status-dot status-dot--running" />
+              {runningCount} running
+            </span>
+            <span>
+              <i className="status-dot status-dot--awaiting_input" />
+              {awaiting.length} awaiting
+            </span>
+            <span>
+              <i className="status-dot status-dot--idle" />
+              {idleCount} idle
+            </span>
           </div>
 
           {awaiting.length > 0 ? (
@@ -120,7 +151,14 @@ export const KeeperHud: React.FC<KeeperHudProps> = ({
               placeholder="Speak or type to The Keeper..."
               value={hud.input}
             />
-            <Button disabled={!hud.input.trim()} icon="send" iconOnly onClick={hud.submit} size="md" variant="primary" />
+            <Button
+              disabled={!hud.input.trim()}
+              icon="send"
+              iconOnly
+              onClick={hud.submit}
+              size="md"
+              variant="primary"
+            />
           </footer>
         </div>
       ) : null}

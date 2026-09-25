@@ -44,6 +44,8 @@ export const Button: React.FC<ButtonProps> = ({
   >
     {loading ? <Spinner size={BUTTON_ICON_SIZE[size]} /> : null}
     {!loading && icon ? <Icon name={icon} size={BUTTON_ICON_SIZE[size]} /> : null}
-    {children ? <span className={loading ? 'btn__label--loading' : undefined}>{children}</span> : null}
+    {children ? (
+      <span className={loading ? 'btn__label--loading' : undefined}>{children}</span>
+    ) : null}
   </button>
 );

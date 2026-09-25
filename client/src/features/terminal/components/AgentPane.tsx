@@ -38,22 +38,34 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
   const initials = useMemo(() => agentInitials(agent.name), [agent.name]);
   const hue = useMemo(() => agentHue(agent.name), [agent.name]);
   const focusPane = useCallback(() => onFocus(agent.id), [agent.id, onFocus]);
-  const startAgent = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onStart(agent);
-  }, [agent, onStart]);
-  const stopAgent = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onStop(agent);
-  }, [agent, onStop]);
-  const restartAgent = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onRestart(agent);
-  }, [agent, onRestart]);
-  const deleteAgent = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onDelete(agent);
-  }, [agent, onDelete]);
+  const startAgent = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onStart(agent);
+    },
+    [agent, onStart],
+  );
+  const stopAgent = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onStop(agent);
+    },
+    [agent, onStop],
+  );
+  const restartAgent = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onRestart(agent);
+    },
+    [agent, onRestart],
+  );
+  const deleteAgent = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onDelete(agent);
+    },
+    [agent, onDelete],
+  );
 
   const modelMutation = useAgentModel();
   const { dirty, draft, onDraftChange, reset } = useLaunchSettingsDraft(agent);
@@ -84,7 +96,10 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
   );
 
   return (
-    <article className={classNames('agent-pane', focused && 'agent-pane--focused')} onMouseDown={focusPane}>
+    <article
+      className={classNames('agent-pane', focused && 'agent-pane--focused')}
+      onMouseDown={focusPane}
+    >
       <header className="agent-pane__header" data-grid-drag-handle>
         <span className="agent-pane__drag" title="Drag pane">
           <Icon name="dots" size={12} />
@@ -98,7 +113,9 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
               <span className="agent-pane__name">{agent.name}</span>
               {agent.role ? <span className="agent-pane__role">{agent.role}</span> : null}
             </div>
-            <span className="agent-pane__meta">{agent.cli} · {agent.cwd}</span>
+            <span className="agent-pane__meta">
+              {agent.cli} · {agent.cwd}
+            </span>
           </div>
         </div>
         <Badge
@@ -140,19 +157,13 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
             variant="ghost"
           />
           <Button
-            aria-label={
-              dirty ? `Apply settings to ${agent.name}` : 'No setting changes to apply'
-            }
+            aria-label={dirty ? `Apply settings to ${agent.name}` : 'No setting changes to apply'}
             icon="check"
             iconOnly
             loading={modelMutation.isPending}
             onClick={applySettings}
             size="sm"
-            title={
-              dirty
-                ? 'Apply settings and restart the agent'
-                : 'No changes to apply'
-            }
+            title={dirty ? 'Apply settings and restart the agent' : 'No changes to apply'}
             variant={dirty ? 'success' : 'ghost'}
           />
           <Button
@@ -173,7 +184,9 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
         ) : (
           <div className="agent-pane__stopped">
             <span className="agent-pane__stopped-label">agent stopped</span>
-            <span className="agent-pane__stopped-meta">{agent.cli} · {agent.cwd}</span>
+            <span className="agent-pane__stopped-meta">
+              {agent.cli} · {agent.cwd}
+            </span>
             <Button icon="play" onClick={startAgent} size="sm" variant="primary">
               Start agent
             </Button>

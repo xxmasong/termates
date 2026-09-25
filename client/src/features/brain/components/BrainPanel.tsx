@@ -16,11 +16,12 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
   const bodyRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const { brainState, loading } = useBrainState();
-  const { abort, deleteConversation, sendMessage, startNew, switchConversation } = useBrainActions();
+  const { abort, deleteConversation, sendMessage, startNew, switchConversation } =
+    useBrainActions();
   const currentTitle = useMemo(
     () =>
-      brainState.conversations.find((conversation) => conversation.id === brainState.currentId)?.title ??
-      'New conversation',
+      brainState.conversations.find((conversation) => conversation.id === brainState.currentId)
+        ?.title ?? 'New conversation',
     [brainState.conversations, brainState.currentId],
   );
 
@@ -88,7 +89,14 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
             title="Conversations"
             variant="ghost"
           />
-          <Button icon="plus" iconOnly onClick={startConversation} size="sm" title="New" variant="ghost" />
+          <Button
+            icon="plus"
+            iconOnly
+            onClick={startConversation}
+            size="sm"
+            title="New"
+            variant="ghost"
+          />
         </div>
       </header>
 
@@ -102,12 +110,11 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
         />
       ) : (
         <div className="brain-panel__body" onScroll={onScroll} ref={bodyRef}>
-          {loading && brainState.messages.length === 0 ? <EmptyState title="Loading Keeper" /> : null}
+          {loading && brainState.messages.length === 0 ? (
+            <EmptyState title="Loading Keeper" />
+          ) : null}
           {!loading && brainState.messages.length === 0 ? (
-            <EmptyState
-              icon={<Icon name="logo" size={24} />}
-              title="Talk to The Keeper"
-            >
+            <EmptyState icon={<Icon name="logo" size={24} />} title="Talk to The Keeper">
               Ask for project status, agent progress, or coordination help.
             </EmptyState>
           ) : null}

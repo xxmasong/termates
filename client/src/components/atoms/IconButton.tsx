@@ -26,7 +26,12 @@ export const IconButton: React.FC<IconButtonProps> = ({
 }) => (
   <button
     aria-label={label}
-    className={classNames('icon-btn', `icon-btn--${size}`, tone === 'danger' && 'icon-btn--danger', className)}
+    className={classNames(
+      'icon-btn',
+      `icon-btn--${size}`,
+      tone === 'danger' && 'icon-btn--danger',
+      className,
+    )}
     title={label}
     type={type}
     {...buttonProps}

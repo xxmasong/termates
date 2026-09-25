@@ -60,12 +60,18 @@ export const useProjectAgentShell = () => {
     [setSelectedAgentId, setSelectedProjectId],
   );
 
-  const selectAgent = useCallback((agentId: string) => setSelectedAgentId(agentId), [setSelectedAgentId]);
+  const selectAgent = useCallback(
+    (agentId: string) => setSelectedAgentId(agentId),
+    [setSelectedAgentId],
+  );
   const openCreateProject = useCallback(() => setCreateProjectOpen(true), []);
   const closeCreateProject = useCallback(() => setCreateProjectOpen(false), []);
   const openCreateAgent = useCallback(() => setCreateAgentOpen(true), []);
   const closeCreateAgent = useCallback(() => setCreateAgentOpen(false), []);
-  const requestDeleteProject = useCallback((project: Project) => setProjectPendingDelete(project), []);
+  const requestDeleteProject = useCallback(
+    (project: Project) => setProjectPendingDelete(project),
+    [],
+  );
   const cancelDeleteProject = useCallback(() => setProjectPendingDelete(null), []);
   const requestEditProject = useCallback((project: Project) => setProjectPendingEdit(project), []);
   const cancelEditProject = useCallback(() => setProjectPendingEdit(null), []);
@@ -148,8 +154,14 @@ export const useProjectAgentShell = () => {
     [deleteAgentMutation, selectedAgentId, setSelectedAgentId],
   );
 
-  const startAgent = useCallback((agent: Agent) => lifecycle.start({ agentId: agent.id, projectId: agent.projectId }), [lifecycle]);
-  const stopAgent = useCallback((agent: Agent) => lifecycle.stop({ agentId: agent.id, projectId: agent.projectId }), [lifecycle]);
+  const startAgent = useCallback(
+    (agent: Agent) => lifecycle.start({ agentId: agent.id, projectId: agent.projectId }),
+    [lifecycle],
+  );
+  const stopAgent = useCallback(
+    (agent: Agent) => lifecycle.stop({ agentId: agent.id, projectId: agent.projectId }),
+    [lifecycle],
+  );
   const restartAgent = useCallback(
     (agent: Agent) => lifecycle.restart({ agentId: agent.id, projectId: agent.projectId }),
     [lifecycle],

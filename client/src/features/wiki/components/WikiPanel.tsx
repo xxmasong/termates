@@ -3,7 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState, Icon, Kbd, Textarea } from '@/components';
 import { renderMarkdown } from '@/lib/utils/markdown';
 
-import { useInitializeWiki, useUpdateWikiFile, useWikiFile, useWikiFiles, useWikiStatus } from '../hooks';
+import {
+  useInitializeWiki,
+  useUpdateWikiFile,
+  useWikiFile,
+  useWikiFiles,
+  useWikiStatus,
+} from '../hooks';
 
 export interface WikiPanelProps {
   projectId: string;
@@ -49,7 +55,11 @@ export const WikiPanel: React.FC<WikiPanelProps> = ({ projectId }) => {
     if (!selectedFilename) {
       return;
     }
-    updateMutation.mutate({ filename: selectedFilename, input: { content: draftContent }, projectId });
+    updateMutation.mutate({
+      filename: selectedFilename,
+      input: { content: draftContent },
+      projectId,
+    });
   }, [draftContent, projectId, selectedFilename, updateMutation]);
   const onDiscard = useCallback(() => {
     setDraftContent(savedContent ?? '');
@@ -72,9 +82,17 @@ export const WikiPanel: React.FC<WikiPanelProps> = ({ projectId }) => {
   if (!initialized) {
     return (
       <section className="feature-panel">
-        <EmptyState icon={<Icon name="book" size={20} />} title="Project memory is not initialized" />
+        <EmptyState
+          icon={<Icon name="book" size={20} />}
+          title="Project memory is not initialized"
+        />
         <div className="feature-panel__center-action">
-          <Button icon="sparkles" loading={initializeMutation.isPending} onClick={onInitialize} variant="primary">
+          <Button
+            icon="sparkles"
+            loading={initializeMutation.isPending}
+            onClick={onInitialize}
+            variant="primary"
+          >
             Initialize Wiki
           </Button>
         </div>
@@ -138,13 +156,24 @@ export const WikiPanel: React.FC<WikiPanelProps> = ({ projectId }) => {
                   <Button onClick={onDiscard} size="sm" variant="ghost">
                     Discard
                   </Button>
-                  <Button icon="check" loading={updateMutation.isPending} onClick={onSave} size="sm" variant="primary">
+                  <Button
+                    icon="check"
+                    loading={updateMutation.isPending}
+                    onClick={onSave}
+                    size="sm"
+                    variant="primary"
+                  >
                     Save <Kbd className="file-editor__kbd">⌘S</Kbd>
                   </Button>
                 </div>
               ) : null}
             </div>
-            <Textarea aria-label="Content" className="file-editor__content" onChange={onContentChange} value={draftContent} />
+            <Textarea
+              aria-label="Content"
+              className="file-editor__content"
+              onChange={onContentChange}
+              value={draftContent}
+            />
           </div>
         ) : (
           <div className="file-workspace__editor file-workspace__editor--empty">
@@ -156,4 +185,3 @@ export const WikiPanel: React.FC<WikiPanelProps> = ({ projectId }) => {
     </section>
   );
 };
-

@@ -13,7 +13,11 @@ export interface MessagesPanelProps {
   selectedAgentId: string | null;
 }
 
-export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents, selectedAgentId }) => {
+export const MessagesPanel: React.FC<MessagesPanelProps> = ({
+  projectId,
+  agents,
+  selectedAgentId,
+}) => {
   const [fromAgentOverrideId, setFromAgentOverrideId] = useState<string | null>(null);
   const [targetSelection, setTargetSelection] = useState(MESSAGE_TARGET_AUTO);
   const [message, setMessage] = useState('');
@@ -71,7 +75,9 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
           { input: { text: trimmed }, projectId },
           {
             onError: (mutationError) => {
-              setError(mutationError instanceof Error ? mutationError.message : 'Broadcast failed.');
+              setError(
+                mutationError instanceof Error ? mutationError.message : 'Broadcast failed.',
+              );
             },
             onSuccess: () => {
               setError(null);
@@ -108,7 +114,16 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
         },
       );
     },
-    [broadcastMutation, fromAgent, fromAgentId, message, projectId, sendMutation, target, targetAgent],
+    [
+      broadcastMutation,
+      fromAgent,
+      fromAgentId,
+      message,
+      projectId,
+      sendMutation,
+      target,
+      targetAgent,
+    ],
   );
 
   const sending = sendMutation.isPending || broadcastMutation.isPending;
@@ -156,7 +171,12 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
             </select>
           </FormField>
           <FormField label="To">
-            <select className="input" disabled={!fromAgent} onChange={onTargetChange} value={target}>
+            <select
+              className="input"
+              disabled={!fromAgent}
+              onChange={onTargetChange}
+              value={target}
+            >
               <option value={MESSAGE_TARGET_BROADCAST}>Broadcast</option>
               {teammates.map((agent) => (
                 <option key={agent.id} value={agent.id}>
@@ -171,7 +191,13 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({ projectId, agents,
         </FormField>
         {error ? <p className="messages-panel__error">{error}</p> : null}
         <div className="feature-panel__actions">
-          <Button disabled={!fromAgentId || !message.trim()} icon="send" loading={sending} type="submit" variant="primary">
+          <Button
+            disabled={!fromAgentId || !message.trim()}
+            icon="send"
+            loading={sending}
+            type="submit"
+            variant="primary"
+          >
             Send
           </Button>
         </div>

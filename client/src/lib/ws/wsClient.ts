@@ -108,10 +108,7 @@ class WebSocketClient {
     this.connect();
   }
 
-  subscribe<TType extends MessageType>(
-    type: TType,
-    listener: MessageListener<TType>,
-  ): () => void {
+  subscribe<TType extends MessageType>(type: TType, listener: MessageListener<TType>): () => void {
     const subscription: Subscription = {
       listener: (message) => listener(message as Extract<WSServerMessage, { type: TType }>),
       type,

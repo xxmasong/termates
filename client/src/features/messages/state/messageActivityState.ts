@@ -6,4 +6,3 @@ export const messageActivityState = atomFamily<ActivityEvent[], string>({
   default: [],
   key: 'messages.activityByProject',
 });
-

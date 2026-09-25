@@ -7,5 +7,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input: React.FC<InputProps> = ({ className, invalid = false, ...inputProps }) => (
-  <input aria-invalid={invalid || undefined} className={classNames('input', className)} {...inputProps} />
+  <input
+    aria-invalid={invalid || undefined}
+    className={classNames('input', className)}
+    {...inputProps}
+  />
 );

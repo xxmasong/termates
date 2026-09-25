@@ -16,7 +16,11 @@ const ICON_DEFINITIONS = {
   arrowR: { paths: ['M3 8h10M9 4l4 4-4 4'] },
   bell: { paths: ['M4 5.3a4 4 0 018 0c0 4.7 2 6 2 6H2s2-1.3 2-6', 'M6.9 14a1.3 1.3 0 002.3 0'] },
   bolt: { filled: true, paths: ['M9 1.5L3.5 9h4l-1 5.5L12 7H8l1-5.5z'] },
-  book: { paths: ['M3 3.5a1.5 1.5 0 011.5-1.5H13v11H4.5A1.5 1.5 0 003 14.5v-11zM3 14.5a1.5 1.5 0 011.5-1.5H13'] },
+  book: {
+    paths: [
+      'M3 3.5a1.5 1.5 0 011.5-1.5H13v11H4.5A1.5 1.5 0 003 14.5v-11zM3 14.5a1.5 1.5 0 011.5-1.5H13',
+    ],
+  },
   canvas: { paths: ['M2 2.5h5v4H2zM8.5 3.5h5v3h-5zM3 8.5h4v4.5H3zM9 8h5v5h-5z'] },
   check: { paths: ['M3 8.5l3 3L13 4'] },
   chevD: { paths: ['M3 6l5 4 5-4'] },
@@ -34,10 +38,19 @@ const ICON_DEFINITIONS = {
   grid: { paths: ['M2.5 2.5h5v5h-5zM8.5 2.5h5v5h-5zM2.5 8.5h5v5h-5zM8.5 8.5h5v5h-5z'] },
   hash: { paths: ['M6 2v12M10 2v12M2 6h12M2 10h12'] },
   info: { paths: ['M8 14A6 6 0 108 2a6 6 0 000 12zM8 7.5v3.5M8 5h.01'] },
-  logo: { paths: ['M8 1.4L13.7 4.8L13.7 11.2L8 14.6L2.3 11.2L2.3 4.8Z', 'M5.6 6L8 8L5.6 10', 'M8.6 10.2H11'] },
+  logo: {
+    paths: [
+      'M8 1.4L13.7 4.8L13.7 11.2L8 14.6L2.3 11.2L2.3 4.8Z',
+      'M5.6 6L8 8L5.6 10',
+      'M8.6 10.2H11',
+    ],
+  },
   menu: { viewBox: '0 0 18 18', paths: ['M3 5h12M3 9h12M3 13h12'] },
   message: { paths: ['M2.5 3.5h11v8h-4l-2.5 2.5V11.5h-4.5z'] },
-  mic: { paths: ['M3.6 7.6a4.4 4.4 0 008.8 0', 'M8 12v2.4M5.6 14.4h4.8'], rects: [{ x: 5.8, y: 1.6, width: 4.4, height: 8, rx: 2.2 }] },
+  mic: {
+    paths: ['M3.6 7.6a4.4 4.4 0 008.8 0', 'M8 12v2.4M5.6 14.4h4.8'],
+    rects: [{ x: 5.8, y: 1.6, width: 4.4, height: 8, rx: 2.2 }],
+  },
   moon: { paths: ['M13 9.5A5.5 5.5 0 116.5 3 4 4 0 0013 9.5z'] },
   panelLeft: { paths: ['M2.5 2.5h11v11h-11zM6 2.5v11'] },
   panelLeftOpen: { paths: ['M2.5 2.5h11v11h-11zM6 2.5v11M8.5 6l2 2-2 2'] },
@@ -58,7 +71,11 @@ const ICON_DEFINITIONS = {
   splitH: { viewBox: '0 0 14 14', strokeWidth: 1.2, paths: ['M2.5 2.5h9v9h-9zM7 2.5v9'] },
   splitV: { viewBox: '0 0 14 14', strokeWidth: 1.2, paths: ['M2.5 2.5h9v9h-9zM2.5 7h9'] },
   stop: { filled: true, paths: ['M4 4h8v8H4z'] },
-  sun: { paths: ['M8 11a3 3 0 100-6 3 3 0 000 6zM8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.5 3.5l1 1M11.5 11.5l1 1M3.5 12.5l1-1M11.5 4.5l1-1'] },
+  sun: {
+    paths: [
+      'M8 11a3 3 0 100-6 3 3 0 000 6zM8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.5 3.5l1 1M11.5 11.5l1 1M3.5 12.5l1-1M11.5 4.5l1-1',
+    ],
+  },
   terminal: { paths: ['M2.5 3.5h11v9h-11zM4.5 6l2 2-2 2M8 10h3'] },
   threeup: { paths: ['M2 3h3v10H2zM6.5 3h3v10h-3zM11 3h3v10h-3z'] },
   trash: { paths: ['M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5M7 7v3.5M9 7v3.5'] },
@@ -107,8 +124,12 @@ export const Icon: React.FC<IconProps> = ({
       width={size}
     >
       {title ? <title>{title}</title> : null}
-      {definition.paths?.map((path) => <path d={path} key={path} />)}
-      {definition.circles?.map((circle) => <circle {...circle} key={`${circle.cx}-${circle.cy}-${circle.r}`} />)}
+      {definition.paths?.map((path) => (
+        <path d={path} key={path} />
+      ))}
+      {definition.circles?.map((circle) => (
+        <circle {...circle} key={`${circle.cx}-${circle.cy}-${circle.r}`} />
+      ))}
       {definition.rects?.map((rect) => (
         <rect {...rect} key={`${rect.x}-${rect.y}-${rect.width}-${rect.height}`} />
       ))}

@@ -5,11 +5,7 @@ import { Button } from '@/components';
 import { useAuth, useLogoutCli, useUsage } from '../hooks';
 import { AuthModal } from './AuthModal';
 import { LoginTerminalModal } from './LoginTerminalModal';
-import {
-  USAGE_APPROXIMATE_CLIS,
-  USAGE_METER_CLIS,
-  USAGE_SESSION_LABELS,
-} from '../constants';
+import { USAGE_APPROXIMATE_CLIS, USAGE_METER_CLIS, USAGE_SESSION_LABELS } from '../constants';
 
 interface UsageMetersProps {
   children?: never;
@@ -55,10 +51,7 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
 
   const closeAuth = useCallback(() => setAuthCli(null), []);
   const closeLogin = useCallback(() => setLoginCli(null), []);
-  const logout = useCallback(
-    (cli: string) => logoutMutation.mutate(cli),
-    [logoutMutation],
-  );
+  const logout = useCallback((cli: string) => logoutMutation.mutate(cli), [logoutMutation]);
 
   const rows = useMemo(
     () =>
@@ -79,90 +72,95 @@ export const UsageMeters: React.FC<UsageMetersProps> = () => {
 
   return (
     <>
-    <div className="usage-meters">
-      {rows.map((row) => row.signedOut ? (
-        <div className="usage-meters__block" key={row.cli.key}>
-          <Button
-            className="usage-meters__connect"
-            onClick={() => setLoginCli({ key: row.cli.key, label: row.cli.label })}
-            size="sm"
-            variant="primary"
-          >
-            <span className="usage-meters__mark" style={{ background: row.cli.color }} />
-            Connect {row.cli.label}
-          </Button>
-        </div>
-      ) : (
-        <div className="usage-meters__block" key={row.cli.key}>
-          <div className="usage-meters__title">
-            <span className="usage-meters__mark" style={{ background: row.cli.color }} />
-            {row.cli.label}
-            {USAGE_APPROXIMATE_CLIS.has(row.cli.key) ? (
-              <span
-                className="usage-meters__approx"
-                title="Counted locally from this machine's CLI logs against the published daily limit — Google exposes no quota API"
+      <div className="usage-meters">
+        {rows.map((row) =>
+          row.signedOut ? (
+            <div className="usage-meters__block" key={row.cli.key}>
+              <Button
+                className="usage-meters__connect"
+                onClick={() => setLoginCli({ key: row.cli.key, label: row.cli.label })}
+                size="sm"
+                variant="primary"
               >
-                ~
-              </span>
-            ) : null}
-            <Button
-              aria-label={`${row.cli.label} account`}
-              className="usage-meters__gear"
-              icon="gear"
-              iconOnly
-              onClick={() => setAuthCli({ key: row.cli.key, label: row.cli.label })}
-              size="sm"
-              title={`${row.cli.label} account`}
-              variant="ghost"
-            />
-          </div>
-          {(['session', 'week'] as const).map((window) => {
-            const entry = row[window];
-
-            if (!entry) {
-              return null;
-            }
-
-            const pct = Math.max(0, Math.min(100, Math.round(entry.utilization)));
-
-            return (
-              <div key={window}>
-                <div className="usage-meters__row">
-                  <span className="usage-meters__label">
-                    {window === 'session'
-                      ? (USAGE_SESSION_LABELS[row.cli.key] ?? 'Session')
-                      : 'Week'}
+                <span className="usage-meters__mark" style={{ background: row.cli.color }} />
+                Connect {row.cli.label}
+              </Button>
+            </div>
+          ) : (
+            <div className="usage-meters__block" key={row.cli.key}>
+              <div className="usage-meters__title">
+                <span className="usage-meters__mark" style={{ background: row.cli.color }} />
+                {row.cli.label}
+                {USAGE_APPROXIMATE_CLIS.has(row.cli.key) ? (
+                  <span
+                    className="usage-meters__approx"
+                    title="Counted locally from this machine's CLI logs against the published daily limit — Google exposes no quota API"
+                  >
+                    ~
                   </span>
-                  <span className="usage-meters__pct">
-                    {pct}%<span className="usage-meters__reset">· resets {formatReset(entry.resetsAt)}</span>
-                  </span>
-                </div>
-                <div className="usage-meters__bar">
-                  <div
-                    className="usage-meters__fill"
-                    style={{ background: barColor(pct), width: `${pct}%` }}
-                  />
-                </div>
+                ) : null}
+                <Button
+                  aria-label={`${row.cli.label} account`}
+                  className="usage-meters__gear"
+                  icon="gear"
+                  iconOnly
+                  onClick={() => setAuthCli({ key: row.cli.key, label: row.cli.label })}
+                  size="sm"
+                  title={`${row.cli.label} account`}
+                  variant="ghost"
+                />
               </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-    <AuthModal
-      auth={authCli ? authQuery.data?.[authCli.key] : undefined}
-      cli={authCli}
-      error={logoutMutation.error instanceof Error ? logoutMutation.error.message : null}
-      loading={authQuery.isLoading}
-      loggingOut={logoutMutation.isPending}
-      onClose={closeAuth}
-      onConnect={(cli) => {
-        setAuthCli(null);
-        setLoginCli(cli);
-      }}
-      onLogout={logout}
-    />
-    <LoginTerminalModal cli={loginCli} onClose={closeLogin} />
+              {(['session', 'week'] as const).map((window) => {
+                const entry = row[window];
+
+                if (!entry) {
+                  return null;
+                }
+
+                const pct = Math.max(0, Math.min(100, Math.round(entry.utilization)));
+
+                return (
+                  <div key={window}>
+                    <div className="usage-meters__row">
+                      <span className="usage-meters__label">
+                        {window === 'session'
+                          ? (USAGE_SESSION_LABELS[row.cli.key] ?? 'Session')
+                          : 'Week'}
+                      </span>
+                      <span className="usage-meters__pct">
+                        {pct}%
+                        <span className="usage-meters__reset">
+                          · resets {formatReset(entry.resetsAt)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="usage-meters__bar">
+                      <div
+                        className="usage-meters__fill"
+                        style={{ background: barColor(pct), width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ),
+        )}
+      </div>
+      <AuthModal
+        auth={authCli ? authQuery.data?.[authCli.key] : undefined}
+        cli={authCli}
+        error={logoutMutation.error instanceof Error ? logoutMutation.error.message : null}
+        loading={authQuery.isLoading}
+        loggingOut={logoutMutation.isPending}
+        onClose={closeAuth}
+        onConnect={(cli) => {
+          setAuthCli(null);
+          setLoginCli(cli);
+        }}
+        onLogout={logout}
+      />
+      <LoginTerminalModal cli={loginCli} onClose={closeLogin} />
     </>
   );
 };

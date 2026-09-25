@@ -1,4 +1,4 @@
-export * from "./AgentModelBar";
+export * from './AgentModelBar';
 export * from './AgentActions';
 export * from './AgentCard';
 export * from './AgentList';

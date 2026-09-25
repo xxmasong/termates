@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { contentKeys, createContent, deleteContent, getContent, listContent, updateContent } from '../api';
+import {
+  contentKeys,
+  createContent,
+  deleteContent,
+  getContent,
+  listContent,
+  updateContent,
+} from '../api';
 import type { CreateContentInput, UpdateContentInput } from '../types';
 
 export const useContentList = (projectId: string | null) =>
@@ -59,4 +66,3 @@ export const useDeleteContent = () => {
     },
   });
 };
-

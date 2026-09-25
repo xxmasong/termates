@@ -24,7 +24,17 @@ export const AppRouter: React.FC<AppRouterProps> = () => {
     pathname === '/forgot-password' ||
     pathname === '/reset-password'
   ) {
-    return <Suspense fallback={<main className="app-route-spinner"><Spinner size={24} /></main>}><AuthRoute navigate={navigate} pathname={pathname} /></Suspense>;
+    return (
+      <Suspense
+        fallback={
+          <main className="app-route-spinner">
+            <Spinner size={24} />
+          </main>
+        }
+      >
+        <AuthRoute navigate={navigate} pathname={pathname} />
+      </Suspense>
+    );
   }
 
   if (pathname === ROUTES.APP || pathname.startsWith(`${ROUTES.APP}/`)) {

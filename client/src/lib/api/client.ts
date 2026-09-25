@@ -61,7 +61,11 @@ export const apiRequest = async <TResponse, TBody = undefined>(
   const responseBody = await parseJson(response);
 
   if (!response.ok) {
-    throw new ApiError(getErrorMessage(responseBody, response.status), response.status, responseBody);
+    throw new ApiError(
+      getErrorMessage(responseBody, response.status),
+      response.status,
+      responseBody,
+    );
   }
 
   return responseBody as TResponse;

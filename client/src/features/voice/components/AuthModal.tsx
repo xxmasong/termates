@@ -51,7 +51,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   }, [cli, onLogout]);
 
   return (
-    <Modal onClose={close} open={Boolean(cli)} title={cli ? `${cli.label} account` : ''} width={520}>
+    <Modal
+      onClose={close}
+      open={Boolean(cli)}
+      title={cli ? `${cli.label} account` : ''}
+      width={520}
+    >
       {loading || !auth ? (
         <div className="feature-loading">
           <Spinner />
@@ -66,7 +71,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   auth.loggedIn && !auth.expired ? 'ok' : auth.loggedIn ? 'warn' : 'off'
                 }`}
               />
-              {auth.loggedIn ? (auth.expired ? 'Signed in, token expired' : 'Signed in') : 'Signed out'}
+              {auth.loggedIn
+                ? auth.expired
+                  ? 'Signed in, token expired'
+                  : 'Signed in'
+                : 'Signed out'}
             </dd>
 
             {auth.account ? (
@@ -97,14 +106,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </Button>
           ) : null}
 
-
           {error ? <div className="feature-error">{error}</div> : null}
 
           {auth.loggedIn ? (
             auth.canLogout ? (
               confirmingLogout ? (
                 <div className="auth-modal__confirm">
-                  <span>Sign out of {cli?.label}? Running agents will fail until you sign in again.</span>
+                  <span>
+                    Sign out of {cli?.label}? Running agents will fail until you sign in again.
+                  </span>
                   <div className="auth-modal__confirm-actions">
                     <Button onClick={() => setConfirmingLogout(false)} size="sm" variant="ghost">
                       Cancel

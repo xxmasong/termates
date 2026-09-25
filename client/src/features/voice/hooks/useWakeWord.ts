@@ -40,7 +40,13 @@ const getSpeechRecognition = (): SpeechRecognitionCtor | undefined => {
   return source.SpeechRecognition ?? source.webkitSpeechRecognition;
 };
 
-export const useWakeWord = ({ enabled, phrase, language = 'zh-TW', onCommand, onWake }: WakeOptions) => {
+export const useWakeWord = ({
+  enabled,
+  phrase,
+  language = 'zh-TW',
+  onCommand,
+  onWake,
+}: WakeOptions) => {
   const [armed, setArmed] = useState(false);
   const [listening, setListening] = useState(false);
   const armedRef = useRef(false);

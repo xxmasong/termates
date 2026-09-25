@@ -16,11 +16,13 @@ export interface LoginTerminalModalProps {
 }
 
 /** Only links that look like a sign-in page — the CLIs also print docs URLs. */
-// eslint-disable-next-line no-control-regex
-const SIGN_IN_URL = /https:\/\/[^\s"'<>\x07\x1b]*(?:oauth|authorize|device|accounts\.google)[^\s"'<>\x07\x1b]*(?=\s)/i;
+/* eslint-disable no-control-regex -- terminal output carries BEL/ESC bytes */
+const SIGN_IN_URL =
+  /https:\/\/[^\s"'<>\x07\x1b]*(?:oauth|authorize|device|accounts\.google)[^\s"'<>\x07\x1b]*(?=\s)/i;
 
-// eslint-disable-next-line no-control-regex
-const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][A-Za-z0-9]|\x1b[=>]/g;
+const ANSI =
+  /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][A-Za-z0-9]|\x1b[=>]/g;
+/* eslint-enable no-control-regex */
 
 type Phase = 'running' | 'exited';
 
@@ -81,7 +83,12 @@ export const LoginTerminalModal: React.FC<LoginTerminalModalProps> = ({ cli, onC
     fitRef.current = fit;
     terminalRef.current = terminal;
 
-    send({ cli: cli.key, cols: terminal.cols, rows: terminal.rows, type: WS_CLIENT_MESSAGE_TYPES.LOGIN_START });
+    send({
+      cli: cli.key,
+      cols: terminal.cols,
+      rows: terminal.rows,
+      type: WS_CLIENT_MESSAGE_TYPES.LOGIN_START,
+    });
 
     const inputDisposable = terminal.onData((data) => {
       send({ data, type: WS_CLIENT_MESSAGE_TYPES.LOGIN_INPUT });
@@ -146,7 +153,9 @@ export const LoginTerminalModal: React.FC<LoginTerminalModalProps> = ({ cli, onC
     if (message.exitCode !== 0) {
       setShowTerminal(true);
     }
-    terminalRef.current?.write(`\r\n\x1b[2m[sign-in process exited with code ${message.exitCode}]\x1b[0m\r\n`);
+    terminalRef.current?.write(
+      `\r\n\x1b[2m[sign-in process exited with code ${message.exitCode}]\x1b[0m\r\n`,
+    );
     void queryClient.invalidateQueries({ queryKey: voiceKeys.usage() });
   });
 
@@ -213,7 +222,11 @@ export const LoginTerminalModal: React.FC<LoginTerminalModalProps> = ({ cli, onC
                     <Button onClick={openSignIn} size="sm" variant="primary">
                       Open sign-in page
                     </Button>
-                    <Button onClick={() => void navigator.clipboard?.writeText(url)} size="sm" variant="ghost">
+                    <Button
+                      onClick={() => void navigator.clipboard?.writeText(url)}
+                      size="sm"
+                      variant="ghost"
+                    >
                       Copy link
                     </Button>
                   </div>
@@ -229,7 +242,9 @@ export const LoginTerminalModal: React.FC<LoginTerminalModalProps> = ({ cli, onC
                 <div className="login-terminal__step-body">
                   <span>Enter this one-time code on that page:</span>
                   <code className="login-terminal__device-code">{deviceCode}</code>
-                  <span className="login-terminal__muted">This window updates by itself when you are done.</span>
+                  <span className="login-terminal__muted">
+                    This window updates by itself when you are done.
+                  </span>
                 </div>
               </div>
             ) : needsCode ? (

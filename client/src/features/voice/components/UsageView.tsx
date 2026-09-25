@@ -26,7 +26,10 @@ export const UsageView: React.FC<UsageViewProps> = () => {
     <section className="usage-view">
       <h3>Usage</h3>
       {rows.length === 0 ? (
-        <EmptyState icon={<Icon name="dollar" size={18} />} title={query.isLoading ? 'Loading usage' : 'No usage yet'} />
+        <EmptyState
+          icon={<Icon name="dollar" size={18} />}
+          title={query.isLoading ? 'Loading usage' : 'No usage yet'}
+        />
       ) : (
         <dl className="usage-view__grid">
           {rows.map(([key, value]) => (
@@ -40,4 +43,3 @@ export const UsageView: React.FC<UsageViewProps> = () => {
     </section>
   );
 };
-

@@ -38,4 +38,3 @@ export const useActivityFeed = () => {
 
   return { ...query, events };
 };
-

@@ -29,4 +29,3 @@ export const updateWikiFile = (
       method: 'PUT',
     },
   );
-

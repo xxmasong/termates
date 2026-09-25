@@ -4,7 +4,7 @@ type SetValue<T> = T | ((current: T) => T);
 
 const LOCAL_STORAGE_EVENT = 'termhive:local-storage';
 
-const readStorageValue = <T,>(key: string, initialValue: T): T => {
+const readStorageValue = <T>(key: string, initialValue: T): T => {
   if (typeof window === 'undefined') {
     return initialValue;
   }
@@ -17,7 +17,7 @@ const readStorageValue = <T,>(key: string, initialValue: T): T => {
   }
 };
 
-export const useLocalStorage = <T,>(
+export const useLocalStorage = <T>(
   key: string,
   initialValue: T,
 ): [T, (value: SetValue<T>) => void, () => void] => {

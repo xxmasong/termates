@@ -4,4 +4,3 @@ export const encodePathFilename = (filename: string): string =>
     .filter(Boolean)
     .map((segment) => encodeURIComponent(segment))
     .join('/');
-

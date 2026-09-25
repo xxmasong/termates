@@ -76,7 +76,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
           <Button onClick={onClose} variant="ghost">
             Close
           </Button>
-          <Button icon="check" loading={updateVoiceConfig.isPending} onClick={onSave} variant="primary">
+          <Button
+            icon="check"
+            loading={updateVoiceConfig.isPending}
+            onClick={onSave}
+            variant="primary"
+          >
             Save
           </Button>
         </>
@@ -104,7 +109,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
           <h3>Voice</h3>
           <div className="settings-grid">
             <FormField label="Speech provider">
-              <select className="input" onChange={onProviderChange} value={draft.provider ?? 'browser'}>
+              <select
+                className="input"
+                onChange={onProviderChange}
+                value={draft.provider ?? 'browser'}
+              >
                 {PROVIDERS.map((provider) => (
                   <option key={provider} value={provider}>
                     {provider}
@@ -116,7 +125,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
               <Input onChange={onLanguageChange} placeholder="zh-TW" value={draft.language ?? ''} />
             </FormField>
             <FormField label="Wake word">
-              <Input onChange={onWakeWordChange} placeholder="TermHive" value={draft.wakeWord ?? ''} />
+              <Input
+                onChange={onWakeWordChange}
+                placeholder="TermHive"
+                value={draft.wakeWord ?? ''}
+              />
             </FormField>
             <FormField label="TTS voice">
               <Input onChange={onTtsVoiceChange} value={draft.ttsVoice ?? ''} />
@@ -136,7 +149,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
                 Speech input: {speech.supported ? 'available' : 'unsupported'}
               </span>
               <span className="settings-status">
-                Wake word: {wake.supported ? (wake.listening ? 'listening' : 'available') : 'unsupported'}
+                Wake word:{' '}
+                {wake.supported ? (wake.listening ? 'listening' : 'available') : 'unsupported'}
               </span>
               {wake.armed ? <span className="settings-status">armed</span> : null}
             </ToolbarGroup>
@@ -148,4 +162,3 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
     </Modal>
   );
 };
-

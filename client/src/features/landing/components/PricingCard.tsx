@@ -17,8 +17,12 @@ const planHref = (plan: Plan): string =>
   plan.id === 'free' ? ROUTES.SIGNUP : `${ROUTES.SIGNUP}?plan=${plan.id}`;
 
 export const PricingCard: React.FC<PricingCardProps> = ({ plan }) => (
-  <article className={`landing-pricing-card${plan.highlighted ? ' landing-pricing-card--highlighted' : ''}`}>
-    {plan.highlighted ? <span className="landing-pricing-card__popular">{COPY.pricing.popular}</span> : null}
+  <article
+    className={`landing-pricing-card${plan.highlighted ? ' landing-pricing-card--highlighted' : ''}`}
+  >
+    {plan.highlighted ? (
+      <span className="landing-pricing-card__popular">{COPY.pricing.popular}</span>
+    ) : null}
     <h3>{plan.name}</h3>
     <p>{plan.pitch}</p>
     <div className="landing-pricing-card__price">

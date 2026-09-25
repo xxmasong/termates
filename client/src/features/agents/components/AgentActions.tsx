@@ -21,9 +21,21 @@ export const AgentActions: React.FC<AgentActionsProps> = ({
 }) => (
   <div className="agent-actions">
     {agent.status === 'stopped' ? (
-      <IconButton disabled={disabled} icon="play" label="Start" onClick={() => onStart(agent)} size="sm" />
+      <IconButton
+        disabled={disabled}
+        icon="play"
+        label="Start"
+        onClick={() => onStart(agent)}
+        size="sm"
+      />
     ) : (
-      <IconButton disabled={disabled} icon="stop" label="Stop" onClick={() => onStop(agent)} size="sm" />
+      <IconButton
+        disabled={disabled}
+        icon="stop"
+        label="Stop"
+        onClick={() => onStop(agent)}
+        size="sm"
+      />
     )}
     <IconButton
       disabled={disabled}

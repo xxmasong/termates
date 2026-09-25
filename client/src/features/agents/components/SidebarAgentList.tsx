@@ -92,7 +92,12 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
                 <span className="sidebar-agent-row__meta">{agent.role || agent.cwd}</span>
               </span>
               <span className="sidebar-agent-row__actions">
-                {index < 5 ? <span className="sidebar-agent-row__shortcut">{modKey}{index + 1}</span> : null}
+                {index < 5 ? (
+                  <span className="sidebar-agent-row__shortcut">
+                    {modKey}
+                    {index + 1}
+                  </span>
+                ) : null}
               </span>
             </button>
             <Button

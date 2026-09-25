@@ -3,7 +3,11 @@ import { useState } from 'react';
 import { Icon } from '@/components';
 import { classNames } from '@/lib/utils';
 
-import { CONTENT_EXTENSION_COLORS, CONTENT_TREE_BASE_PADDING, CONTENT_TREE_INDENT } from '../constants';
+import {
+  CONTENT_EXTENSION_COLORS,
+  CONTENT_TREE_BASE_PADDING,
+  CONTENT_TREE_INDENT,
+} from '../constants';
 import type { ContentTreeNode } from '../types';
 
 export interface ContentTreeRowProps {
@@ -55,7 +59,12 @@ export const ContentTreeRow: React.FC<ContentTreeRowProps> = ({
           style={{ paddingLeft }}
           type="button"
         >
-          <span className={classNames('content-tree-row__caret', open && 'content-tree-row__caret--open')}>
+          <span
+            className={classNames(
+              'content-tree-row__caret',
+              open && 'content-tree-row__caret--open',
+            )}
+          >
             <Icon name="chevR" size={10} />
           </span>
           <Icon name="folder" size={13} />

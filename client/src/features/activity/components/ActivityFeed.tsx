@@ -48,7 +48,10 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
       </header>
       <div className="activity-panel__viewport" ref={parentRef}>
         {scopedEvents.length === 0 ? (
-          <EmptyState icon={<Icon name="activity" size={20} />} title={isLoading ? 'Loading activity' : 'No activity yet'} />
+          <EmptyState
+            icon={<Icon name="activity" size={20} />}
+            title={isLoading ? 'Loading activity' : 'No activity yet'}
+          />
         ) : (
           <div
             className="activity-panel__spacer"
@@ -67,9 +70,13 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
                     <div className="activity-event__title">
                       {event.event === 'agent:message'
                         ? `${event.fromAgent ?? event.agentName ?? 'Agent'} -> ${event.toAgent ?? 'Broadcast'}`
-                        : event.agentName ?? event.detail}
+                        : (event.agentName ?? event.detail)}
                     </div>
-                    <p>{event.event === 'agent:message' ? event.message ?? event.detail : event.detail}</p>
+                    <p>
+                      {event.event === 'agent:message'
+                        ? (event.message ?? event.detail)
+                        : event.detail}
+                    </p>
                   </div>
                   <time>{new Date(event.timestamp).toLocaleTimeString()}</time>
                 </article>
@@ -81,4 +88,3 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
     </section>
   );
 };
-

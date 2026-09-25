@@ -27,7 +27,9 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
   onLayoutChange,
 }) => {
   const widthKey =
-    storageKeyPrefix === 'termhive' ? STORAGE_KEYS.SIDEBAR_WIDTH : `${storageKeyPrefix}:sidebar-width`;
+    storageKeyPrefix === 'termhive'
+      ? STORAGE_KEYS.SIDEBAR_WIDTH
+      : `${storageKeyPrefix}:sidebar-width`;
   const [width, setWidth] = useLocalStorage(widthKey, defaultWidth);
 
   // Tapping the scrim closes the drawer; the owner holds the state.
@@ -63,11 +65,11 @@ export const SidebarShell: React.FC<SidebarShellProps> = ({
   return (
     <div
       className={classNames('sidebar-shell', collapsed && 'sidebar-shell--collapsed')}
-      style={{ '--app-shell-sidebar-width': `${clampSidebarWidth(width)}px` } as React.CSSProperties}
+      style={
+        { '--app-shell-sidebar-width': `${clampSidebarWidth(width)}px` } as React.CSSProperties
+      }
     >
-      {collapsed ? null : (
-        <div aria-hidden className="sidebar-shell__scrim" onClick={collapse} />
-      )}
+      {collapsed ? null : <div aria-hidden className="sidebar-shell__scrim" onClick={collapse} />}
       <aside
         className={classNames(
           'sidebar-shell__sidebar',

@@ -159,7 +159,9 @@ export const useSpeechInput = (onText: SpeechResultHandler, options: SpeechOptio
       MediaRecorder.isTypeSupported(candidate),
     );
     const chunks: BlobPart[] = [];
-    const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    const recorder = mime
+      ? new MediaRecorder(stream, { mimeType: mime })
+      : new MediaRecorder(stream);
 
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -236,4 +238,3 @@ export const useSpeechInput = (onText: SpeechResultHandler, options: SpeechOptio
 
   return { error, listening, supported, toggle };
 };
-

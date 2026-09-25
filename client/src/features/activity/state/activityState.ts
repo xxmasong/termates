@@ -6,4 +6,3 @@ export const liveActivityState = atom<ActivityEvent[]>({
   default: [],
   key: 'activity.liveEvents',
 });
-

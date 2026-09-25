@@ -18,7 +18,10 @@ export const updateProject = (projectId: string, input: UpdateProjectInput): Pro
   });
 
 export const deleteProject = async (projectId: string, removeData: boolean): Promise<void> => {
-  await apiRequest<undefined>(`/projects/${projectId}?removeData=${removeData ? 'true' : 'false'}`, {
-    method: 'DELETE',
-  });
+  await apiRequest<undefined>(
+    `/projects/${projectId}?removeData=${removeData ? 'true' : 'false'}`,
+    {
+      method: 'DELETE',
+    },
+  );
 };

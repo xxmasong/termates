@@ -8,4 +8,3 @@ export const wikiKeys = {
   project: (projectId: string | null) => [...wikiKeys.all, projectId] as const,
   status: (projectId: string | null) => [QUERY_KEY_ROOTS.WIKI_STATUS, projectId] as const,
 };
-

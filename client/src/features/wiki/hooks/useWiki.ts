@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getWikiFile, getWikiStatus, initializeWiki, listWikiFiles, updateWikiFile, wikiKeys } from '../api';
+import {
+  getWikiFile,
+  getWikiStatus,
+  initializeWiki,
+  listWikiFiles,
+  updateWikiFile,
+  wikiKeys,
+} from '../api';
 import type { UpdateWikiInput } from '../types';
 
 export const useWikiStatus = (projectId: string | null) =>
@@ -54,4 +61,3 @@ export const useUpdateWikiFile = () => {
     },
   });
 };
-

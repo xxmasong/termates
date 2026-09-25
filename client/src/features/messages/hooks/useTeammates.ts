@@ -8,4 +8,3 @@ export const useTeammates = (projectId: string | null, agentId: string | null) =
     queryFn: () => getAgentTeammates(projectId as string, agentId as string),
     queryKey: messageKeys.teammates(projectId, agentId),
   });
-
