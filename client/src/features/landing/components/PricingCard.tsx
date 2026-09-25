@@ -35,6 +35,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan }) => (
         <span className="landing-pricing-card__early-access">{COPY.pricing.earlyAccess}</span>
       )}
     </div>
+    <div className="landing-pricing-card__chip-row">
+      {plan.earlyAccess ? (
+        <span className="landing-pricing-card__early-access">{COPY.pricing.noCharge}</span>
+      ) : null}
+    </div>
     <div className="landing-pricing-card__stats">
       <PlanStat label={plan.maxProjects === 1 ? 'project' : 'projects'} value={plan.maxProjects} />
       <PlanStat label="agents" value={plan.maxAgents} />

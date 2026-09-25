@@ -887,6 +887,13 @@ html.landing-document {
   display: flex;
   gap: 8px;
   height: 42px;
+  margin-bottom: 10px;
+}
+/* Reserved on every card so the stats rows stay aligned across plans. */
+.landing-pricing-card__chip-row {
+  align-items: center;
+  display: flex;
+  height: 24px;
   margin-bottom: 24px;
 }
 .landing-pricing-card__price > strong {

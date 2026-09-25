@@ -72,6 +72,7 @@ export const COPY = {
     body: 'Every plan gets every CLI, the Keeper, agent messaging, shared memory and mobile access. Plans differ only in how big your hive can get.',
     includedTitle: 'Everything included',
     earlyAccess: 'Early access',
+    noCharge: 'No charge during early access',
     popular: 'Most popular',
     freeCta: 'Start free',
     proCta: 'Choose Pro',
