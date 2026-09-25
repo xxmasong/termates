@@ -7,6 +7,7 @@ export default defineConfig({
     'src/hive-mcp-server.ts',
     'src/daemon/daemon.ts',
     'src/cloud/server.ts',
+    'src/cloud/admin-cli.ts',
   ],
   format: ['esm'],
   target: 'node20',

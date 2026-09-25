@@ -1,0 +1,4 @@
+#!/bin/sh
+# Installed as /usr/local/bin/termhive-admin on the TermHive Cloud host.
+exec /usr/local/bin/node --disable-warning=ExperimentalWarning \
+  /opt/termhive-v2/dist/cloud/admin-cli.js "$@"
