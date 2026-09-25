@@ -8,3 +8,5 @@ export * from './OrDivider';
 export * from './OAuthButtons';
 export * from './PasswordStrength';
 export * from './PlanPicker';
+export * from './AuthGate';
+export * from './NotConfiguredNotice';
