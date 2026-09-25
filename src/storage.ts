@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 import type { Project, Agent, ProjectData, SharedContent } from './types.js';
+import { assertCanCreate } from './workspace-limits.js';
 
 const BASE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive');
 const PROJECTS_DIR = path.join(BASE_DIR, 'projects');
@@ -59,7 +60,23 @@ function saveProjectData(data: ProjectData) {
   fs.writeFileSync(projectFile(data.project.id), JSON.stringify(data, null, 2));
 }
 
+/** Agents across every project — plan limits count them all. */
+export function countAllAgents(): number {
+  return listProjects().reduce((total, p) => total + listAgents(p.id).length, 0);
+}
+
+/** Throws PlanLimitError when the plan has no room for another project. */
+export function assertCanCreateProject(): void {
+  assertCanCreate('project', listProjects().length);
+}
+
+/** Throws PlanLimitError when the plan has no room for another agent. */
+export function assertCanCreateAgent(): void {
+  assertCanCreate('agent', countAllAgents());
+}
+
 export function createProject(name: string, cwd: string, description?: string): Project {
+  assertCanCreateProject();
   const project: Project = {
     id: uuid(),
     name,
@@ -114,6 +131,7 @@ export function getAgent(projectId: string, agentId: string): Agent | null {
 export function createAgent(projectId: string, name: string, cli: Agent['cli'], cwd: string, role?: string, flags?: Agent['flags']): Agent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
+  assertCanCreateAgent();
   const agent: Agent = {
     id: uuid(),
     projectId,

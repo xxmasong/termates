@@ -1,0 +1,51 @@
+/**
+ * workspace-limits.ts — plan limits for one workspace.
+ *
+ * The control plane starts each workspace with its plan's limits in the
+ * environment (never a file: agents can write anything under HOME). Both the
+ * REST routes and the Keeper's MCP tools end in storage.create*, so storage
+ * calls these guards and every create path is covered.
+ */
+
+export const MAX_PROJECTS_ENV = 'TERMHIVE_MAX_PROJECTS';
+export const MAX_AGENTS_ENV = 'TERMHIVE_MAX_AGENTS';
+
+export type LimitKind = 'project' | 'agent';
+
+const NOUNS: Record<LimitKind, [singular: string, plural: string]> = {
+  project: ['project', 'projects'],
+  agent: ['agent', 'agents'],
+};
+
+export class PlanLimitError extends Error {
+  readonly code = 'PLAN_LIMIT';
+
+  constructor(
+    readonly kind: LimitKind,
+    readonly limit: number,
+    readonly used: number,
+  ) {
+    const noun = NOUNS[kind][limit === 1 ? 0 : 1];
+    super(`Your plan includes ${limit} ${noun}. Upgrade to add more.`);
+    this.name = 'PlanLimitError';
+  }
+
+  toJSON() {
+    return { error: this.message, code: this.code, kind: this.kind, limit: this.limit, used: this.used };
+  }
+}
+
+/** Parse a limit from the environment. Unset or blank means unlimited. */
+export function readLimit(kind: LimitKind, env: NodeJS.ProcessEnv = process.env): number | null {
+  const raw = env[kind === 'project' ? MAX_PROJECTS_ENV : MAX_AGENTS_ENV];
+  if (raw === undefined || raw.trim() === '') return null;
+  const value = Number(raw);
+  // A malformed value fails closed: nothing can be created until it is fixed.
+  return Number.isInteger(value) && value >= 0 ? value : 0;
+}
+
+/** Throw PlanLimitError when creating one more `kind` would exceed the plan. */
+export function assertCanCreate(kind: LimitKind, used: number, env: NodeJS.ProcessEnv = process.env): void {
+  const limit = readLimit(kind, env);
+  if (limit !== null && used >= limit) throw new PlanLimitError(kind, limit, used);
+}

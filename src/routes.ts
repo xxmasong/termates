@@ -4,6 +4,7 @@ import * as activity from './activity.js';
 import { AGENT_CLIS } from './types.js';
 import type { DaemonClient } from './daemon/client.js';
 import { appendTranscript } from './transcript.js';
+import { PlanLimitError } from './workspace-limits.js';
 
 /**
  * REST API. Agent runtime operations (start/stop/status/inject) are delegated
@@ -15,6 +16,15 @@ export function createRouter(
   broadcastContentUpdate: (projectId: string, filename: string) => void,
 ) {
   const router = Router();
+
+  /** Map a workspace-limit error to its HTTP response; false if it is not one. */
+  function sendLimitError(res: Response, err: unknown): boolean {
+    if (err instanceof PlanLimitError) {
+      res.status(403).json(err.toJSON());
+      return true;
+    }
+    return false;
+  }
 
   /** Fetch the fine-grained agent status map from the daemon.
    *  If the daemon is unreachable, nothing is running (it owns every PTY). */
@@ -38,8 +48,12 @@ export function createRouter(
       res.status(400).json({ error: 'name and cwd are required' });
       return;
     }
-    const project = storage.createProject(name, cwd, description);
-    res.status(201).json(project);
+    try {
+      const project = storage.createProject(name, cwd, description);
+      res.status(201).json(project);
+    } catch (err) {
+      if (!sendLimitError(res, err)) throw err;
+    }
   });
 
   router.put('/projects/:id', (req: Request, res: Response) => {
@@ -94,9 +108,13 @@ export function createRouter(
     const projectData = storage.getProjectData(req.params.id);
     if (!projectData) { res.status(404).json({ error: 'Project not found' }); return; }
     const agentCwd = cwd || projectData.project.cwd;
-    const agent = storage.createAgent(req.params.id, name, cli, agentCwd, role, flags);
-    if (!agent) { res.status(404).json({ error: 'Project not found' }); return; }
-    res.status(201).json(agent);
+    try {
+      const agent = storage.createAgent(req.params.id, name, cli, agentCwd, role, flags);
+      if (!agent) { res.status(404).json({ error: 'Project not found' }); return; }
+      res.status(201).json(agent);
+    } catch (err) {
+      if (!sendLimitError(res, err)) throw err;
+    }
   });
 
   router.put('/projects/:id/agents/:aid', (req: Request, res: Response) => {

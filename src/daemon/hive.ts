@@ -659,6 +659,11 @@ export async function broadcastDispatch(
 
 // ─────────────────────── create project / agent ───────────────────────
 
+/** Tool-error text for a failed create (plan limit, confinement, I/O). */
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export interface CreateProjectResult {
   ok: boolean;
   status: 'created' | 'exists' | 'error';
@@ -695,6 +700,11 @@ export function createProjectDispatch(
 
   const resolved = path.resolve(expandHome(cwd.trim()));
   try {
+    storage.assertCanCreateProject();
+  } catch (err) {
+    return { ok: false, status: 'error', error: errorMessage(err) };
+  }
+  try {
     fs.mkdirSync(resolved, { recursive: true });
   } catch (err) {
     return {
@@ -704,7 +714,12 @@ export function createProjectDispatch(
     };
   }
 
-  const project = storage.createProject(trimmed, resolved, description?.trim() || undefined);
+  let project: Project;
+  try {
+    project = storage.createProject(trimmed, resolved, description?.trim() || undefined);
+  } catch (err) {
+    return { ok: false, status: 'error', error: errorMessage(err) };
+  }
   return {
     ok: true,
     status: 'created',
@@ -766,19 +781,30 @@ export function createAgentDispatch(
     };
   }
 
+  try {
+    storage.assertCanCreateAgent();
+  } catch (err) {
+    return { ok: false, status: 'error', projectName: project.name, error: errorMessage(err) };
+  }
+
   let agentCwd = project.cwd;
   if (cwd && cwd.trim()) {
     agentCwd = path.resolve(expandHome(cwd.trim()));
     try { fs.mkdirSync(agentCwd, { recursive: true }); } catch { /* best-effort */ }
   }
 
-  const agent = storage.createAgent(
-    project.id,
-    trimmed,
-    cliNorm as Agent['cli'],
-    agentCwd,
-    role?.trim() || undefined,
-  );
+  let agent: Agent | null;
+  try {
+    agent = storage.createAgent(
+      project.id,
+      trimmed,
+      cliNorm as Agent['cli'],
+      agentCwd,
+      role?.trim() || undefined,
+    );
+  } catch (err) {
+    return { ok: false, status: 'error', projectName: project.name, error: errorMessage(err) };
+  }
   if (!agent) {
     return { ok: false, status: 'error', projectName: project.name, error: 'Failed to create the agent.' };
   }
