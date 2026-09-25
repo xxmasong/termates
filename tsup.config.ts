@@ -6,6 +6,7 @@ export default defineConfig({
     'src/mcp-server.ts',
     'src/hive-mcp-server.ts',
     'src/daemon/daemon.ts',
+    'src/cloud/server.ts',
   ],
   format: ['esm'],
   target: 'node20',
@@ -13,4 +14,6 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   external: ['node-pty'],
+  // Keep `node:` specifiers: node:sqlite only exists with the prefix.
+  removeNodeProtocol: false,
 });
