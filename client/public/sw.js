@@ -4,10 +4,10 @@
  * TermHive's data is live (agent state, terminal streams, the WebSocket), so
  * caching API responses would show stale agents and mislead the user. This
  * caches the static shell so the app opens when installed, and lets every
- * /api and /ws request go straight to the network.
+ * other request (/api, /ws, /auth, …) go straight to the network.
  */
 
-const CACHE = 'termhive-shell-v1';
+const CACHE = 'termhive-shell-v2';
 const SHELL = ['/', '/manifest.webmanifest', '/favicon.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (event) => {
@@ -37,8 +37,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Never cache live data or the socket.
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api') || url.pathname.startsWith('/ws')) {
+  if (url.origin !== self.location.origin) {
     return;
   }
 
@@ -54,6 +53,12 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => caches.match('/').then((cached) => cached ?? Response.error())),
     );
+    return;
+  }
+
+  // Only hashed build assets and the shell files are cached. Everything else
+  // — /api, /ws, /auth (the signed-in user), /claude-chat — is live.
+  if (!url.pathname.startsWith('/assets/') && !SHELL.includes(url.pathname)) {
     return;
   }
 
