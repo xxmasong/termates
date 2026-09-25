@@ -411,7 +411,7 @@ html.landing-document {
   animation: hive-dash 1s linear infinite;
   opacity: 1;
 }
-.keeper-hud {
+.hive-keeper {
   align-items: center;
   background: #24231f;
   border: 1px solid var(--l-honey);
@@ -428,13 +428,13 @@ html.landing-document {
   transform: translateY(8px);
   transition: 0.2s;
 }
-.keeper-hud span {
+.hive-keeper span {
   border: 2px solid var(--l-honey);
   border-radius: 50%;
   color: var(--l-honey);
   padding: 2px;
 }
-.keeper-hud--visible {
+.hive-keeper--visible {
   opacity: 1;
   transform: none;
 }
@@ -1470,6 +1470,19 @@ html.landing-document {
 .landing-agent-message small {
   color: var(--l-text-3);
   font: 11px var(--l-ff-mono);
+}
+/* The stagger delay is set inline on each message row; the transition lives
+   on the bubble, so hand the delay down. */
+.landing-chat__message > p {
+  transition-delay: inherit;
+  transition-duration: 0.4s;
+}
+.landing-problem__visual article p {
+  transition: opacity 0.4s 0.35s;
+}
+.landing .landing-comparison__hint {
+  font: 11px var(--l-ff-mono);
+  margin-bottom: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   html.landing-document {
