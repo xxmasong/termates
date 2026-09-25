@@ -1484,6 +1484,49 @@ html.landing-document {
   font: 11px var(--l-ff-mono);
   margin-bottom: 0;
 }
+@media (max-width: 760px) {
+  .landing-section,
+  .landing-works {
+    padding-inline: 16px;
+  }
+  .landing-works div {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .landing-works span {
+    padding: 0 14px;
+  }
+  .landing-problem {
+    gap: 8px;
+  }
+  .landing-problem__visual {
+    margin-top: 20px;
+  }
+  .landing-steps li {
+    padding-left: 52px;
+  }
+  .landing-steps b {
+    left: 0;
+    position: absolute;
+    top: 0;
+  }
+  .landing-steps h3 {
+    margin-top: 6px;
+  }
+  .landing-steps::before {
+    bottom: 48px;
+  }
+  .landing-keeper {
+    gap: 32px;
+  }
+  .landing-faq-layout {
+    gap: 8px;
+  }
+  .landing-final-cta {
+    margin-inline: 16px;
+    padding: 40px 20px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html.landing-document {
     scroll-behavior: auto;
