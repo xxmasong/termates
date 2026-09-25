@@ -13,6 +13,8 @@
     "start": "node dist/server.js",
     "start:all": "concurrently -n daemon,web \"npm run daemon\" \"npm run start\"",
     "typecheck": "tsc --noEmit",
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "test:server": "node scripts/test-server.mjs",
     "lint": "eslint client --max-warnings=0",
     "verify:cli-options": "node scripts/verify-cli-options.mjs"
   },
