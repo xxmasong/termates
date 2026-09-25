@@ -33,6 +33,12 @@ export default defineConfig({
             return 'xterm';
           }
 
+          // Only the auth pages import Firebase; keep it out of the shared
+          // vendor chunk the landing page and the /app shell load.
+          if (id.includes('/node_modules/firebase/') || id.includes('/node_modules/@firebase/')) {
+            return 'firebase';
+          }
+
           if (id.includes('/node_modules/')) {
             return 'vendor';
           }
