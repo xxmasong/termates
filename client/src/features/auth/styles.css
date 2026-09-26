@@ -143,7 +143,7 @@
   top: 28px;
 }
 .auth-submit,
-.auth-oauth a {
+.auth-oauth button {
   align-items: center;
   border-radius: 999px;
   display: flex;
@@ -165,10 +165,20 @@
   display: grid;
   gap: 10px;
 }
-.auth-oauth a {
+.auth-oauth button {
+  background: transparent;
   border: 1px solid var(--l-line-strong);
+  color: var(--l-text);
+  cursor: pointer;
+  font: inherit;
   font-size: 0.925rem;
-  text-decoration: none;
+}
+.auth-oauth button:hover:not(:disabled) {
+  border-color: var(--l-text-3);
+}
+.auth-oauth button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 .auth-divider {
   align-items: center;
@@ -342,7 +352,7 @@
   top: 45px;
   transform: translateY(-50%);
 }
-.auth-oauth a {
+.auth-oauth button {
   gap: 10px;
 }
 .auth-oauth__mark {

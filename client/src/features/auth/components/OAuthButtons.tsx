@@ -1,7 +1,11 @@
+import { Spinner } from '@/components';
+
+import type { OAuthProviderId } from '../types';
+
 interface OAuthButtonsProps {
   mode: 'login' | 'signup';
-  plan?: string;
-  invite?: string;
+  onSelect: (provider: OAuthProviderId) => void;
+  pendingProvider?: OAuthProviderId | null;
 }
 
 const GoogleMark: React.FC = () => (
@@ -24,22 +28,26 @@ const GitHubMark: React.FC = () => (
   </svg>
 );
 
-export const OAuthButtons: React.FC<OAuthButtonsProps> = ({ mode, plan, invite }) => {
-  const parameters = new URLSearchParams();
-  if (plan) parameters.set('plan', plan);
-  if (invite) parameters.set('invite', invite);
-  const query = parameters.size ? `?${parameters.toString()}` : '';
+const PROVIDERS: ReadonlyArray<{ id: OAuthProviderId; label: string; Mark: React.FC }> = [
+  { id: 'google', label: 'Google', Mark: GoogleMark },
+  { id: 'github', label: 'GitHub', Mark: GitHubMark },
+];
+
+export const OAuthButtons: React.FC<OAuthButtonsProps> = ({ mode, onSelect, pendingProvider }) => {
   const verb = mode === 'login' ? 'Continue with' : 'Sign up with';
   return (
     <div className="auth-oauth">
-      <a href={`/auth/google${query}`}>
-        <GoogleMark />
-        {verb} Google
-      </a>
-      <a href={`/auth/github${query}`}>
-        <GitHubMark />
-        {verb} GitHub
-      </a>
+      {PROVIDERS.map(({ id, label, Mark }) => (
+        <button
+          disabled={Boolean(pendingProvider)}
+          key={id}
+          onClick={() => onSelect(id)}
+          type="button"
+        >
+          {pendingProvider === id ? <Spinner size={16} /> : <Mark />}
+          {verb} {label}
+        </button>
+      ))}
     </div>
   );
 };

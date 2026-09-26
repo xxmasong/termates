@@ -18,7 +18,9 @@ import {
 import { AUTH_COPY, AUTH_ROUTES, INVITE_FIELD_ID } from '../constants';
 import { useAuthConfig } from '../hooks/useAuthConfig';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useOAuthSignIn } from '../hooks/useOAuthSignIn';
 import { useSignup } from '../hooks/useSignup';
+import type { OAuthProviderId } from '../types';
 
 interface SignupPageProps {
   navigate: (path: string) => void;
@@ -41,11 +43,25 @@ export const SignupPage: React.FC<SignupPageProps> = ({ navigate }) => {
   const [plan, setPlan] = useState<PlanId>(initialPlan);
   const { status, auth, signupMode } = useAuthConfig();
   const { pending, error, fields, submit } = useSignup(auth, signupMode, navigate);
-  const showInvite = hasInviteParameter || signupMode === 'invite' || Boolean(fields.inviteCode);
+  const oauth = useOAuthSignIn(auth);
+  const { signIn: oauthSignIn } = oauth;
+  const inviteError = fields.inviteCode ?? oauth.inviteError;
+  const showInvite = hasInviteParameter || signupMode === 'invite' || Boolean(inviteError);
 
   useEffect(() => {
-    if (fields.inviteCode) document.getElementById(INVITE_FIELD_ID)?.focus();
-  }, [fields.inviteCode]);
+    if (inviteError) document.getElementById(INVITE_FIELD_ID)?.focus();
+  }, [inviteError]);
+
+  const onOAuth = useCallback(
+    (provider: OAuthProviderId) => {
+      const code = inviteCode.trim();
+      void oauthSignIn(provider, {
+        pending: { plan, ...(code ? { inviteCode: code } : {}) },
+        requireInvite: signupMode === 'invite',
+      });
+    },
+    [inviteCode, oauthSignIn, plan, signupMode],
+  );
 
   const onSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -60,14 +76,15 @@ export const SignupPage: React.FC<SignupPageProps> = ({ navigate }) => {
       <AuthCard body={AUTH_COPY.signup.body} title={AUTH_COPY.signup.title}>
         <AuthGate status={status}>
           <PlanPicker onChange={setPlan} plan={plan} />
-          <OAuthButtons invite={showInvite ? inviteCode : undefined} mode="signup" plan={plan} />
+          <OAuthButtons mode="signup" onSelect={onOAuth} pendingProvider={oauth.pendingProvider} />
+          {oauth.error ? <FormError>{oauth.error}</FormError> : null}
           <OrDivider />
           <form noValidate onSubmit={onSubmit}>
             {showInvite ? (
               <TextField
                 autoComplete="off"
                 className="auth-invite-code"
-                error={fields.inviteCode}
+                error={inviteError}
                 id={INVITE_FIELD_ID}
                 label="Invite code"
                 onChange={(event) => setInviteCode(event.target.value)}

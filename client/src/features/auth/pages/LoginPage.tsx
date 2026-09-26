@@ -15,6 +15,8 @@ import { AUTH_COPY, AUTH_ROUTES, INVITE_FIELD_ID } from '../constants';
 import { useAuthConfig } from '../hooks/useAuthConfig';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useLogin } from '../hooks/useLogin';
+import { useOAuthSignIn } from '../hooks/useOAuthSignIn';
+import type { OAuthProviderId } from '../types';
 
 interface LoginPageProps {
   navigate: (path: string) => void;
@@ -27,10 +29,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
   const [inviteCode, setInviteCode] = useState('');
   const { status, auth } = useAuthConfig();
   const { pending, error, fields, inviteRequired, submit } = useLogin(auth, navigate);
+  const oauth = useOAuthSignIn(auth);
+  const { signIn: oauthSignIn } = oauth;
+  const showInvite = inviteRequired || Boolean(oauth.inviteError);
 
   useEffect(() => {
-    if (inviteRequired) document.getElementById(INVITE_FIELD_ID)?.focus();
-  }, [inviteRequired]);
+    if (showInvite) document.getElementById(INVITE_FIELD_ID)?.focus();
+  }, [showInvite]);
+
+  const onOAuth = useCallback(
+    (provider: OAuthProviderId) => {
+      const code = inviteCode.trim();
+      void oauthSignIn(provider, { pending: code ? { inviteCode: code } : {} });
+    },
+    [inviteCode, oauthSignIn],
+  );
 
   const onSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -44,14 +57,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
     <AuthLayout>
       <AuthCard body={AUTH_COPY.login.body} title={AUTH_COPY.login.title}>
         <AuthGate status={status}>
-          <OAuthButtons mode="login" />
+          <OAuthButtons mode="login" onSelect={onOAuth} pendingProvider={oauth.pendingProvider} />
+          {oauth.error ? <FormError>{oauth.error}</FormError> : null}
           <OrDivider />
           <form noValidate onSubmit={onSubmit}>
-            {inviteRequired ? (
+            {showInvite ? (
               <TextField
                 autoComplete="off"
                 className="auth-invite-code"
-                error={fields.inviteCode}
+                error={fields.inviteCode ?? oauth.inviteError}
                 id={INVITE_FIELD_ID}
                 label="Invite code"
                 onChange={(event) => setInviteCode(event.target.value)}
