@@ -1,0 +1,60 @@
+.account-screen {
+  align-items: center;
+  background: var(--bg-0);
+  color: var(--text-0);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--ff-sans);
+  gap: 12px;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  text-align: center;
+}
+.account-screen h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 8px 0 0;
+}
+.account-screen p {
+  color: var(--text-1);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  max-width: 360px;
+}
+.account-screen__mark {
+  align-items: center;
+  background: var(--attn-soft);
+  border: 1px solid var(--attn);
+  border-radius: 16px;
+  color: var(--attn);
+  display: flex;
+  height: 56px;
+  justify-content: center;
+  width: 56px;
+}
+.account-screen__mark--error {
+  background: var(--err-soft);
+  border-color: var(--err);
+  color: var(--err);
+}
+.account-screen__mark--pulse {
+  animation: account-pulse 1.6s ease-in-out infinite;
+}
+.account-screen__actions {
+  display: flex;
+  gap: 8px;
+}
+@keyframes account-pulse {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-screen__mark--pulse {
+    animation: none;
+  }
+}

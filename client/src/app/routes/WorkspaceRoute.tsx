@@ -1,5 +1,7 @@
 import { TermHiveShell } from '@/app/TermHiveShell';
 import { AppProviders } from '@/app/providers/AppProviders';
+import { LiveProviders } from '@/app/providers/LiveProviders';
+import { WorkspaceGate } from '@/features/account';
 
 interface WorkspaceRouteProps {
   children?: never;
@@ -7,6 +9,10 @@ interface WorkspaceRouteProps {
 
 export const WorkspaceRoute: React.FC<WorkspaceRouteProps> = () => (
   <AppProviders>
-    <TermHiveShell />
+    <WorkspaceGate>
+      <LiveProviders>
+        <TermHiveShell />
+      </LiveProviders>
+    </WorkspaceGate>
   </AppProviders>
 );

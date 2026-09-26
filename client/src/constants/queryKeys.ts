@@ -1,4 +1,5 @@
 export const QUERY_KEY_ROOTS = {
+  ACCOUNT: 'account',
   ACTIVITY: 'activity',
   AGENTS: 'agents',
   BRAIN: 'brain',

@@ -8,6 +8,7 @@
 @import '../features/content/styles.css';
 @import '../features/activity/styles.css';
 @import '../features/settings/styles.css';
+@import '../features/account/styles.css';
 
 *,
 *::before,
