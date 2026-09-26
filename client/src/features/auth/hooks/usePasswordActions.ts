@@ -1,25 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { forgotPassword, resendVerification, resetPassword } from '../api/authApi';
-import { AUTH_COPY, RESEND_COOLDOWN_SECONDS } from '../constants';
-export const useResendVerification = () => {
-  const [seconds, setSeconds] = useState(0);
-  const [sent, setSent] = useState(false);
-  const resend = useCallback(async (email: string) => {
-    try {
-      await resendVerification(email);
-      setSent(true);
-      setSeconds(RESEND_COOLDOWN_SECONDS);
-    } catch {
-      /* Retry remains available. */
-    }
-  }, []);
-  useEffect(() => {
-    if (!seconds) return undefined;
-    const timer = window.setInterval(() => setSeconds((value) => value - 1), 1000);
-    return () => window.clearInterval(timer);
-  }, [seconds]);
-  return { seconds, sent, resend };
-};
+import { useCallback, useState } from 'react';
+import { forgotPassword, resetPassword } from '../api/authApi';
+import { AUTH_COPY } from '../constants';
 export const useForgotPassword = () => {
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);

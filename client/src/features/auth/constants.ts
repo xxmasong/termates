@@ -91,3 +91,15 @@ export const PASSWORD_RULES = [
   'Not your email',
 ] as const;
 export const RESEND_COOLDOWN_SECONDS = 60;
+
+export const VERIFY_COPY = {
+  resend: 'Resend email',
+  resendIn: (seconds: number) => `Resend in ${seconds}s`,
+  sent: 'Sent. Check your spam folder too.',
+  confirm: "I've verified my email",
+  notYetVerified:
+    "We haven't seen the confirmation yet. Click the link in the email, then try again.",
+  signedOut: 'Sign in again to resend the email or continue.',
+  fallbackEmail: 'your email',
+  backToSignIn: 'Back to sign in',
+} as const;

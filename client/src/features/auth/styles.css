@@ -328,6 +328,13 @@
   height: 44px;
   width: 100%;
 }
+.auth-verify {
+  display: grid;
+  gap: 12px;
+}
+.auth-verify .auth-submit {
+  margin-top: 0;
+}
 .auth-envelope {
   align-items: center;
   border: 2px solid var(--l-honey);
