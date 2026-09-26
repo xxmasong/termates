@@ -33,6 +33,15 @@ export const AUTH_API = {
   SESSION: '/auth/session',
 } as const;
 
+export const FIELD_REQUIRED = {
+  email: 'Email is required.',
+  password: 'Password is required.',
+  name: 'Name is required.',
+  inviteCode: 'Enter your invite code.',
+} as const;
+
+export const INVITE_FIELD_ID = 'invite-code';
+
 export const PENDING_SIGNUP_STORAGE_KEY = 'termhive.pendingSignup';
 
 /** Firebase error codes → the brief's messages. Missing codes → generic. */

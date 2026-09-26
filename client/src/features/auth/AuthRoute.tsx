@@ -10,7 +10,7 @@ interface AuthRouteProps {
 }
 
 export const AuthRoute: React.FC<AuthRouteProps> = ({ pathname, navigate }) => {
-  if (pathname === '/login') return <LoginPage />;
+  if (pathname === '/login') return <LoginPage navigate={navigate} />;
   if (pathname === '/signup') return <SignupPage navigate={navigate} />;
   if (pathname === '/verify-email') return <VerifyEmailPage />;
   if (pathname === '/forgot-password') return <ForgotPasswordPage />;
