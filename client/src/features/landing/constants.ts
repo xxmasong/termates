@@ -14,6 +14,9 @@ export const SCROLL_THRESHOLD = 8;
 export const SIM_STEP_MS = 2_000;
 export const SIM_HOLD_STEPS = 1;
 export const LANDING_TITLE = 'TermHive — your coding agents, working as one team';
+/** Control-plane session check; 200 = signed in, 401 = not. */
+export const SESSION_ENDPOINT = '/auth/me';
+
 export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Product', href: '#product' },
   { label: 'The Keeper', href: '#keeper' },
