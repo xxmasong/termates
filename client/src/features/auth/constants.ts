@@ -42,6 +42,8 @@ export const FIELD_REQUIRED = {
 
 export const INVITE_FIELD_ID = 'invite-code';
 
+export const WEAK_PASSWORD_MESSAGE = 'Choose a stronger password.';
+
 export const PENDING_SIGNUP_STORAGE_KEY = 'termhive.pendingSignup';
 
 /** Firebase error codes → the brief's messages. Missing codes → generic. */
