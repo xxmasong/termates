@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 
 import { Spinner } from '@/components';
-import { ROUTES } from '@/constants';
+import { isAuthPath, ROUTES } from '@/constants';
 import { LandingPage } from '@/features/landing';
 import { usePathname } from '@/lib/hooks';
 
@@ -17,13 +17,7 @@ interface AppRouterProps {
 export const AppRouter: React.FC<AppRouterProps> = () => {
   const { pathname, navigate } = usePathname();
 
-  if (
-    pathname === ROUTES.LOGIN ||
-    pathname === ROUTES.SIGNUP ||
-    pathname === '/verify-email' ||
-    pathname === '/forgot-password' ||
-    pathname === '/reset-password'
-  ) {
+  if (isAuthPath(pathname)) {
     return (
       <Suspense
         fallback={

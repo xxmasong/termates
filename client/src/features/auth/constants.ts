@@ -28,6 +28,27 @@ export const AUTH_ROUTES = {
   APP: '/app',
 } as const;
 
+export const ACTION_MODES = {
+  VERIFY_EMAIL: 'verifyEmail',
+  RESET_PASSWORD: 'resetPassword',
+} as const;
+
+export const ACTION_COPY = {
+  verifiedTitle: 'Email verified',
+  verifiedBody: 'Your email is confirmed. Your hive is ready when you are.',
+  continue: 'Continue',
+  invalidTitle: 'This link has expired',
+  invalidReset: 'This reset link is invalid or has expired.',
+  invalidVerify: 'This verification link is invalid or has expired.',
+  requestNew: 'Request a new one',
+  backToSignIn: 'Back to sign in',
+  updatePassword: 'Update password',
+  passwordUpdated: 'Password updated.',
+  signIn: 'Sign in',
+  passwordsDontMatch: "Passwords don't match.",
+  confirmPassword: 'Confirm password',
+} as const;
+
 export const AUTH_API = {
   CONFIG: '/auth/config',
   SESSION: '/auth/session',

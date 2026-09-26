@@ -10,3 +10,5 @@ export * from './PasswordStrength';
 export * from './PlanPicker';
 export * from './AuthGate';
 export * from './NotConfiguredNotice';
+export * from './RedirectTo';
+export * from './ResetPasswordForm';

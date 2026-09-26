@@ -4,3 +4,4 @@ export * from './useAuthConfig';
 export * from './useCooldown';
 export * from './useVerifyEmail';
 export * from './useForgotPassword';
+export * from './useAccountAction';
