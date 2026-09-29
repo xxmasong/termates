@@ -23,7 +23,7 @@ import {
 } from '@/components';
 import { MOBILE_BREAKPOINT } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
-import { UserMenu } from '@/features/account';
+import { PlanLimitDialog, UserMenu } from '@/features/account';
 import { ActivityFeed } from '@/features/activity';
 import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
 import {
@@ -653,6 +653,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         placeholder="Run a command"
       />
       <SettingsModal onClose={closeSettings} open={settingsOpen} />
+      <PlanLimitDialog />
       <Modal onClose={closeCommandPanel} open={commandPanelOpen} title="The Keeper" width={620}>
         <BrainPanel />
       </Modal>

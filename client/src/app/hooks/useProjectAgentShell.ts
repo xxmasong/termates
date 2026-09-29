@@ -3,6 +3,7 @@ import { useRecoilState } from 'recoil';
 
 import type { Agent, Project } from '@/types';
 
+import { usePlanLimitDialog } from '@/features/account';
 import {
   selectedAgentIdState,
   useAgentLifecycle,
@@ -43,6 +44,7 @@ export const useProjectAgentShell = () => {
   const createAgentMutation = useCreateAgent();
   const deleteAgentMutation = useDeleteAgent();
   const lifecycle = useAgentLifecycle();
+  const { offer: offerUpgrade } = usePlanLimitDialog();
 
   const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data]);
   const projectAgentSummaries = useProjectAgentSummaries(projects);
@@ -96,9 +98,12 @@ export const useProjectAgentShell = () => {
           setSelectedAgentId(null);
           setCreateProjectOpen(false);
         },
+        onError: (error) => {
+          if (offerUpgrade(error)) setCreateProjectOpen(false);
+        },
       });
     },
-    [createProjectMutation, setSelectedAgentId, setSelectedProjectId],
+    [createProjectMutation, offerUpgrade, setSelectedAgentId, setSelectedProjectId],
   );
 
   const deleteProject = useCallback(
@@ -132,10 +137,13 @@ export const useProjectAgentShell = () => {
             setSelectedAgentId(agent.id);
             setCreateAgentOpen(false);
           },
+          onError: (error) => {
+            if (offerUpgrade(error)) setCreateAgentOpen(false);
+          },
         },
       );
     },
-    [createAgentMutation, selectedProjectId, setSelectedAgentId],
+    [createAgentMutation, offerUpgrade, selectedProjectId, setSelectedAgentId],
   );
 
   const deleteAgent = useCallback(
