@@ -34,6 +34,8 @@ export interface AppHeaderProps<TValue extends string> {
   themeIcon: IconName;
   onDeleteProject?: () => void;
   notifications?: ReactNode;
+  /** Account control rendered at the far right (avatar menu). */
+  userMenu?: ReactNode;
   modKey: string;
 }
 
@@ -61,6 +63,7 @@ export const AppHeader = <TValue extends string>({
   themeIcon,
   onDeleteProject,
   notifications,
+  userMenu,
   modKey,
 }: AppHeaderProps<TValue>): React.ReactElement => (
   <header className="app-header">
@@ -188,6 +191,7 @@ export const AppHeader = <TValue extends string>({
           <Icon name="x" size={12} />
         </button>
       ) : null}
+      {userMenu}
     </div>
   </header>
 );

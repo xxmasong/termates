@@ -58,3 +58,98 @@
     animation: none;
   }
 }
+
+.user-menu {
+  margin-left: 4px;
+  position: relative;
+}
+.user-menu__trigger {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+.user-menu__trigger:hover,
+.user-menu__trigger[aria-expanded='true'] {
+  border-color: var(--border-strong);
+}
+.user-menu__avatar {
+  border-radius: 999px;
+  display: block;
+  height: 24px;
+  object-fit: cover;
+  width: 24px;
+}
+.user-menu__avatar--initials {
+  align-items: center;
+  background: var(--attn-soft);
+  color: var(--attn);
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+.user-menu__panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  min-width: 220px;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+}
+.user-menu__identity {
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 2px;
+  margin-bottom: 6px;
+  padding: 8px 8px 10px;
+}
+.user-menu__identity strong {
+  color: var(--text-0);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-menu__identity span {
+  color: var(--text-2);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-menu__badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.user-menu__item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-1);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  width: 100%;
+}
+.user-menu__item:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-0);
+}

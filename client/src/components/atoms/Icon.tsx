@@ -45,6 +45,7 @@ const ICON_DEFINITIONS = {
       'M8.6 10.2H11',
     ],
   },
+  logOut: { paths: ['M6.5 2.5h-4v11h4', 'M10 5l3 3-3 3', 'M13 8H6'] },
   menu: { viewBox: '0 0 18 18', paths: ['M3 5h12M3 9h12M3 13h12'] },
   message: { paths: ['M2.5 3.5h11v8h-4l-2.5 2.5V11.5h-4.5z'] },
   mic: {

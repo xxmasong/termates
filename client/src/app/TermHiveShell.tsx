@@ -23,6 +23,7 @@ import {
 } from '@/components';
 import { MOBILE_BREAKPOINT } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
+import { UserMenu } from '@/features/account';
 import { ActivityFeed } from '@/features/activity';
 import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
 import {
@@ -581,6 +582,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
             onToggleTheme={cycleTheme}
             sidebarCollapsed={sidebarCollapsed}
             themeIcon={theme === 'light' ? 'sun' : 'moon'}
+            userMenu={<UserMenu />}
           />
         }
         statusBar={<StatusBar connected={wsStatus === 'open'} counts={statusCounts} />}
