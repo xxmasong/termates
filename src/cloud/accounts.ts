@@ -8,7 +8,14 @@
 
 import crypto from 'node:crypto';
 
-import { PLANS, ROOT_WORKSPACE, isPlanId, type CloudConfig, type PlanId } from './config.js';
+import {
+  LOCAL_UID_PREFIX,
+  PLANS,
+  ROOT_WORKSPACE,
+  isPlanId,
+  type CloudConfig,
+  type PlanId,
+} from './config.js';
 import type { CloudDb, UserRow, WorkspaceRow } from './db.js';
 import type { FirebaseClaims } from './firebase-token.js';
 import { newUnixUser, nextPortBase } from './provisioner.js';
@@ -19,7 +26,8 @@ export type AccountErrorCode =
   | 'INVALID_INVITE'
   | 'ACCOUNT_SUSPENDED'
   | 'NO_EMAIL'
-  | 'CAPACITY';
+  | 'CAPACITY'
+  | 'NOT_ADMIN_EMAIL';
 
 export class AccountError extends Error {
   constructor(
@@ -87,7 +95,7 @@ export class Accounts {
     };
 
     return this.db.tx(() => {
-      let user = this.db.userByFirebaseUid(claims.sub);
+      let user = this.db.userByFirebaseUid(claims.sub) ?? this.adoptLocalAdmin(claims, admin);
       let created = false;
 
       if (user) {
@@ -121,6 +129,47 @@ export class Accounts {
       const needsProvision = workspace.state === 'provisioning' || workspace.state === 'error';
       return { user: current, workspace, created, needsProvision };
     });
+  }
+
+  /**
+   * Create an admin before Firebase is configured, linked to the existing root
+   * workspace, so they can get in with `termhive-admin login-link`.
+   */
+  createLocalAdmin(email: string): UserRow {
+    const normalized = email.trim().toLowerCase();
+    if (!this.config.adminEmails.includes(normalized)) {
+      throw new AccountError(400, 'NOT_ADMIN_EMAIL', `${normalized} is not in ADMIN_EMAILS`);
+    }
+    return this.db.tx(() => {
+      const uid = `${LOCAL_UID_PREFIX}${normalized}`;
+      const existing = this.db.userByFirebaseUid(uid);
+      if (existing) return existing;
+      const user = this.db.insertUser({
+        firebaseUid: uid,
+        email: normalized,
+        name: null,
+        avatarUrl: null,
+        plan: 'pro-plus',
+        role: 'admin',
+      });
+      this.db.audit(user.id, 'user.created', { email: normalized, provider: 'local' });
+      this.createWorkspace(user.id, true);
+      return user;
+    });
+  }
+
+  /**
+   * An admin bootstrapped with `termhive-admin create-admin` (uid `local:<email>`)
+   * becomes the Firebase account with the same verified admin email on its
+   * first sign-in, keeping its workspace.
+   */
+  private adoptLocalAdmin(claims: FirebaseClaims, admin: boolean): UserRow | undefined {
+    if (!admin || !claims.email) return undefined;
+    const local = this.db.userByFirebaseUid(`${LOCAL_UID_PREFIX}${claims.email.toLowerCase()}`);
+    if (!local) return undefined;
+    this.db.setFirebaseUid(local.id, claims.sub);
+    this.db.audit(local.id, 'user.adopted_firebase', { provider: claims.firebase?.sign_in_provider });
+    return this.db.userById(local.id);
   }
 
   /** Invite mode needs a valid, unused invite; open mode uses one if given. */

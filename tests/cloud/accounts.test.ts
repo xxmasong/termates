@@ -157,3 +157,47 @@ describe('Accounts.signIn', () => {
     );
   });
 });
+
+describe('local admin bootstrap', () => {
+  it('creates a local admin on the root workspace, idempotently', () => {
+    const { db, accounts } = setup();
+    const first = accounts.createLocalAdmin('Boss@Example.com');
+    assert.equal(first.firebase_uid, 'local:boss@example.com');
+    assert.equal(first.role, 'admin');
+    assert.equal(db.workspaceByUser(first.id)?.unix_user, 'root');
+    assert.equal(accounts.createLocalAdmin('boss@example.com').id, first.id);
+  });
+
+  it('refuses emails outside ADMIN_EMAILS', () => {
+    const { accounts } = setup();
+    assert.equal(
+      code(() => accounts.createLocalAdmin('user@example.com')),
+      'NOT_ADMIN_EMAIL',
+    );
+  });
+
+  it('is adopted by the first Firebase sign-in with the verified admin email', () => {
+    const { db, accounts } = setup();
+    const local = accounts.createLocalAdmin('boss@example.com');
+    const result = accounts.signIn(claims({ sub: 'fb-boss', email: 'boss@example.com' }), {});
+    assert.equal(result.user.id, local.id);
+    assert.equal(result.created, false);
+    assert.equal(db.userByFirebaseUid('fb-boss')?.id, local.id);
+    assert.equal(result.workspace.unix_user, 'root');
+  });
+
+  it('is not adopted by an unverified sign-in', () => {
+    const { accounts } = setup();
+    const local = accounts.createLocalAdmin('boss@example.com');
+    const result = accounts.signIn(
+      claims({
+        sub: 'fb-x',
+        email: 'boss@example.com',
+        email_verified: false,
+        firebase: { sign_in_provider: 'google.com' },
+      }),
+      {},
+    );
+    assert.notEqual(result.user.id, local.id);
+  });
+});
