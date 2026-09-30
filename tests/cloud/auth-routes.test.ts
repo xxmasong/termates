@@ -167,3 +167,43 @@ describe('auth routes (not configured)', () => {
     assert.equal(statuses.filter((status) => status === 429).length, 2);
   });
 });
+
+describe('auth routes: one-time login links', () => {
+  let ctx: Awaited<ReturnType<typeof start>>;
+  before(async () => {
+    ctx = await start({});
+  });
+  after(() => ctx.server.close());
+
+  const mint = (userId: number, ttlMs: number) => {
+    const raw = crypto.randomBytes(16).toString('base64url');
+    const hash = crypto.createHash('sha256').update(raw).digest('hex');
+    ctx.db.insertLoginLink(hash, userId, new Date(Date.now() + ttlMs).toISOString());
+    return raw;
+  };
+
+  it('signs in once, then refuses reuse and expired links', async () => {
+    const user = ctx.db.insertUser({
+      firebaseUid: 'local:a@example.com',
+      email: 'a@example.com',
+      name: null,
+      avatarUrl: null,
+      plan: 'free',
+      role: 'user',
+    });
+    const raw = mint(user.id, 60_000);
+    const ok = await fetch(`${ctx.base}/auth/link?token=${raw}`, { redirect: 'manual' });
+    assert.equal(ok.status, 303);
+    assert.equal(ok.headers.get('location'), '/app');
+    const cookie = (ok.headers.get('set-cookie') ?? '').split(';')[0];
+    const me = await fetch(`${ctx.base}/auth/me`, { headers: { Cookie: cookie } });
+    assert.equal((await me.json()).user.email, 'a@example.com');
+
+    const reused = await fetch(`${ctx.base}/auth/link?token=${raw}`, { redirect: 'manual' });
+    assert.equal(reused.headers.get('location'), '/login?link=expired');
+    const expired = mint(user.id, -1000);
+    const late = await fetch(`${ctx.base}/auth/link?token=${expired}`, { redirect: 'manual' });
+    assert.equal(late.headers.get('location'), '/login?link=expired');
+    assert.equal(late.headers.get('set-cookie'), null);
+  });
+});

@@ -10,7 +10,13 @@ import type { CloudDb } from './db.js';
 import { TokenError, verifyIdToken, type KeyStore } from './firebase-token.js';
 import { clientIp, isAllowedOrigin, RateLimiter } from './guards.js';
 import type { Provisioner } from './provisioner.js';
-import { clearedSessionCookie, createSession, resolveSession, sessionCookie } from './sessions.js';
+import {
+  clearedSessionCookie,
+  createSession,
+  hashToken,
+  resolveSession,
+  sessionCookie,
+} from './sessions.js';
 
 const SESSION_RATE_LIMIT = 20;
 const SESSION_RATE_WINDOW_MS = 10 * 60 * 1000;
@@ -114,6 +120,29 @@ export function createAuthRouter({ db, config, accounts, provisioner, keys }: Au
       }
     }),
   );
+
+  // One-time login link minted by `termhive-admin login-link`.
+  router.get('/link', (req, res) => {
+    const ip = clientIp(req);
+    if (!limiter.take(ip)) {
+      res.redirect(303, '/login?link=limited');
+      return;
+    }
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    const userId = token ? db.consumeLoginLink(hashToken(token)) : null;
+    const user = userId === null ? undefined : db.userById(userId);
+    if (!user || user.status !== 'active') {
+      res.redirect(303, '/login?link=expired');
+      return;
+    }
+    const session = createSession(db, user.id, {
+      ip,
+      userAgent: req.headers['user-agent'] ?? null,
+    });
+    db.audit(user.id, 'session.created', { ip, provider: 'login-link' });
+    res.setHeader('Set-Cookie', sessionCookie(session.token, config.cookieSecure));
+    res.redirect(303, '/app');
+  });
 
   router.get('/me', (req, res) => {
     const resolved = resolveSession(db, req);

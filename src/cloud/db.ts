@@ -56,6 +56,13 @@ const MIGRATIONS: readonly string[] = [
      detail TEXT,
      at TEXT NOT NULL
    );`,
+  `CREATE TABLE login_links (
+     token_hash TEXT PRIMARY KEY,
+     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     expires_at TEXT NOT NULL,
+     used_at TEXT,
+     created_at TEXT NOT NULL
+   );`,
 ];
 
 export type Role = 'user' | 'admin';
@@ -321,6 +328,33 @@ export class CloudDb {
     return this.raw
       .prepare('SELECT * FROM invites ORDER BY created_at')
       .all() as unknown as InviteRow[];
+  }
+
+  // ── login links ────────────────────────────────────────────────────────
+
+  insertLoginLink(tokenHash: string, userId: number, expiresAt: string): void {
+    this.raw
+      .prepare(
+        'INSERT INTO login_links (token_hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)',
+      )
+      .run(tokenHash, userId, expiresAt, now());
+  }
+
+  /** Atomically spend a login link. The user id, or null when unknown, used or expired. */
+  consumeLoginLink(tokenHash: string): number | null {
+    const row = this.raw
+      .prepare(
+        `UPDATE login_links SET used_at = ?
+          WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?
+          RETURNING user_id`,
+      )
+      .get(now(), tokenHash, now()) as { user_id: number } | undefined;
+    return row ? row.user_id : null;
+  }
+
+  /** Attach a Firebase uid to a user created locally (termhive-admin create-admin). */
+  setFirebaseUid(userId: number, uid: string): void {
+    this.raw.prepare('UPDATE users SET firebase_uid = ? WHERE id = ?').run(uid, userId);
   }
 
   // ── audit ──────────────────────────────────────────────────────────────

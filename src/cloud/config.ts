@@ -62,6 +62,9 @@ export const UID_MIN = 20000;
 export const UID_MAX = 29999;
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 export const SESSION_COOKIE = 'th_session';
+/** firebase_uid of users created by `termhive-admin create-admin` before Firebase exists. */
+export const LOCAL_UID_PREFIX = 'local:';
+export const LOGIN_LINK_TTL_MS = 15 * 60 * 1000;
 
 const list = (value: string | undefined): string[] =>
   (value ?? '')
