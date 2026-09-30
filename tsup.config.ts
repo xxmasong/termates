@@ -12,7 +12,8 @@ export default defineConfig({
   format: ['esm'],
   target: 'node20',
   outDir: 'dist',
-  clean: true,
+  // Keep the Vite client build: build:server must not wipe dist/client.
+  clean: ['!client', '!client/**'],
   sourcemap: true,
   external: ['node-pty'],
   // Keep `node:` specifiers: node:sqlite only exists with the prefix.
