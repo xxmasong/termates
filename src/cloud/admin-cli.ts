@@ -8,6 +8,8 @@
  *   termhive-admin suspend <email>
  *   termhive-admin activate <email>
  *   termhive-admin sync-firewall
+ *   termhive-admin create-admin <email>
+ *   termhive-admin login-link <email> [--minutes N]
  *   termhive-admin dev-session <email> [--plan P]   (needs TERMHIVE_DEV_SESSIONS=1)
  *
  * Reads the same /etc/termhive/cloud.env as the service.
@@ -15,11 +17,13 @@
 
 import dotenv from 'dotenv';
 
-import { generateInviteCode, hashInvite } from './accounts.js';
-import { isPlanId, loadConfig, type PlanId } from './config.js';
+import crypto from 'node:crypto';
+
+import { Accounts, generateInviteCode, hashInvite } from './accounts.js';
+import { isPlanId, loadConfig, LOGIN_LINK_TTL_MS, type PlanId } from './config.js';
 import { CloudDb, type UserRow } from './db.js';
 import { newUnixUser, nextPortBase, Provisioner } from './provisioner.js';
-import { createSession } from './sessions.js';
+import { createSession, hashToken } from './sessions.js';
 
 const ENV_FILE = process.env.CLOUD_ENV_FILE || '/etc/termhive/cloud.env';
 const DEV_UID_PREFIX = 'dev:';
@@ -35,6 +39,8 @@ const USAGE = `usage:
   termhive-admin suspend <email>
   termhive-admin activate <email>
   termhive-admin sync-firewall
+  termhive-admin create-admin <email>
+  termhive-admin login-link <email> [--minutes N]
   termhive-admin dev-session <email> [--plan P]   (TERMHIVE_DEV_SESSIONS=1 only)`;
 
 function option(args: string[], name: string): string | undefined {
@@ -145,6 +151,31 @@ async function main(argv: string[]): Promise<void> {
       case 'sync-firewall': {
         await provisioner.syncFirewall();
         console.log('per-user nft rules rebuilt');
+        return;
+      }
+
+      case 'create-admin': {
+        if (!args[0]) throw new UsageError('email required');
+        const user = new Accounts(db, config).createLocalAdmin(args[0]);
+        const ws = db.workspaceByUser(user.id);
+        console.log(`${user.email}: admin, workspace ${ws?.unix_user} on ${ws?.port_base}`);
+        return;
+      }
+
+      case 'login-link': {
+        const user = oneUser(db, args[0]);
+        const minutes = positiveInt(
+          option(args, '--minutes'),
+          LOGIN_LINK_TTL_MS / 60_000,
+          '--minutes',
+        );
+        const token = crypto.randomBytes(32).toString('base64url');
+        const expiresAt = new Date(Date.now() + minutes * 60_000).toISOString();
+        db.insertLoginLink(hashToken(token), user.id, expiresAt);
+        db.audit(user.id, 'admin.login_link', { expiresAt });
+        const origin = config.allowedOrigins[0] ?? '';
+        console.log(`${origin}/auth/link?token=${token}`);
+        console.error(`one-time, expires ${expiresAt}`);
         return;
       }
 
