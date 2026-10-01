@@ -8,6 +8,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRouter } from './routes.js';
+import { WorkspaceService } from './services/workspace-service.js';
 import * as storage from './storage.js';
 import * as activity from './activity.js';
 import * as usage from './usage.js';
@@ -116,7 +117,11 @@ for (const project of storage.listProjects()) {
 }
 
 // API routes
-app.use('/api', createRouter(daemon, broadcastStatus, broadcastContentUpdate));
+const workspace = new WorkspaceService(daemon, {
+  agentStatus: broadcastStatus,
+  contentUpdated: broadcastContentUpdate,
+});
+app.use('/api', createRouter(workspace));
 
 // Activity feed REST endpoint
 app.get('/api/activity', (req, res) => {
