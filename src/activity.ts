@@ -89,7 +89,7 @@ export function watchProject(projectId: string, projectName: string) {
     });
   });
 
-  watcher.on('error', (err: Error) => {
+  watcher.on('error', (err: unknown) => {
     console.error(`[activity] Watcher error for ${projectName}:`, err);
   });
 

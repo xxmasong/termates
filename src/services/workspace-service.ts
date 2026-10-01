@@ -10,7 +10,14 @@ import * as activity from '../activity.js';
 import type { DaemonClient } from '../daemon/client.js';
 import * as storage from '../storage.js';
 import { appendTranscript } from '../transcript.js';
-import { AGENT_CLIS, type Agent, type AgentStatus, type Project, type SharedContent } from '../types.js';
+import {
+  AGENT_CLIS,
+  type ActivityEvent,
+  type Agent,
+  type AgentStatus,
+  type Project,
+  type SharedContent,
+} from '../types.js';
 import { badRequest, notFound, ServiceError } from './errors.js';
 
 export type AgentUpdate = Parameters<typeof storage.updateAgent>[2];
@@ -316,6 +323,14 @@ export class WorkspaceService {
 
   deleteContent(projectId: string, filename: string): void {
     if (!storage.deleteContent(projectId, filename)) throw notFound('Content not found');
+  }
+
+  // ── activity ───────────────────────────────────────────────────────────
+
+  /** The in-memory activity feed, oldest first; `last` keeps the newest N. */
+  activity(projectId?: string, last?: number): ActivityEvent[] {
+    const events = activity.getEvents(projectId);
+    return last && last > 0 ? events.slice(-last) : events;
   }
 
   // ── wiki ───────────────────────────────────────────────────────────────

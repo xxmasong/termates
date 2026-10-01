@@ -7,7 +7,16 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/workspace-limits.ts", "src/cloud/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "src/workspace-limits.ts",
+    "src/routes.ts",
+    "src/services/**/*.ts",
+    "src/graphql/**/*.ts",
+    "src/cloud/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }
