@@ -5,6 +5,7 @@
  * GraphQL layer exposes as `extensions.code`.
  */
 
+import { ConflictError, InvalidInputError } from '../storage-errors.js';
 import { CwdOutsideHomeError, PlanLimitError } from '../workspace-limits.js';
 
 export type ServiceErrorCode =
@@ -39,5 +40,7 @@ export function describeError(
   if (err instanceof ServiceError) return { status: err.status, body: err.toJSON(), code: err.code };
   if (err instanceof PlanLimitError) return { status: 403, body: err.toJSON(), code: err.code };
   if (err instanceof CwdOutsideHomeError) return { status: 400, body: err.toJSON(), code: err.code };
+  if (err instanceof InvalidInputError) return { status: 400, body: err.toJSON(), code: err.code };
+  if (err instanceof ConflictError) return { status: 409, body: err.toJSON(), code: err.code };
   return null;
 }
