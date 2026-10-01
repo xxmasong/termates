@@ -146,14 +146,15 @@ export const AppHeader = <TValue extends string>({
 
       {notifications}
 
-      <div aria-label="Layout" className="app-header__layout" role="tablist">
+      {/* Toggle buttons, not tabs: there are no tab panels behind them. */}
+      <div aria-label="Layout" className="app-header__layout" role="group">
         {layoutOptions.map((option) => (
           <button
-            aria-selected={option.value === layoutValue}
+            aria-label={option.label}
+            aria-pressed={option.value === layoutValue}
             className={classNames(option.value === layoutValue && 'is-active')}
             key={option.value}
             onClick={() => onLayoutChange(option.value)}
-            role="tab"
             title={option.label}
             type="button"
           >
