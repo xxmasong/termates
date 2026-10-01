@@ -34,7 +34,10 @@ describe('WorkspaceProxy', () => {
       let body = '';
       req.on('data', (chunk) => (body += chunk));
       req.on('end', () => {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Set-Cookie': 'th_session=evil; Path=/',
+        });
         res.end(JSON.stringify({ method: req.method, url: req.url, body }));
       });
     });
@@ -117,6 +120,22 @@ describe('WorkspaceProxy', () => {
     const headers = seen.at(-1);
     assert.equal(headers?.cookie, undefined);
     assert.equal(headers?.['x-forwarded-proto'], 'https');
+    assert.equal(response.headers.get('set-cookie'), null, 'workspace cookies are dropped');
+  });
+
+  it('drops hop-by-hop and smuggling headers', async () => {
+    await fetch(`http://${base}/api/projects`, {
+      headers: {
+        Cookie: cookie,
+        'Proxy-Authorization': 'Basic x',
+        'X-Forwarded-Host': 'evil.example',
+        'X-Forwarded-For': '6.6.6.6, 100.64.0.9',
+      },
+    });
+    const headers = seen.at(-1);
+    assert.equal(headers?.['proxy-authorization'], undefined);
+    assert.equal(headers?.['x-forwarded-host'], undefined);
+    assert.equal(headers?.['x-forwarded-for'], '100.64.0.9', 'only the trusted last hop is kept');
   });
 
   it('refuses a foreign Origin', async () => {

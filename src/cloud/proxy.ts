@@ -17,6 +17,20 @@ import type { Provisioner } from './provisioner.js';
 import { resolveSession } from './sessions.js';
 
 const TOUCH_INTERVAL_MS = 60_000;
+
+/** Hop-by-hop headers (RFC 9110 §7.6.1) plus ones a client must not smuggle in. */
+const STRIPPED_REQUEST_HEADERS = [
+  'cookie',
+  'connection',
+  'keep-alive',
+  'proxy-connection',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'x-forwarded-host',
+];
+/** Workspaces never set cookies on the shared origin (they could clobber th_session). */
+const STRIPPED_RESPONSE_HEADERS = ['set-cookie', 'connection', 'keep-alive'];
 const LOGIN_PATH = '/login';
 
 type Target =
@@ -84,9 +98,15 @@ export class WorkspaceProxy {
     void this.provisioner.start(user);
   }
 
-  private forwardHeaders(req: IncomingMessage, port: number): http.OutgoingHttpHeaders {
+  private forwardHeaders(
+    req: IncomingMessage,
+    port: number,
+    upgrade = false,
+  ): http.OutgoingHttpHeaders {
     const headers: http.OutgoingHttpHeaders = { ...req.headers };
-    delete headers.cookie;
+    for (const name of STRIPPED_REQUEST_HEADERS) delete headers[name];
+    if (upgrade) headers.connection = 'Upgrade';
+    else delete headers.upgrade;
     headers.host = `127.0.0.1:${port}`;
     headers['x-forwarded-for'] = clientIp(req);
     headers['x-forwarded-proto'] = 'https';
@@ -118,7 +138,9 @@ export class WorkspaceProxy {
         headers: this.forwardHeaders(req, target.port),
       },
       (response) => {
-        res.writeHead(response.statusCode ?? 502, response.headers);
+        const headers = { ...response.headers };
+        for (const name of STRIPPED_RESPONSE_HEADERS) delete headers[name];
+        res.writeHead(response.statusCode ?? 502, headers);
         response.pipe(res);
       },
     );
@@ -146,7 +168,7 @@ export class WorkspaceProxy {
     }
 
     const upstream = net.connect(target.port, '127.0.0.1', () => {
-      const headers = this.forwardHeaders(req, target.port);
+      const headers = this.forwardHeaders(req, target.port, true);
       let preamble = `${req.method} ${req.url} HTTP/1.1\r\n`;
       for (const [name, value] of Object.entries(headers)) {
         if (value === undefined) continue;
