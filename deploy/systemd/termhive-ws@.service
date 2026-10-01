@@ -43,9 +43,10 @@ ProtectClock=yes
 ProtectHostname=yes
 # Namespaces stay allowed: agent CLIs may sandbox their own tools (bwrap).
 # Safety caps, not plan limits: one runaway workspace must not take the host
-# down (fork bombs, memory leaks). Plans limit projects/agents only.
+# down (fork bombs, memory leaks). Plans limit projects/agents only. MemoryMax
+# is absolute: inside the LXC, percentages resolve against the HOST's RAM.
 TasksMax=1024
-MemoryMax=75%
+MemoryMax=4500M
 
 [Install]
 WantedBy=multi-user.target
