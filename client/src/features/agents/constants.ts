@@ -124,3 +124,14 @@ export const DEFAULT_AGENT_DEFAULTS: AgentDefaults = {
   role: '',
   remoteControl: false,
 };
+
+export const AGENT_DEFAULTS_COPY = {
+  cli: 'Default CLI',
+  role: 'Default role',
+  rolePlaceholder: 'e.g. backend, QA, docs',
+  remoteControl: 'Enable remote control by default',
+} as const;
+
+export const AGENT_DEFAULTS_FIELD_IDS = {
+  ROLE: 'agent-defaults-role',
+} as const;
