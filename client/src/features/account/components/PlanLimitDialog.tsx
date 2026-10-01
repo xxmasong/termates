@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 
 import { Button, Modal } from '@/components';
 
-import { ACCOUNT_COPY, ACCOUNT_ROUTES } from '../constants';
+import { ACCOUNT_COPY } from '../constants';
+import { useAccountModal } from '../hooks/useAccountModal';
 import { useMe } from '../hooks/useMe';
 import { usePlanLimitDialog } from '../hooks/usePlanLimitDialog';
 import { planName } from '../utils';
@@ -17,7 +18,11 @@ interface PlanLimitDialogProps {
 export const PlanLimitDialog: React.FC<PlanLimitDialogProps> = () => {
   const { limit, close } = usePlanLimitDialog();
   const { data: me } = useMe();
-  const seePlans = useCallback(() => window.location.assign(ACCOUNT_ROUTES.PRICING), []);
+  const { open } = useAccountModal();
+  const seePlans = useCallback(() => {
+    close();
+    open('plan');
+  }, [close, open]);
 
   return (
     <Modal

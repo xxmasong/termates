@@ -3,10 +3,13 @@ import { useCallback, useId } from 'react';
 import { Badge, Icon } from '@/components';
 
 import { ACCOUNT_COPY } from '../constants';
+import { useAccountModal } from '../hooks/useAccountModal';
 import { useMe } from '../hooks/useMe';
 import { useSignOut } from '../hooks/useSignOut';
 import { useUserMenu } from '../hooks/useUserMenu';
 import { displayName, initials, planName } from '../utils';
+
+const TOP_PLAN = 'pro-plus';
 
 interface UserMenuProps {
   children?: never;
@@ -15,10 +18,15 @@ interface UserMenuProps {
 /** Header avatar button with the account's name, plan and Sign out. */
 export const UserMenu: React.FC<UserMenuProps> = () => {
   const { data: me } = useMe();
-  const { open, toggle, rootRef } = useUserMenu();
+  const { open, toggle, close, rootRef } = useUserMenu();
   const { signOut, pending } = useSignOut();
   const menuId = useId();
   const onSignOut = useCallback(() => signOut(), [signOut]);
+  const accountModal = useAccountModal();
+  const openPlan = useCallback(() => {
+    close();
+    accountModal.open('plan');
+  }, [accountModal, close]);
 
   if (!me) return null;
   const name = displayName(me.user);
@@ -58,6 +66,21 @@ export const UserMenu: React.FC<UserMenuProps> = () => {
               {me.user.role === 'admin' ? <Badge>{ACCOUNT_COPY.admin}</Badge> : null}
             </div>
           </div>
+          {me.plan.id !== TOP_PLAN ? (
+            <button
+              className="user-menu__item user-menu__item--upgrade"
+              onClick={openPlan}
+              role="menuitem"
+              type="button"
+            >
+              <Icon name="sparkles" size={13} />
+              {ACCOUNT_COPY.upgradeItem}
+            </button>
+          ) : null}
+          <button className="user-menu__item" onClick={openPlan} role="menuitem" type="button">
+            <Icon name="settings" size={13} />
+            {ACCOUNT_COPY.settingsItem}
+          </button>
           <button
             className="user-menu__item"
             disabled={pending}
