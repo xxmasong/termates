@@ -18,3 +18,16 @@ export interface PlanLimit {
   limit: number;
   used: number;
 }
+
+/** GET /auth/usage */
+export interface PlanUsage {
+  projects: number;
+  agents: number;
+}
+
+export type AccountTab = 'plan' | 'preferences' | 'agents' | 'account';
+
+export interface AccountModalState {
+  open: boolean;
+  tab: AccountTab;
+}
