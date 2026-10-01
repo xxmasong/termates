@@ -1825,3 +1825,25 @@
     display: none;
   }
 }
+
+.error-boundary {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+  text-align: center;
+}
+
+.error-boundary h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.error-boundary p {
+  color: var(--text-1);
+  margin: 0 0 4px;
+  max-width: 420px;
+}

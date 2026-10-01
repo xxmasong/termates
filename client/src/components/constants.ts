@@ -33,3 +33,12 @@ export const GRID_LAYOUT = {
 
 /** Matches the `max-width: 760px` breakpoint in components.css. */
 export const MOBILE_BREAKPOINT = 760;
+
+export const ERROR_BOUNDARY_COPY = {
+  title: 'Something went wrong',
+  body: 'This view hit an unexpected error. Reloading usually fixes it.',
+  reload: 'Reload',
+} as const;
+
+/** Set once per tab so a stale-chunk reload can never loop. */
+export const STALE_CHUNK_RELOAD_KEY = 'termhive:stale-chunk-reloaded';

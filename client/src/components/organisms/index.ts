@@ -4,3 +4,4 @@ export * from './NotificationHost';
 export * from './SidebarShell';
 export * from './StatusBar';
 export * from './TabBar';
+export * from './ErrorBoundary';

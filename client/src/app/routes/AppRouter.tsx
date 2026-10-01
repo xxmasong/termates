@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 
-import { Spinner } from '@/components';
+import { ErrorBoundary, Spinner } from '@/components';
 import { isAuthPath, ROUTES } from '@/constants';
 import { LandingPage } from '@/features/landing';
 import { usePathname } from '@/lib/hooks';
@@ -16,7 +16,19 @@ interface AppRouterProps {
 
 export const AppRouter: React.FC<AppRouterProps> = () => {
   const { pathname, navigate } = usePathname();
+  return (
+    <ErrorBoundary resetKey={pathname}>
+      <RouteContent navigate={navigate} pathname={pathname} />
+    </ErrorBoundary>
+  );
+};
 
+interface RouteContentProps {
+  pathname: string;
+  navigate: (to: string) => void;
+}
+
+const RouteContent: React.FC<RouteContentProps> = ({ pathname, navigate }) => {
   if (isAuthPath(pathname)) {
     return (
       <Suspense
