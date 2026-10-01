@@ -32,7 +32,10 @@ const pubsub = createWorkspacePubSub();
 // before express.json(). It is assigned once the service exists, below.
 let graphql: ReturnType<typeof createGraphQLHandler> | null = null;
 app.use((req, res, next) => (graphql && req.path === GRAPHQL_PATH ? graphql(req, res) : next()));
-app.use(express.json());
+// Shared files and wiki pages are saved as JSON bodies; Express's 100 kB default
+// rejected larger documents with a 413.
+const JSON_BODY_LIMIT = '10mb';
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
