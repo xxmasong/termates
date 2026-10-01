@@ -3,3 +3,5 @@
 /dist
 /src
 /reference
+/client/src/lib/graphql/generated
+/client/src/lib/graphql/schema.graphql

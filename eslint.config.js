@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['client/dist', 'node_modules'],
+    ignores: ['client/dist', 'node_modules', 'client/src/lib/graphql/generated'],
   },
   js.configs.recommended,
   ...tseslint.configs.strict,
