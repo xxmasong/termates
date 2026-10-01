@@ -1,4 +1,4 @@
-import type { AgentCli } from './types';
+import type { AgentCli, AgentDefaults } from './types';
 import type { IconName } from '@/components';
 
 export const AGENT_CLI_OPTIONS: Array<{ value: AgentCli; label: string; icon: IconName }> = [
@@ -118,3 +118,9 @@ export const AGENT_STATUS_LABELS = {
 } as const;
 
 export const NO_PROJECT_QUERY_KEY_PART = '__no-project__';
+
+export const DEFAULT_AGENT_DEFAULTS: AgentDefaults = {
+  cli: 'claude',
+  role: '',
+  remoteControl: false,
+};

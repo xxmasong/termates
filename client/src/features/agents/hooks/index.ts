@@ -5,3 +5,4 @@ export * from './useAgents';
 export * from './useCreateAgent';
 export * from './useDeleteAgent';
 export * from './useProjectAgentSummaries';
+export * from './useAgentDefaults';

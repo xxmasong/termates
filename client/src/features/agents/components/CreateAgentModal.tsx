@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button, FormField, Input, Modal, Textarea } from '@/components';
 
 import { joinCwd, sanitizeSlugInput, slugifyName } from '@/lib/utils';
 
 import { AGENT_CLI_OPTIONS, AGENT_FORM_FIELD_IDS } from '../constants';
+import { useAgentDefaults } from '../hooks/useAgentDefaults';
 import type { AgentCli, CreateAgentInput } from '../types';
 
 export interface CreateAgentModalProps {
@@ -22,13 +23,14 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
   onClose,
   onCreate,
 }) => {
+  const { defaults } = useAgentDefaults();
   const [name, setName] = useState('');
-  const [cli, setCli] = useState<AgentCli>('claude');
+  const [cli, setCli] = useState<AgentCli>(defaults.cli);
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState(defaults.role);
   const [dangerouslySkipPermissions, setDangerouslySkipPermissions] = useState(false);
-  const [remoteControl, setRemoteControl] = useState(false);
+  const [remoteControl, setRemoteControl] = useState(defaults.remoteControl);
 
   const cwd = joinCwd(projectCwd, slug);
 
@@ -49,13 +51,18 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
 
   const reset = useCallback(() => {
     setName('');
-    setCli('claude');
+    setCli(defaults.cli);
     setSlug('');
     setSlugEdited(false);
-    setRole('');
+    setRole(defaults.role);
     setDangerouslySkipPermissions(false);
-    setRemoteControl(false);
-  }, []);
+    setRemoteControl(defaults.remoteControl);
+  }, [defaults]);
+
+  // Start every open from the saved defaults (they may change while closed).
+  useEffect(() => {
+    if (open) reset();
+  }, [open, reset]);
 
   const close = useCallback(() => {
     reset();

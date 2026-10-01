@@ -25,3 +25,10 @@ export interface ProjectAgentSummary {
 export interface AgentLifecycleResult {
   status: string;
 }
+
+/** Starting values for the New agent form (Account & settings → Agents). */
+export interface AgentDefaults {
+  cli: AgentCli;
+  role: string;
+  remoteControl: boolean;
+}
