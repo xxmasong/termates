@@ -201,13 +201,19 @@ export class Accounts {
     return this.db.insertWorkspace({ userId, unixUser, portBase, state: 'provisioning' });
   }
 
-  /** The /auth/me payload. */
+  /** The /auth/me payload. Limits are the ones actually enforced on the workspace. */
   me(user: UserRow) {
     const plan = PLANS[user.plan] ?? PLANS.free;
     const workspace = this.db.workspaceByUser(user.id);
+    // The admin's root workspace runs without plan limits (see ROOT_WORKSPACE).
+    const unlimited = workspace?.unix_user === ROOT_WORKSPACE.unixUser;
     return {
       user: { email: user.email, name: user.name, avatarUrl: user.avatar_url, role: user.role },
-      plan: { id: plan.id, maxProjects: plan.maxProjects, maxAgents: plan.maxAgents },
+      plan: {
+        id: plan.id,
+        maxProjects: unlimited ? null : plan.maxProjects,
+        maxAgents: unlimited ? null : plan.maxAgents,
+      },
       workspace: { state: workspace?.state ?? 'provisioning' },
     };
   }

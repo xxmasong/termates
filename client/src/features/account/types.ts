@@ -5,7 +5,8 @@ export type WorkspaceState = 'provisioning' | 'running' | 'stopped' | 'error';
 /** GET /auth/me */
 export interface Me {
   user: { email: string; name: string | null; avatarUrl: string | null; role: 'user' | 'admin' };
-  plan: { id: PlanId; maxProjects: number | null; maxAgents: number };
+  /** Enforced limits; null = unlimited (e.g. the admin's root workspace). */
+  plan: { id: PlanId; maxProjects: number | null; maxAgents: number | null };
   workspace: { state: WorkspaceState };
 }
 
