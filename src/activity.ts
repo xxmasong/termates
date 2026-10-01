@@ -1,7 +1,7 @@
 import { watch, type FSWatcher } from 'chokidar';
 import path from 'path';
 import fs from 'fs';
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import { SHARED_CONTENT_DIR } from './storage.js';
 import type { ActivityEvent } from './types.js';
 

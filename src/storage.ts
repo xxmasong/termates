@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import type { Project, Agent, ProjectData, SharedContent } from './types.js';
 import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
 import { ConflictError, InvalidInputError } from './storage-errors.js';
