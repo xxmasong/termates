@@ -3,6 +3,8 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import type { Project, Agent, ProjectData, SharedContent } from './types.js';
 import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
+import { ConflictError, InvalidInputError } from './storage-errors.js';
+import { isSafeId, resolveInside, validateProjectName } from './storage-paths.js';
 
 const BASE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive');
 const PROJECTS_DIR = path.join(BASE_DIR, 'projects');
@@ -22,12 +24,54 @@ function projectFile(projectId: string) {
 const SHARED_CONTENT_DIR = path.join(BASE_DIR, 'shared_content');
 const WIKI_DIR = path.join(BASE_DIR, 'wiki');
 
+/** `root/<name>`, refusing names that would resolve onto or outside `root`. */
+function namedDir(root: string, projectName: string): string {
+  const dir = path.resolve(root, projectName);
+  if (!dir.startsWith(path.resolve(root) + path.sep)) {
+    throw new InvalidInputError('Project name is not usable as a folder name.');
+  }
+  return dir;
+}
+
 function sharedDir(projectName: string) {
-  return path.join(SHARED_CONTENT_DIR, projectName);
+  return namedDir(SHARED_CONTENT_DIR, projectName);
 }
 
 function wikiDir(projectName: string) {
-  return path.join(WIKI_DIR, projectName);
+  return namedDir(WIKI_DIR, projectName);
+}
+
+/** Write via a temp file + rename so readers never see a half-written file. */
+function writeFileAtomic(file: string, content: string) {
+  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmp, content, 'utf-8');
+  fs.renameSync(tmp, file);
+}
+
+/** Project names double as folder names, so they must be unique (case-insensitive). */
+function assertNameAvailable(name: string, exceptId?: string) {
+  const taken = listProjects().some(
+    (p) => p.id !== exceptId && p.name.toLowerCase() === name.toLowerCase(),
+  );
+  if (taken) throw new ConflictError(`A project named "${name}" already exists.`);
+}
+
+const PROJECT_UPDATE_KEYS = ['name', 'description', 'cwd'] as const;
+const AGENT_UPDATE_KEYS = [
+  'name', 'role', 'cli', 'cwd', 'status', 'pid', 'flags',
+  'model', 'effort', 'thinking', 'permissionMode', 'autocompact',
+] as const;
+
+/** Keep only whitelisted keys — REST bodies must never overwrite ids. */
+function pick<T extends object, K extends keyof T>(source: unknown, keys: readonly K[]): Partial<Pick<T, K>> {
+  const out: Partial<Pick<T, K>> = {};
+  if (!source || typeof source !== 'object') return out;
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      out[key] = (source as T)[key];
+    }
+  }
+  return out;
 }
 
 // Initialize storage
@@ -41,23 +85,33 @@ export function listProjects(): Project[] {
   const projects: Project[] = [];
   for (const dir of dirs) {
     const file = path.join(PROJECTS_DIR, dir, 'project.json');
-    if (fs.existsSync(file)) {
+    if (!fs.existsSync(file)) continue;
+    try {
       const data: ProjectData = JSON.parse(fs.readFileSync(file, 'utf-8'));
       projects.push(data.project);
+    } catch (err) {
+      // One corrupt project file must not take down the whole list.
+      console.error(`[storage] skipping unreadable ${file}:`, err);
     }
   }
   return projects.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export function getProjectData(projectId: string): ProjectData | null {
+  if (typeof projectId !== 'string' || !isSafeId(projectId)) return null;
   const file = projectFile(projectId);
   if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch (err) {
+    console.error(`[storage] unreadable ${file}:`, err);
+    return null;
+  }
 }
 
 function saveProjectData(data: ProjectData) {
   ensureDir(projectDir(data.project.id));
-  fs.writeFileSync(projectFile(data.project.id), JSON.stringify(data, null, 2));
+  writeFileAtomic(projectFile(data.project.id), JSON.stringify(data, null, 2));
 }
 
 /** Agents across every project — plan limits count them all. */
@@ -75,9 +129,11 @@ export function assertCanCreateAgent(): void {
   assertCanCreate('agent', countAllAgents());
 }
 
-export function createProject(name: string, cwd: string, description?: string): Project {
+export function createProject(rawName: string, cwd: string, description?: string): Project {
+  const name = validateProjectName(rawName);
   assertCwdAllowed(cwd);
   assertCanCreateProject();
+  assertNameAvailable(name);
   const project: Project = {
     id: uuid(),
     name,
@@ -92,12 +148,26 @@ export function createProject(name: string, cwd: string, description?: string): 
   return project;
 }
 
-export function updateProject(projectId: string, updates: Partial<Pick<Project, 'name' | 'description' | 'cwd'>>): Project | null {
+export function updateProject(projectId: string, rawUpdates: Partial<Pick<Project, 'name' | 'description' | 'cwd'>>): Project | null {
   const data = getProjectData(projectId);
   if (!data) return null;
+  const updates = pick<Project, (typeof PROJECT_UPDATE_KEYS)[number]>(rawUpdates, PROJECT_UPDATE_KEYS);
   if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
+  const oldName = data.project.name;
+  if (updates.name !== undefined) {
+    updates.name = validateProjectName(updates.name);
+    assertNameAvailable(updates.name, projectId);
+  }
   Object.assign(data.project, updates);
   saveProjectData(data);
+  // Shared content and the wiki live in folders named after the project.
+  if (updates.name && updates.name !== oldName) {
+    for (const dirOf of [sharedDir, wikiDir]) {
+      const from = dirOf(oldName);
+      const to = dirOf(updates.name);
+      if (fs.existsSync(from) && !fs.existsSync(to)) fs.renameSync(from, to);
+    }
+  }
   return data.project;
 }
 
@@ -106,11 +176,20 @@ export function deleteProject(projectId: string, removeData?: boolean): boolean 
   if (!data) return false;
 
   // Remove shared content and wiki if requested
-  if (removeData) {
-    const shared = sharedDir(data.project.name);
-    if (fs.existsSync(shared)) fs.rmSync(shared, { recursive: true });
-    const wiki = wikiDir(data.project.name);
-    if (fs.existsSync(wiki)) fs.rmSync(wiki, { recursive: true });
+  // Only when no other project shares the folder name (legacy duplicates), and
+  // never for a name that doesn't resolve to its own folder.
+  const shared = listProjects().some(
+    (p) => p.id !== projectId && p.name.toLowerCase() === data.project.name.toLowerCase(),
+  );
+  if (removeData && !shared) {
+    for (const dirOf of [sharedDir, wikiDir]) {
+      try {
+        const dir = dirOf(data.project.name);
+        if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
+      } catch (err) {
+        if (!(err instanceof InvalidInputError)) throw err;
+      }
+    }
   }
 
   const dir = projectDir(projectId);
@@ -155,8 +234,9 @@ export function updateAgent(projectId: string, agentId: string, updates: Partial
   if (!data) return null;
   const agent = data.agents.find(a => a.id === agentId);
   if (!agent) return null;
-  if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
-  Object.assign(agent, updates);
+  const safe = pick<Agent, (typeof AGENT_UPDATE_KEYS)[number]>(updates, AGENT_UPDATE_KEYS);
+  if (typeof safe.cwd === 'string') assertCwdAllowed(safe.cwd);
+  Object.assign(agent, safe);
   saveProjectData(data);
   return agent;
 }
@@ -214,8 +294,8 @@ export function listContent(projectId: string): SharedContent[] {
 export function getContent(projectId: string, filename: string): SharedContent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
-  const filePath = path.join(sharedDir(data.project.name), filename);
-  if (!fs.existsSync(filePath)) return null;
+  const filePath = resolveInside(sharedDir(data.project.name), filename);
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
   const stat = fs.statSync(filePath);
   const content = fs.readFileSync(filePath, 'utf-8');
   return {
@@ -233,7 +313,7 @@ export function createContent(projectId: string, filename: string, content: stri
   if (!data) return null;
   const dir = sharedDir(data.project.name);
   ensureDir(dir);
-  const filePath = path.join(dir, filename);
+  const filePath = resolveInside(dir, filename);
   // Support nested filenames like "subfolder/file.md" by ensuring parent dir exists
   ensureDir(path.dirname(filePath));
   fs.writeFileSync(filePath, content, 'utf-8');
@@ -251,8 +331,8 @@ export function createContent(projectId: string, filename: string, content: stri
 export function updateContent(projectId: string, filename: string, content: string): SharedContent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
-  const filePath = path.join(sharedDir(data.project.name), filename);
-  if (!fs.existsSync(filePath)) return null;
+  const filePath = resolveInside(sharedDir(data.project.name), filename);
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
   fs.writeFileSync(filePath, content, 'utf-8');
   const stat = fs.statSync(filePath);
   return {
@@ -268,8 +348,8 @@ export function updateContent(projectId: string, filename: string, content: stri
 export function deleteContent(projectId: string, filename: string): boolean {
   const data = getProjectData(projectId);
   if (!data) return false;
-  const filePath = path.join(sharedDir(data.project.name), filename);
-  if (!fs.existsSync(filePath)) return false;
+  const filePath = resolveInside(sharedDir(data.project.name), filename);
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return false;
   fs.unlinkSync(filePath);
   return true;
 }
@@ -537,8 +617,8 @@ export function listWikiFiles(projectId: string): SharedContent[] {
 export function getWikiFile(projectId: string, filename: string): SharedContent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
-  const filePath = path.join(wikiDir(data.project.name), filename);
-  if (!fs.existsSync(filePath)) return null;
+  const filePath = resolveInside(wikiDir(data.project.name), filename);
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
   const stat = fs.statSync(filePath);
   return {
     id: filename,
@@ -553,7 +633,7 @@ export function getWikiFile(projectId: string, filename: string): SharedContent 
 export function updateWikiFile(projectId: string, filename: string, content: string): SharedContent | null {
   const data = getProjectData(projectId);
   if (!data) return null;
-  const filePath = path.join(wikiDir(data.project.name), filename);
+  const filePath = resolveInside(wikiDir(data.project.name), filename);
   const dir = path.dirname(filePath);
   ensureDir(dir);
   fs.writeFileSync(filePath, content, 'utf-8');

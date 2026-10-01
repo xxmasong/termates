@@ -13,6 +13,9 @@
   },
   "include": [
     "src/workspace-limits.ts",
+    "src/storage-errors.ts",
+    "src/storage-paths.ts",
+    "src/storage.ts",
     "src/routes.ts",
     "src/services/**/*.ts",
     "src/graphql/**/*.ts",
