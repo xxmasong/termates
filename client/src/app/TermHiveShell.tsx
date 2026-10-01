@@ -25,7 +25,7 @@ import { MOBILE_BREAKPOINT } from '@/components/constants';
 import { STORAGE_KEYS } from '@/constants';
 import { AccountModal, PlanLimitDialog, UserMenu } from '@/features/account';
 import { ActivityFeed } from '@/features/activity';
-import { CreateAgentModal, SidebarAgentList } from '@/features/agents';
+import { CreateAgentModal, DeleteAgentDialog, SidebarAgentList } from '@/features/agents';
 import {
   BrainPanel,
   KeeperHud,
@@ -503,7 +503,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         {workspace === 'terminals' ? (
           <TerminalWorkspace
             agents={vm.agents}
-            onDeleteAgent={vm.deleteAgent}
+            onDeleteAgent={vm.requestDeleteAgent}
             onRestartAgent={vm.restartAgent}
             onSelectAgent={vm.selectAgent}
             onStartAgent={vm.startAgent}
@@ -605,7 +605,7 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
               loading={vm.agentsLoading}
               modKey={MOD_KEY}
               onCreateAgent={vm.openCreateAgent}
-              onDeleteAgent={vm.deleteAgent}
+              onDeleteAgent={vm.requestDeleteAgent}
               onSelectAgent={selectAgentFromSidebar}
               selectedAgentId={vm.selectedAgentId}
               selectedProjectName={vm.selectedProject?.name}
@@ -638,6 +638,13 @@ export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
         onClose={vm.cancelEditProject}
         onSave={vm.updateProject}
         project={vm.projectPendingEdit}
+      />
+      <DeleteAgentDialog
+        agent={vm.agentPendingDelete}
+        error={vm.deleteAgentError}
+        loading={vm.deleteAgentLoading}
+        onCancel={vm.cancelDeleteAgent}
+        onConfirm={vm.deleteAgent}
       />
       <DeleteProjectDialog
         loading={vm.deleteProjectLoading}

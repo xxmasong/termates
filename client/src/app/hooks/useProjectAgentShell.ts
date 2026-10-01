@@ -34,6 +34,7 @@ export const useProjectAgentShell = () => {
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const [projectPendingDelete, setProjectPendingDelete] = useState<Project | null>(null);
   const [projectPendingEdit, setProjectPendingEdit] = useState<Project | null>(null);
+  const [agentPendingDelete, setAgentPendingDelete] = useState<Agent | null>(null);
 
   const projectsQuery = useProjects();
   const agentsQuery = useAgents(selectedProjectId);
@@ -146,12 +147,23 @@ export const useProjectAgentShell = () => {
     [createAgentMutation, offerUpgrade, selectedProjectId, setSelectedAgentId],
   );
 
+  // Deleting an agent stops its session for good, so it is always confirmed.
+  const { reset: resetDeleteAgent } = deleteAgentMutation;
+  const requestDeleteAgent = useCallback(
+    (agent: Agent) => {
+      resetDeleteAgent();
+      setAgentPendingDelete(agent);
+    },
+    [resetDeleteAgent],
+  );
+  const cancelDeleteAgent = useCallback(() => setAgentPendingDelete(null), []);
   const deleteAgent = useCallback(
     (agent: Agent) => {
       deleteAgentMutation.mutate(
         { agentId: agent.id, projectId: agent.projectId },
         {
           onSuccess: () => {
+            setAgentPendingDelete(null);
             if (selectedAgentId === agent.id) {
               setSelectedAgentId(null);
             }
@@ -176,9 +188,11 @@ export const useProjectAgentShell = () => {
   );
 
   return {
+    agentPendingDelete,
     agents,
     agentsError: getErrorMessage(agentsQuery.error),
     agentsLoading: agentsQuery.isLoading,
+    cancelDeleteAgent,
     cancelDeleteProject,
     cancelEditProject,
     closeCreateAgent,
@@ -190,6 +204,8 @@ export const useProjectAgentShell = () => {
     createProjectLoading: createProjectMutation.isPending,
     createProjectOpen,
     deleteAgent,
+    deleteAgentError: getErrorMessage(deleteAgentMutation.error),
+    deleteAgentLoading: deleteAgentMutation.isPending,
     deleteProject,
     deleteProjectLoading: deleteProjectMutation.isPending,
     lifecycleBusy: lifecycle.isPending,
@@ -202,6 +218,7 @@ export const useProjectAgentShell = () => {
     projectAgentSummaries,
     projectsError: getErrorMessage(projectsQuery.error),
     projectsLoading: projectsQuery.isLoading,
+    requestDeleteAgent,
     requestDeleteProject,
     requestEditProject,
     restartAgent,
