@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { WsProvider } from '@/lib/ws';
 
-import { WsQueryInvalidation } from './WsQueryInvalidation';
+import { LiveQueryInvalidation } from './LiveQueryInvalidation';
 
 interface LiveProvidersProps {
   children: ReactNode;
@@ -11,7 +11,7 @@ interface LiveProvidersProps {
 /** The workspace WebSocket — opened only once the user's workspace is up. */
 export const LiveProviders: React.FC<LiveProvidersProps> = ({ children }) => (
   <WsProvider>
-    <WsQueryInvalidation />
+    <LiveQueryInvalidation />
     {children}
   </WsProvider>
 );
