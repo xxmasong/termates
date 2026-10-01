@@ -40,34 +40,37 @@ export const BrainConversationSwitcher: React.FC<BrainConversationSwitcherProps>
     </Button>
     <div className="brain-switcher__list">
       {conversations.map((conversation) => (
-        <button
+        // A div row: the switch target and the delete button are siblings, since
+        // a button may not contain another button.
+        <div
           className={
             conversation.id === currentId
               ? 'brain-switcher__row brain-switcher__row--active'
               : 'brain-switcher__row'
           }
           key={conversation.id}
-          onClick={() => onSwitch(conversation.id)}
-          type="button"
         >
-          <span className="brain-switcher__main">
+          <button
+            aria-current={conversation.id === currentId ? 'true' : undefined}
+            className="brain-switcher__main"
+            onClick={() => onSwitch(conversation.id)}
+            type="button"
+          >
             <span>{conversation.title || 'New conversation'}</span>
             <span>
               {conversation.messageCount} messages · {timeLabel(conversation.updatedAt)}
             </span>
-          </span>
+          </button>
           <Button
             aria-label="Delete conversation"
-            icon="x"
+            icon="trash"
             iconOnly
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete(conversation.id);
-            }}
+            onClick={() => onDelete(conversation.id)}
             size="sm"
+            title="Delete conversation"
             variant="ghost"
           />
-        </button>
+        </div>
       ))}
     </div>
   </div>

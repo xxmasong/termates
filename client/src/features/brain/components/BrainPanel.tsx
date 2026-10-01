@@ -94,7 +94,7 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
             iconOnly
             onClick={startConversation}
             size="sm"
-            title="New"
+            title="New conversation"
             variant="ghost"
           />
         </div>
@@ -151,6 +151,7 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
             icon="send"
             iconOnly
             onClick={submit}
+            title="Send"
             variant="primary"
           />
         </footer>
