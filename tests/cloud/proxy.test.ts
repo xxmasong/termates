@@ -167,10 +167,11 @@ describe('WorkspaceProxy', () => {
     socket.close();
   });
 
-  it('rejects WebSocket upgrades without a session or from a foreign origin', async () => {
+  it('rejects WebSocket upgrades without a session, from a foreign origin, or with no Origin', async () => {
     for (const headers of [
       { Origin: ORIGIN },
       { Cookie: cookie, Origin: 'https://evil.example' },
+      { Cookie: cookie },
     ]) {
       const socket = new WebSocket(`ws://${base}/ws`, { headers });
       const status = await new Promise<number>((resolve) => {
@@ -179,5 +180,46 @@ describe('WorkspaceProxy', () => {
       });
       assert.ok(status === 401 || status === 403, String(status));
     }
+  });
+});
+
+describe('WorkspaceProxy rate limit', () => {
+  it('answers 429 once a user exceeds their request budget', async () => {
+    const upstream = http.createServer((_req, res) => res.end('ok'));
+    await new Promise<void>((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+    const upstreamPort = (upstream.address() as { port: number }).port;
+
+    const db = new CloudDb(':memory:');
+    const user = db.insertUser({
+      firebaseUid: 'rl',
+      email: 'rl@example.com',
+      name: null,
+      avatarUrl: null,
+      plan: 'free',
+      role: 'user',
+    });
+    db.insertWorkspace({
+      userId: user.id,
+      unixUser: 'th-rl',
+      portBase: upstreamPort,
+      state: 'running',
+    });
+    const proxy = new WorkspaceProxy(db, loadConfig({ CLOUD_ORIGINS: ORIGIN }), {} as never, 2);
+    const server = http.createServer((req, res) => void proxy.handleHttp(req, res));
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const url = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/x`;
+    const token = createSession(db, user.id, { ip: null, userAgent: null }).token;
+
+    const statuses: number[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      const response = await fetch(url, { headers: { Cookie: `th_session=${token}` } });
+      statuses.push(response.status);
+      await response.text();
+    }
+    server.closeAllConnections();
+    server.close();
+    upstream.closeAllConnections();
+    upstream.close();
+    assert.deepEqual(statuses, [200, 200, 429]);
   });
 });

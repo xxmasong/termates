@@ -12,11 +12,17 @@ import type { Duplex } from 'node:stream';
 
 import type { CloudConfig } from './config.js';
 import type { CloudDb, UserRow, WorkspaceRow } from './db.js';
-import { clientIp, isAllowedOrigin, isNavigation } from './guards.js';
+import { clientIp, isAllowedOrigin, isNavigation, RateLimiter } from './guards.js';
 import type { Provisioner } from './provisioner.js';
 import { resolveSession } from './sessions.js';
 
 const TOUCH_INTERVAL_MS = 60_000;
+/**
+ * Per-user request budget across HTTP and WebSocket handshakes. Generous for
+ * the UI (polling, previews, terminals) but stops a runaway client or script.
+ */
+const USER_RATE_LIMIT = 1_200;
+const USER_RATE_WINDOW_MS = 60_000;
 
 /** Hop-by-hop headers (RFC 9110 §7.6.1) plus ones a client must not smuggle in. */
 const STRIPPED_REQUEST_HEADERS = [
@@ -39,27 +45,40 @@ type Target =
 
 export class WorkspaceProxy {
   private readonly lastTouch = new Map<number, number>();
+  private readonly limiter: RateLimiter;
 
   constructor(
     private readonly db: CloudDb,
     private readonly config: CloudConfig,
     private readonly provisioner: Provisioner,
-  ) {}
+    userRateLimit = USER_RATE_LIMIT,
+  ) {
+    this.limiter = new RateLimiter(userRateLimit, USER_RATE_WINDOW_MS);
+  }
 
   /** Resolve the caller's workspace port, starting a stopped workspace first. */
-  private async target(req: IncomingMessage): Promise<Target> {
+  private async target(req: IncomingMessage, upgrade = false): Promise<Target> {
     const resolved = resolveSession(this.db, req);
     if (!resolved)
       return { ok: false, status: 401, code: 'UNAUTHENTICATED', error: 'Not signed in.' };
 
     // Browsers send Origin on WebSocket handshakes and on cross-origin or
     // state-changing requests; if it is there it must be ours (SameSite=Lax
-    // already keeps the cookie off cross-site subrequests).
-    if (req.headers.origin !== undefined && !isAllowedOrigin(req, this.config.allowedOrigins)) {
+    // already keeps the cookie off cross-site subrequests). A WebSocket
+    // handshake without Origin is never a browser on our page, so it is refused
+    // outright (cross-site WebSocket hijacking, CWE-1385).
+    const origin = req.headers.origin;
+    if (
+      (upgrade && origin === undefined) ||
+      (origin !== undefined && !isAllowedOrigin(req, this.config.allowedOrigins))
+    ) {
       return { ok: false, status: 403, code: 'BAD_ORIGIN', error: 'Cross-site request refused.' };
     }
 
     const { user } = resolved;
+    if (!this.limiter.take(`user:${user.id}`)) {
+      return { ok: false, status: 429, code: 'RATE_LIMITED', error: 'Too many requests. Slow down.' };
+    }
     let ws = this.db.workspaceByUser(user.id);
     if (ws?.state === 'stopped') {
       await this.provisioner.start(user);
@@ -159,7 +178,7 @@ export class WorkspaceProxy {
 
   async handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): Promise<void> {
     socket.on('error', () => socket.destroy());
-    const target = await this.target(req);
+    const target = await this.target(req, true);
     if (!target.ok) {
       socket.end(
         `HTTP/1.1 ${target.status} ${http.STATUS_CODES[target.status]}\r\nConnection: close\r\n\r\n`,
