@@ -168,7 +168,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
           />
           <Button
             aria-label={`Delete ${agent.name}`}
-            icon="x"
+            icon="trash"
             iconOnly
             onClick={deleteAgent}
             size="sm"

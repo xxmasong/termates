@@ -188,7 +188,7 @@ export const AppHeader = <TValue extends string>({
           title="Delete project"
           type="button"
         >
-          <Icon name="x" size={12} />
+          <Icon name="trash" size={12} />
         </button>
       ) : null}
       {userMenu}

@@ -59,7 +59,7 @@ export const ProjectListItem: React.FC<ProjectListItemProps> = ({
         {onDelete ? (
           <Button
             aria-label={`Delete ${project.name}`}
-            icon="x"
+            icon="trash"
             iconOnly
             onClick={() => onDelete(project)}
             size="sm"

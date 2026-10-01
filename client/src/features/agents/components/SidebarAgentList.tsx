@@ -103,7 +103,7 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
             <Button
               aria-label={`Delete ${agent.name}`}
               className="sidebar-agent-row__delete"
-              icon="x"
+              icon="trash"
               iconOnly
               onClick={() => onDeleteAgent(agent)}
               size="sm"
