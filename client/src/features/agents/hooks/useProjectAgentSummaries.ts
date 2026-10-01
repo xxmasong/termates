@@ -1,36 +1,19 @@
 import { useMemo } from 'react';
-import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-import type { Agent, Project } from '@/types';
+import type { Project } from '@/types';
 
-import { agentKeys, listAgents } from '../api';
-import type { ProjectAgentSummary } from '../types';
+import { agentKeys, fetchProjectAgentSummaries, type ProjectAgentSummaries } from '../api';
 
-type ProjectAgentSummaries = Record<string, ProjectAgentSummary>;
+const EMPTY: ProjectAgentSummaries = {};
 
-const summarizeAgents = (agents: Agent[] | undefined): ProjectAgentSummary => {
-  const list = agents ?? [];
-
-  return {
-    alive: list.filter((agent) => agent.status !== 'stopped').length,
-    total: list.length,
-  };
-};
-
+/** Alive/total agent counts per project for the sidebar — one request for all projects. */
 export const useProjectAgentSummaries = (projects: Project[]): ProjectAgentSummaries => {
-  const queries = useQueries({
-    queries: projects.map((project) => ({
-      queryFn: () => listAgents(project.id),
-      queryKey: agentKeys.list(project.id),
-    })),
+  const projectIds = useMemo(() => projects.map((project) => project.id), [projects]);
+  const query = useQuery({
+    enabled: projectIds.length > 0,
+    queryFn: () => fetchProjectAgentSummaries(projectIds),
+    queryKey: [...agentKeys.summaries(), projectIds.join(',')],
   });
-
-  return useMemo(
-    () =>
-      projects.reduce<ProjectAgentSummaries>((summaries, project, index) => {
-        summaries[project.id] = summarizeAgents(queries[index]?.data);
-        return summaries;
-      }, {}),
-    [projects, queries],
-  );
+  return query.data ?? EMPTY;
 };
