@@ -1,7 +1,6 @@
-import { API_BASE_URL } from '@/constants';
-import { ApiError, apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
-import type { AuthSummary, TextToSpeechInput, UsageSummary, VoiceConfig } from '../types';
+import type { AuthSummary, UsageSummary, VoiceConfig } from '../types';
 
 export const getVoiceConfig = (): Promise<VoiceConfig> => apiRequest<VoiceConfig>('/voice/config');
 
@@ -17,35 +16,3 @@ export const getAuth = (): Promise<AuthSummary> => apiRequest<AuthSummary>('/aut
 
 export const logoutCli = (cli: string): Promise<{ ok: boolean; error?: string }> =>
   apiRequest<{ ok: boolean; error?: string }>(`/auth/${cli}/logout`, { method: 'POST' });
-
-export const textToSpeech = async (input: TextToSpeechInput): Promise<Blob> => {
-  const response = await fetch(`${API_BASE_URL}/voice/tts`, {
-    body: JSON.stringify(input),
-    headers: {
-      Accept: 'audio/*,application/json',
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    let message = `HTTP ${response.status}`;
-    let body: unknown;
-    try {
-      body = await response.json();
-      if (
-        typeof body === 'object' &&
-        body !== null &&
-        'error' in body &&
-        typeof (body as { error: unknown }).error === 'string'
-      ) {
-        message = (body as { error: string }).error;
-      }
-    } catch {
-      body = undefined;
-    }
-    throw new ApiError(message, response.status, body);
-  }
-
-  return response.blob();
-};

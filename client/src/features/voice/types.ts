@@ -10,11 +10,6 @@ export interface VoiceConfig {
   [key: string]: unknown;
 }
 
-export interface TextToSpeechInput {
-  text: string;
-  voice?: string;
-}
-
 export interface UsageWindow {
   utilization: number;
   resetsAt: string;

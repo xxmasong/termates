@@ -1,15 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import {
-  getAuth,
-  getUsage,
-  getVoiceConfig,
-  logoutCli,
-  textToSpeech,
-  updateVoiceConfig,
-  voiceKeys,
-} from '../api';
-import type { TextToSpeechInput, VoiceConfig } from '../types';
+import { getAuth, getUsage, getVoiceConfig, logoutCli, updateVoiceConfig, voiceKeys } from '../api';
+import type { VoiceConfig } from '../types';
 
 export const useVoiceConfig = () =>
   useQuery({
@@ -27,11 +19,6 @@ export const useUpdateVoiceConfig = () => {
     },
   });
 };
-
-export const useTextToSpeech = () =>
-  useMutation({
-    mutationFn: (input: TextToSpeechInput) => textToSpeech(input),
-  });
 
 export const useUsage = () =>
   useQuery({
