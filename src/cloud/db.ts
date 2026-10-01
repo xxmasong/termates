@@ -63,6 +63,7 @@ const MIGRATIONS: readonly string[] = [
      used_at TEXT,
      created_at TEXT NOT NULL
    );`,
+  `ALTER TABLE sessions ADD COLUMN last_seen_at TEXT;`,
 ];
 
 export type Role = 'user' | 'admin';
@@ -97,6 +98,7 @@ export interface SessionRow {
   expires_at: string;
   ip: string | null;
   user_agent: string | null;
+  last_seen_at?: string | null;
 }
 
 export interface InviteRow {
@@ -280,10 +282,22 @@ export class CloudDb {
   insertSession(row: SessionRow): void {
     this.raw
       .prepare(
-        `INSERT INTO sessions (id_hash, user_id, created_at, expires_at, ip, user_agent)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO sessions (id_hash, user_id, created_at, expires_at, ip, user_agent, last_seen_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
-      .run(row.id_hash, row.user_id, row.created_at, row.expires_at, row.ip, row.user_agent);
+      .run(
+        row.id_hash,
+        row.user_id,
+        row.created_at,
+        row.expires_at,
+        row.ip,
+        row.user_agent,
+        row.last_seen_at ?? row.created_at,
+      );
+  }
+
+  touchSession(idHash: string): void {
+    this.raw.prepare('UPDATE sessions SET last_seen_at = ? WHERE id_hash = ?').run(now(), idHash);
   }
 
   sessionByHash(idHash: string): SessionRow | undefined {

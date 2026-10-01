@@ -1,5 +1,5 @@
 /**
- * sessions.ts — server-side sessions behind the `th_session` cookie.
+ * sessions.ts — server-side sessions behind the `__Host-th_session` cookie.
  *
  * The cookie carries a random 256-bit token; only its SHA-256 is stored, so
  * a leaked database cannot be replayed as cookies.
@@ -8,7 +8,13 @@
 import crypto from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 
-import { SESSION_COOKIE, SESSION_TTL_MS } from './config.js';
+import {
+  LEGACY_SESSION_COOKIE,
+  SESSION_COOKIE,
+  SESSION_IDLE_MS,
+  SESSION_TOUCH_MS,
+  SESSION_TTL_MS,
+} from './config.js';
 import type { CloudDb, SessionRow, UserRow } from './db.js';
 
 export const hashToken = (token: string): string =>
@@ -30,9 +36,12 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return cookies;
 }
 
+/** `__Host-` cookies are only valid with Secure, so plain-HTTP (tests) uses the legacy name. */
+const cookieName = (secure: boolean) => (secure ? SESSION_COOKIE : LEGACY_SESSION_COOKIE);
+
 export function sessionCookie(token: string, secure: boolean, maxAgeMs = SESSION_TTL_MS): string {
   return [
-    `${SESSION_COOKIE}=${token}`,
+    `${cookieName(secure)}=${token}`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
@@ -41,7 +50,11 @@ export function sessionCookie(token: string, secure: boolean, maxAgeMs = SESSION
   ].join('; ');
 }
 
-export const clearedSessionCookie = (secure: boolean): string => sessionCookie('', secure, 0);
+/** Clears both the current and the legacy cookie name. */
+export const clearedSessionCookie = (secure: boolean): string[] => [
+  sessionCookie('', secure, 0),
+  [`${LEGACY_SESSION_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'].join('; '),
+];
 
 export function createSession(
   db: CloudDb,
@@ -73,15 +86,19 @@ export function resolveSession(
   db: CloudDb,
   req: Pick<IncomingMessage, 'headers'>,
 ): ResolvedSession | null {
-  const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies[SESSION_COOKIE] ?? cookies[LEGACY_SESSION_COOKIE];
   if (!token) return null;
   const tokenHash = hashToken(token);
   const session = db.sessionByHash(tokenHash);
   if (!session) return null;
-  if (Date.parse(session.expires_at) <= Date.now()) {
+  const now = Date.now();
+  const lastSeen = Date.parse(session.last_seen_at ?? session.created_at);
+  if (Date.parse(session.expires_at) <= now || now - lastSeen > SESSION_IDLE_MS) {
     db.deleteSession(tokenHash);
     return null;
   }
+  if (now - lastSeen > SESSION_TOUCH_MS) db.touchSession(tokenHash);
   const user = db.userById(session.user_id);
   if (!user || user.status !== 'active') return null;
   return { tokenHash, session, user };

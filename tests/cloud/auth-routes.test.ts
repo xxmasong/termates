@@ -126,7 +126,7 @@ describe('auth routes (Firebase configured)', () => {
     const cookie = response.headers.get('set-cookie') ?? '';
     assert.match(
       cookie,
-      /^th_session=[\w-]{43}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure$/,
+      /^__Host-th_session=[\w-]{43}; Path=\/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure$/,
     );
     assert.equal(ctx.provisioned.length, 1);
 

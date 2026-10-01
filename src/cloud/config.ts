@@ -62,8 +62,19 @@ export const PORT_BASE_MIN = 4010;
 export const PORT_BASE_MAX = 4990;
 export const UID_MIN = 20000;
 export const UID_MAX = 29999;
+/** Absolute session lifetime (OWASP: every session needs an absolute timeout). */
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-export const SESSION_COOKIE = 'th_session';
+/**
+ * Idle timeout. Long for a developer tool whose agents keep working while the
+ * tab is closed, but an abandoned device stops being signed in after it.
+ */
+export const SESSION_IDLE_MS = 14 * 24 * 60 * 60 * 1000;
+/** last_seen_at is written at most this often, not on every request. */
+export const SESSION_TOUCH_MS = 10 * 60 * 1000;
+/** `__Host-` binds the cookie to this exact host, HTTPS and Path=/ (no Domain). */
+export const SESSION_COOKIE = '__Host-th_session';
+/** Pre-prefix name, still accepted and cleared; used over plain HTTP in tests. */
+export const LEGACY_SESSION_COOKIE = 'th_session';
 /** firebase_uid of users created by `termhive-admin create-admin` before Firebase exists. */
 export const LOCAL_UID_PREFIX = 'local:';
 export const LOGIN_LINK_TTL_MS = 15 * 60 * 1000;
