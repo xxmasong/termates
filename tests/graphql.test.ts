@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
@@ -141,6 +143,44 @@ describe('GraphQL API', () => {
     await next;
     assert.deepEqual(events, [`${ana.id}:stopped`]);
     await iterator.return?.();
+  });
+
+  it('refuses oversized and chunked request bodies', async () => {
+    const { GRAPHQL_BODY_LIMIT } = await import('../src/graphql/yoga.js');
+    const post = (headers: Record<string, string>) =>
+      yoga.fetch('http://workspace/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: '{"query":"{ __typename }"}',
+      });
+    assert.equal((await post({ 'Content-Length': String(GRAPHQL_BODY_LIMIT + 1) })).status, 413);
+    assert.equal((await post({ 'Content-Length': '26' })).status, 200);
+
+    // fetch() won't send Transfer-Encoding, so stream a chunked upload over HTTP.
+    const server = http.createServer(yoga);
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+    const status = await new Promise<number>((resolve, reject) => {
+      const req = http.request(
+        {
+          port,
+          host: '127.0.0.1',
+          path: '/graphql',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode ?? 0);
+        },
+      );
+      req.on('error', reject);
+      req.write('{"query":');
+      req.end('"{ __typename }"}');
+    });
+    server.closeAllConnections();
+    server.close();
+    assert.equal(status, 411);
   });
 
   it('masks unexpected errors and exposes the schema for codegen', async () => {
