@@ -5,11 +5,12 @@
 import express, { Router, type NextFunction, type Request, type Response } from 'express';
 
 import { AccountError, type Accounts } from './accounts.js';
-import type { CloudConfig } from './config.js';
+import { isPlanId, type CloudConfig } from './config.js';
 import type { CloudDb } from './db.js';
 import { TokenError, verifyIdToken, type KeyStore } from './firebase-token.js';
 import { clientIp, isAllowedOrigin, RateLimiter } from './guards.js';
 import type { Provisioner } from './provisioner.js';
+import { workspaceUsage } from './usage.js';
 import {
   clearedSessionCookie,
   createSession,
@@ -151,6 +152,57 @@ export function createAuthRouter({ db, config, accounts, provisioner, keys }: Au
       return;
     }
     res.json(accounts.me(resolved.user));
+  });
+
+  // Self-serve plan change (no billing yet: paid plans are free in early access).
+  router.post(
+    '/plan',
+    asyncRoute(async (req: Request, res: Response) => {
+      const resolved = resolveSession(db, req);
+      if (!resolved) {
+        fail(res, 401, 'UNAUTHENTICATED', 'Not signed in.');
+        return;
+      }
+      const plan = (req.body as { plan?: unknown } | undefined)?.plan;
+      if (!isPlanId(plan)) {
+        fail(res, 400, 'INVALID_PLAN', 'Choose free, pro or pro-plus.');
+        return;
+      }
+      const { user } = resolved;
+      if (plan !== user.plan) {
+        db.setUserPlan(user.id, plan);
+        db.audit(user.id, 'user.plan_changed', { from: user.plan, to: plan });
+        await provisioner.applyPlan({ ...user, plan });
+      }
+      res.json(accounts.me({ ...user, plan }));
+    }),
+  );
+
+  router.get(
+    '/usage',
+    asyncRoute(async (req: Request, res: Response) => {
+      const resolved = resolveSession(db, req);
+      if (!resolved) {
+        fail(res, 401, 'UNAUTHENTICATED', 'Not signed in.');
+        return;
+      }
+      const ws = db.workspaceByUser(resolved.user.id);
+      if (!ws || ws.state !== 'running') {
+        fail(res, 409, 'WORKSPACE_NOT_RUNNING', 'Your workspace is not running.');
+        return;
+      }
+      res.json(await workspaceUsage(ws));
+    }),
+  );
+
+  router.post('/logout-all', (req, res) => {
+    const resolved = resolveSession(db, req);
+    if (resolved) {
+      db.deleteUserSessions(resolved.user.id);
+      db.audit(resolved.user.id, 'session.deleted_all', {});
+    }
+    res.setHeader('Set-Cookie', clearedSessionCookie(config.cookieSecure));
+    res.json({ ok: true });
   });
 
   router.post('/logout', (req, res) => {

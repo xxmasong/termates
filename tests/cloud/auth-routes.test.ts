@@ -39,7 +39,14 @@ const start = async (env: Record<string, string>) => {
   const db = new CloudDb(':memory:');
   const config = loadConfig({ CLOUD_ORIGINS: ORIGIN, ...env });
   const provisioned: number[] = [];
-  const provisioner = { provision: async (user: { id: number }) => void provisioned.push(user.id) };
+  const planChanges: string[] = [];
+  const provisioner = {
+    provision: async (user: { id: number }) => void provisioned.push(user.id),
+    applyPlan: async (user: { plan: string }) => {
+      planChanges.push(user.plan);
+      return false;
+    },
+  };
   const app = express();
   app.use(
     '/auth',
@@ -54,7 +61,7 @@ const start = async (env: Record<string, string>) => {
   const server = app.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  return { db, server, base, provisioned };
+  return { db, server, base, provisioned, planChanges };
 };
 
 const post = (base: string, path: string, body: unknown, headers: Record<string, string> = {}) =>
@@ -130,6 +137,19 @@ describe('auth routes (Firebase configured)', () => {
       plan: { id: 'pro', maxProjects: 3, maxAgents: 10 },
       workspace: { state: 'provisioning' },
     });
+
+    const bad = await post(ctx.base, '/auth/plan', { plan: 'gold' }, { Cookie: session });
+    assert.equal(bad.status, 400);
+    const changed = await post(ctx.base, '/auth/plan', { plan: 'pro-plus' }, { Cookie: session });
+    assert.equal(changed.status, 200);
+    assert.deepEqual((await changed.json()).plan, {
+      id: 'pro-plus',
+      maxProjects: null,
+      maxAgents: 30,
+    });
+    assert.deepEqual(ctx.planChanges, ['pro-plus']);
+    const anon = await post(ctx.base, '/auth/plan', { plan: 'free' });
+    assert.equal(anon.status, 401);
 
     const logout = await post(ctx.base, '/auth/logout', {}, { Cookie: session });
     assert.match(logout.headers.get('set-cookie') ?? '', /Max-Age=0/);
