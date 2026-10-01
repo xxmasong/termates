@@ -82,6 +82,9 @@ export const FIREBASE_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     'This email already uses a different sign-in method. Use that one instead.',
   'auth/expired-action-code': 'This link is invalid or has expired.',
   'auth/invalid-action-code': 'This link is invalid or has expired.',
+  'auth/operation-not-allowed': "That sign-in method isn't turned on yet. Use email and password.",
+  'auth/unauthorized-domain': "Sign-in isn't allowed from this address yet.",
+  'auth/network-request-failed': "Couldn't reach the sign-in service. Check your connection.",
 };
 
 /** Firebase codes that mean the user closed the popup — no message. */
