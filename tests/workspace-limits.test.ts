@@ -30,6 +30,34 @@ describe('readLimit', () => {
   });
 });
 
+describe('readLimit from TERMHIVE_LIMITS_FILE', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'th-limits-'));
+  const file = path.join(dir, 'ws.json');
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+  it('prefers the file and re-reads it on every call', () => {
+    const env = { TERMHIVE_LIMITS_FILE: file, TERMHIVE_MAX_AGENTS: '3' };
+    fs.writeFileSync(file, JSON.stringify({ maxProjects: 3, maxAgents: 10 }));
+    assert.equal(readLimit('agent', env), 10);
+    fs.writeFileSync(file, JSON.stringify({ maxProjects: null, maxAgents: 30 }));
+    assert.equal(readLimit('agent', env), 30);
+    assert.equal(readLimit('project', env), null);
+  });
+
+  it('falls back to the environment when the file is missing or unreadable', () => {
+    const env = { TERMHIVE_LIMITS_FILE: path.join(dir, 'nope.json'), TERMHIVE_MAX_AGENTS: '3' };
+    assert.equal(readLimit('agent', env), 3);
+    fs.writeFileSync(file, 'not json');
+    assert.equal(readLimit('agent', { ...env, TERMHIVE_LIMITS_FILE: file }), 3);
+  });
+
+  it('fails closed on a malformed value in the file', () => {
+    fs.writeFileSync(file, JSON.stringify({ maxProjects: -1, maxAgents: 'x' }));
+    assert.equal(readLimit('project', { TERMHIVE_LIMITS_FILE: file }), 0);
+    assert.equal(readLimit('agent', { TERMHIVE_LIMITS_FILE: file }), 0);
+  });
+});
+
 describe('assertCanCreate', () => {
   it('allows creates below the limit and when unlimited', () => {
     assert.doesNotThrow(() => assertCanCreate('project', 0, { TERMHIVE_MAX_PROJECTS: '1' }));

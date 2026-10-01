@@ -2,7 +2,9 @@
  * workspace-limits.ts — plan limits and cwd confinement for one workspace.
  *
  * The control plane starts each workspace with its plan's limits in the
- * environment (never a file: agents can write anything under HOME). Both the
+ * environment, plus TERMHIVE_LIMITS_FILE: a root-owned JSON file outside HOME
+ * (agents can read it, never write it) that is re-read on every create, so a
+ * plan change applies without restarting the workspace. Both the
  * REST routes and the Keeper's MCP tools end in storage.create*, so storage
  * calls these guards and every create path is covered.
  */
@@ -14,6 +16,13 @@ import path from 'path';
 export const MAX_PROJECTS_ENV = 'TERMHIVE_MAX_PROJECTS';
 export const MAX_AGENTS_ENV = 'TERMHIVE_MAX_AGENTS';
 export const CONFINE_HOME_ENV = 'TERMHIVE_CONFINE_HOME';
+export const LIMITS_FILE_ENV = 'TERMHIVE_LIMITS_FILE';
+
+/** Contents of TERMHIVE_LIMITS_FILE. `null` means unlimited. */
+export interface LimitsFile {
+  maxProjects: number | null;
+  maxAgents: number | null;
+}
 
 export type LimitKind = 'project' | 'agent';
 
@@ -62,8 +71,29 @@ export class CwdOutsideHomeError extends Error {
   }
 }
 
-/** Parse a limit from the environment. Unset or blank means unlimited. */
+function readLimitsFile(env: NodeJS.ProcessEnv): Partial<LimitsFile> | null {
+  const file = env[LIMITS_FILE_ENV];
+  if (!file) return null;
+  try {
+    const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    return parsed && typeof parsed === 'object' ? (parsed as Partial<LimitsFile>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The current limit: TERMHIVE_LIMITS_FILE when readable, else the environment.
+ * Unset or blank means unlimited.
+ */
 export function readLimit(kind: LimitKind, env: NodeJS.ProcessEnv = process.env): number | null {
+  const file = readLimitsFile(env);
+  if (file) {
+    const value = kind === 'project' ? file.maxProjects : file.maxAgents;
+    if (value === null) return null;
+    // A malformed value fails closed, like the environment.
+    return Number.isInteger(value) && (value as number) >= 0 ? (value as number) : 0;
+  }
   const raw = env[kind === 'project' ? MAX_PROJECTS_ENV : MAX_AGENTS_ENV];
   if (raw === undefined || raw.trim() === '') return null;
   const value = Number(raw);
