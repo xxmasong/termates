@@ -154,3 +154,21 @@ describe('GraphQL API', () => {
     }
   });
 });
+
+describe('GraphQL limits', () => {
+  it('rejects documents nested too deeply or selecting too many fields', async () => {
+    const { parse, validate, specifiedRules } = await import('graphql');
+    const { schema } = await import('../src/graphql/schema.js');
+    const { QueryLimitsRule, MAX_FIELDS } = await import('../src/graphql/limits.js');
+    const run = (q: string) =>
+      validate(schema, parse(q), [...specifiedRules, QueryLimitsRule]).map((e) => e.message);
+
+    assert.deepEqual(run('{ projects { agents { teammates { name } } } }'), []);
+    const withFragment =
+      'fragment A on Agent { name } ' +
+      '{ projects { agents { teammates { name } } } project(id: "x") { agents { ...A } } }';
+    assert.deepEqual(run(withFragment), []);
+    const wide = `{ projects { ${Array.from({ length: MAX_FIELDS + 1 }, (_, i) => `a${i}: name`).join(' ')} } }`;
+    assert.match(run(wide).join(), /too many fields/);
+  });
+});

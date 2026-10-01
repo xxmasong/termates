@@ -6,15 +6,22 @@
  */
 
 import { GraphQLError } from 'graphql';
-import { createYoga, maskError as defaultMaskError } from 'graphql-yoga';
+import { createYoga, maskError as defaultMaskError, type Plugin } from 'graphql-yoga';
 
 import type { WorkspaceService } from '../services/workspace-service.js';
 import { describeError } from '../services/errors.js';
 import { createContextFactory } from './context.js';
+import { productionRules } from './limits.js';
 import type { WorkspacePubSub } from './pubsub.js';
 import { schema } from './schema.js';
 
 export const GRAPHQL_PATH = '/graphql';
+
+const limitsPlugin: Plugin = {
+  onValidate({ addValidationRule }) {
+    for (const rule of productionRules()) addValidationRule(rule);
+  },
+};
 
 export function createGraphQLHandler(service: WorkspaceService, pubsub: WorkspacePubSub) {
   return createYoga({
@@ -23,6 +30,7 @@ export function createGraphQLHandler(service: WorkspaceService, pubsub: Workspac
     context: createContextFactory(service, pubsub),
     graphiql: process.env.NODE_ENV !== 'production',
     landingPage: false,
+    plugins: [limitsPlugin],
     maskedErrors: {
       maskError(error, message, isDev) {
         const original = error instanceof GraphQLError ? error.originalError : error;

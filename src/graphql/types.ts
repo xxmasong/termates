@@ -73,7 +73,17 @@ export const AgentRef = builder.objectRef<Agent>('Agent').implement({
     }),
     teammates: t.field({
       type: [TeammateRef],
-      resolve: async (a, _args, ctx) => (await ctx.service.teammates(a.projectId, a.id)).teammates,
+      // Uses the request's cached daemon statuses instead of one call per agent.
+      resolve: async (a, _args, ctx) =>
+        (await ctx.service.listAgents(a.projectId, await ctx.statuses()))
+          .filter((other) => other.id !== a.id)
+          .map((other) => ({
+            id: other.id,
+            name: other.name,
+            role: other.role,
+            cli: other.cli,
+            status: other.status,
+          })),
     }),
   }),
 });
