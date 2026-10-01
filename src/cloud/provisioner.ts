@@ -256,9 +256,13 @@ export class Provisioner {
       } catch {
         continue; // not created yet
       }
-      rules.push(
-        `add rule ${NFT_TABLE} ${NFT_ALLOW_CHAIN} meta skuid ${uid} tcp dport ${ws.port_base}-${ws.port_base + 2} accept comment "${ws.unix_user}"`,
-      );
+      const ports = `${ws.port_base}-${ws.port_base + 2}`;
+      // dport: reach its own workspace; sport: answer on its own ports.
+      for (const dir of ['dport', 'sport']) {
+        rules.push(
+          `add rule ${NFT_TABLE} ${NFT_ALLOW_CHAIN} meta skuid ${uid} tcp ${dir} ${ports} accept comment "${ws.unix_user}"`,
+        );
+      }
     }
     // nft -f refuses pipes ("Not a regular file"), so go through a temp file.
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-nft-'));

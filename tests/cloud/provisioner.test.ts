@@ -106,7 +106,8 @@ describe('provisioner', () => {
     assert.equal(
       nft?.input,
       'flush chain inet termhive ws_allow\n' +
-        'add rule inet termhive ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "th-b"\n',
+        'add rule inet termhive ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "th-b"\n' +
+        'add rule inet termhive ws_allow meta skuid 20001 tcp sport 4010-4012 accept comment "th-b"\n',
     );
   });
 });

@@ -20,15 +20,18 @@ table inet termhive {
 		elements = { fc00::/7, fe80::/10 }
 	}
 
-	# meta skuid <uid> tcp dport <base>-<base+2> accept — managed by termhive-cloud.
+	# meta skuid <uid> tcp dport|sport <base>-<base+2> accept — managed by termhive-cloud.
 	chain ws_allow {
 	}
 
 	# Loopback (incl. this host's own addresses): no other workspace's ports,
-	# no root daemon (3210) or claude bridge (3300).
+	# no root daemon (3210) or claude bridge (3300). The sport rule stops port
+	# squatting: a user who binds someone else's port (or 3200, the control
+	# plane) while it is down can't answer on it — their packets are dropped.
 	chain loopback {
 		jump ws_allow
 		tcp dport { 3210, 3300, 4000-4999 } drop
+		tcp sport { 3200, 3210, 3300, 4000-4999 } drop
 	}
 
 	chain output {
