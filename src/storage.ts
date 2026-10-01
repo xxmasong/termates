@@ -5,6 +5,7 @@ import type { Project, Agent, ProjectData, SharedContent } from './types.js';
 import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
 import { ConflictError, InvalidInputError } from './storage-errors.js';
 import { isSafeId, resolveInside, validateProjectName } from './storage-paths.js';
+import { withStorageLock } from './storage-lock.js';
 
 const BASE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive');
 const PROJECTS_DIR = path.join(BASE_DIR, 'projects');
@@ -77,6 +78,11 @@ function pick<T extends object, K extends keyof T>(source: unknown, keys: readon
 // Initialize storage
 ensureDir(PROJECTS_DIR);
 
+const LOCK_DIR = path.join(BASE_DIR, '.storage.lock');
+
+/** Serialize read-modify-write of project files across the server and daemon. */
+const locked = <T>(fn: () => T): T => withStorageLock(LOCK_DIR, fn);
+
 // --- Projects ---
 
 export function listProjects(): Project[] {
@@ -130,71 +136,77 @@ export function assertCanCreateAgent(): void {
 }
 
 export function createProject(rawName: string, cwd: string, description?: string): Project {
-  const name = validateProjectName(rawName);
-  assertCwdAllowed(cwd);
-  assertCanCreateProject();
-  assertNameAvailable(name);
-  const project: Project = {
-    id: uuid(),
-    name,
-    description,
-    cwd,
-    createdAt: new Date().toISOString(),
-  };
-  saveProjectData({ project, agents: [] });
-  // Auto-init shared content + wiki
-  ensureDir(sharedDir(name));
-  initializeWiki(project.id);
-  return project;
+  return locked(() => {
+    const name = validateProjectName(rawName);
+    assertCwdAllowed(cwd);
+    assertCanCreateProject();
+    assertNameAvailable(name);
+    const project: Project = {
+      id: uuid(),
+      name,
+      description,
+      cwd,
+      createdAt: new Date().toISOString(),
+    };
+    saveProjectData({ project, agents: [] });
+    // Auto-init shared content + wiki
+    ensureDir(sharedDir(name));
+    initializeWiki(project.id);
+    return project;
+  });
 }
 
 export function updateProject(projectId: string, rawUpdates: Partial<Pick<Project, 'name' | 'description' | 'cwd'>>): Project | null {
-  const data = getProjectData(projectId);
-  if (!data) return null;
-  const updates = pick<Project, (typeof PROJECT_UPDATE_KEYS)[number]>(rawUpdates, PROJECT_UPDATE_KEYS);
-  if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
-  const oldName = data.project.name;
-  if (updates.name !== undefined) {
-    updates.name = validateProjectName(updates.name);
-    assertNameAvailable(updates.name, projectId);
-  }
-  Object.assign(data.project, updates);
-  saveProjectData(data);
-  // Shared content and the wiki live in folders named after the project.
-  if (updates.name && updates.name !== oldName) {
-    for (const dirOf of [sharedDir, wikiDir]) {
-      const from = dirOf(oldName);
-      const to = dirOf(updates.name);
-      if (fs.existsSync(from) && !fs.existsSync(to)) fs.renameSync(from, to);
+  return locked(() => {
+    const data = getProjectData(projectId);
+    if (!data) return null;
+    const updates = pick<Project, (typeof PROJECT_UPDATE_KEYS)[number]>(rawUpdates, PROJECT_UPDATE_KEYS);
+    if (typeof updates.cwd === 'string') assertCwdAllowed(updates.cwd);
+    const oldName = data.project.name;
+    if (updates.name !== undefined) {
+      updates.name = validateProjectName(updates.name);
+      assertNameAvailable(updates.name, projectId);
     }
-  }
-  return data.project;
+    Object.assign(data.project, updates);
+    saveProjectData(data);
+    // Shared content and the wiki live in folders named after the project.
+    if (updates.name && updates.name !== oldName) {
+      for (const dirOf of [sharedDir, wikiDir]) {
+        const from = dirOf(oldName);
+        const to = dirOf(updates.name);
+        if (fs.existsSync(from) && !fs.existsSync(to)) fs.renameSync(from, to);
+      }
+    }
+    return data.project;
+  });
 }
 
 export function deleteProject(projectId: string, removeData?: boolean): boolean {
-  const data = getProjectData(projectId);
-  if (!data) return false;
-
-  // Remove shared content and wiki if requested
-  // Only when no other project shares the folder name (legacy duplicates), and
-  // never for a name that doesn't resolve to its own folder.
-  const shared = listProjects().some(
-    (p) => p.id !== projectId && p.name.toLowerCase() === data.project.name.toLowerCase(),
-  );
-  if (removeData && !shared) {
-    for (const dirOf of [sharedDir, wikiDir]) {
-      try {
-        const dir = dirOf(data.project.name);
-        if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
-      } catch (err) {
-        if (!(err instanceof InvalidInputError)) throw err;
+  return locked(() => {
+    const data = getProjectData(projectId);
+    if (!data) return false;
+  
+    // Remove shared content and wiki if requested
+    // Only when no other project shares the folder name (legacy duplicates), and
+    // never for a name that doesn't resolve to its own folder.
+    const shared = listProjects().some(
+      (p) => p.id !== projectId && p.name.toLowerCase() === data.project.name.toLowerCase(),
+    );
+    if (removeData && !shared) {
+      for (const dirOf of [sharedDir, wikiDir]) {
+        try {
+          const dir = dirOf(data.project.name);
+          if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
+        } catch (err) {
+          if (!(err instanceof InvalidInputError)) throw err;
+        }
       }
     }
-  }
-
-  const dir = projectDir(projectId);
-  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
-  return true;
+  
+    const dir = projectDir(projectId);
+    if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
+    return true;
+  });
 }
 
 // --- Agents ---
@@ -210,45 +222,51 @@ export function getAgent(projectId: string, agentId: string): Agent | null {
 }
 
 export function createAgent(projectId: string, name: string, cli: Agent['cli'], cwd: string, role?: string, flags?: Agent['flags']): Agent | null {
-  const data = getProjectData(projectId);
-  if (!data) return null;
-  assertCwdAllowed(cwd);
-  assertCanCreateAgent();
-  const agent: Agent = {
-    id: uuid(),
-    projectId,
-    name,
-    role,
-    cli,
-    cwd,
-    status: 'stopped',
-    flags,
-  };
-  data.agents.push(agent);
-  saveProjectData(data);
-  return agent;
+  return locked(() => {
+    const data = getProjectData(projectId);
+    if (!data) return null;
+    assertCwdAllowed(cwd);
+    assertCanCreateAgent();
+    const agent: Agent = {
+      id: uuid(),
+      projectId,
+      name,
+      role,
+      cli,
+      cwd,
+      status: 'stopped',
+      flags,
+    };
+    data.agents.push(agent);
+    saveProjectData(data);
+    return agent;
+  });
 }
 
 export function updateAgent(projectId: string, agentId: string, updates: Partial<Pick<Agent, 'name' | 'role' | 'cli' | 'cwd' | 'status' | 'pid' | 'flags' | 'model' | 'effort' | 'thinking' | 'permissionMode' | 'autocompact'>>): Agent | null {
-  const data = getProjectData(projectId);
-  if (!data) return null;
-  const agent = data.agents.find(a => a.id === agentId);
-  if (!agent) return null;
-  const safe = pick<Agent, (typeof AGENT_UPDATE_KEYS)[number]>(updates, AGENT_UPDATE_KEYS);
-  if (typeof safe.cwd === 'string') assertCwdAllowed(safe.cwd);
-  Object.assign(agent, safe);
-  saveProjectData(data);
-  return agent;
+  return locked(() => {
+    const data = getProjectData(projectId);
+    if (!data) return null;
+    const agent = data.agents.find(a => a.id === agentId);
+    if (!agent) return null;
+    const safe = pick<Agent, (typeof AGENT_UPDATE_KEYS)[number]>(updates, AGENT_UPDATE_KEYS);
+    if (typeof safe.cwd === 'string') assertCwdAllowed(safe.cwd);
+    Object.assign(agent, safe);
+    saveProjectData(data);
+    return agent;
+  });
 }
 
 export function deleteAgent(projectId: string, agentId: string): boolean {
-  const data = getProjectData(projectId);
-  if (!data) return false;
-  const idx = data.agents.findIndex(a => a.id === agentId);
-  if (idx === -1) return false;
-  data.agents.splice(idx, 1);
-  saveProjectData(data);
-  return true;
+  return locked(() => {
+    const data = getProjectData(projectId);
+    if (!data) return false;
+    const idx = data.agents.findIndex(a => a.id === agentId);
+    if (idx === -1) return false;
+    data.agents.splice(idx, 1);
+    saveProjectData(data);
+    return true;
+  });
 }
 
 // --- Shared Content (stored in ~/.termhive/shared_content/[project_name]/) ---

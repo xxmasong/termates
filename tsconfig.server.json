@@ -13,6 +13,7 @@
   },
   "include": [
     "src/workspace-limits.ts",
+    "src/storage-lock.ts",
     "src/storage-errors.ts",
     "src/storage-paths.ts",
     "src/storage.ts",

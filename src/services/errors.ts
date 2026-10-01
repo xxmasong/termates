@@ -6,6 +6,7 @@
  */
 
 import { ConflictError, InvalidInputError } from '../storage-errors.js';
+import { StorageBusyError } from '../storage-lock.js';
 import { CwdOutsideHomeError, PlanLimitError } from '../workspace-limits.js';
 
 export type ServiceErrorCode =
@@ -42,5 +43,8 @@ export function describeError(
   if (err instanceof CwdOutsideHomeError) return { status: 400, body: err.toJSON(), code: err.code };
   if (err instanceof InvalidInputError) return { status: 400, body: err.toJSON(), code: err.code };
   if (err instanceof ConflictError) return { status: 409, body: err.toJSON(), code: err.code };
+  if (err instanceof StorageBusyError) {
+    return { status: 503, body: { error: err.message, code: 'STORAGE_BUSY' }, code: 'STORAGE_BUSY' };
+  }
   return null;
 }
