@@ -38,6 +38,21 @@ const indexHtml = path.join(config.clientDist, 'index.html');
 const app = express();
 app.disable('x-powered-by');
 
+/** Baseline browser hardening for every response, proxied ones included. */
+const SECURITY_HEADERS: Record<string, string> = {
+  'Strict-Transport-Security': 'max-age=31536000',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Firebase sign-in popups need to talk back to their opener.
+  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+  'Permissions-Policy': 'camera=(), geolocation=(), payment=(), microphone=(self)',
+};
+app.use((_req, res, next) => {
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) res.setHeader(name, value);
+  next();
+});
+
 app.use('/auth', createAuthRouter({ db, config, accounts, provisioner, keys: new KeyStore() }));
 
 app.use(
