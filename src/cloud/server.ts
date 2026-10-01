@@ -48,6 +48,30 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   'Permissions-Policy': 'camera=(), geolocation=(), payment=(), microphone=(self)',
 };
+/**
+ * Content-Security-Policy. Scripts only from this origin (Vite emits no inline
+ * scripts) plus Google's API loader that Firebase popup sign-in needs; styles
+ * allow 'unsafe-inline' because React style attributes and xterm.js inject them.
+ */
+const contentSecurityPolicy = (authDomain: string | undefined): string =>
+  [
+    "default-src 'self'",
+    "script-src 'self' https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
+    "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://apis.google.com",
+    `frame-src https://apis.google.com${authDomain ? ` https://${authDomain}` : ''}`,
+    "media-src 'self' blob:",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+SECURITY_HEADERS['Content-Security-Policy'] = contentSecurityPolicy(config.firebase?.authDomain);
+
 app.use((_req, res, next) => {
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) res.setHeader(name, value);
   next();
