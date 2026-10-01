@@ -44,6 +44,8 @@ export interface CloudConfig {
   firebase: FirebaseWebConfig | null;
   /** Where per-workspace env files live (root 0700). */
   wsEnvDir: string;
+  /** Root-owned, world-readable plan limits per workspace (TERMHIVE_LIMITS_FILE). */
+  wsLimitsDir: string;
   repoDir: string;
   /** Allows `termhive-admin dev-session`. Never on in production. */
   devSessions: boolean;
@@ -91,6 +93,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CloudConfig {
     adminEmails: list(env.ADMIN_EMAILS).map((email) => email.toLowerCase()),
     firebase,
     wsEnvDir: env.CLOUD_WS_ENV_DIR || '/etc/termhive/ws',
+    wsLimitsDir: env.CLOUD_WS_LIMITS_DIR || '/etc/termhive-limits',
     repoDir: env.CLOUD_REPO_DIR || '/opt/termhive-v2',
     devSessions: env.TERMHIVE_DEV_SESSIONS === '1',
   };

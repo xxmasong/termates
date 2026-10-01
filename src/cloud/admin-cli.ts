@@ -99,8 +99,10 @@ async function main(argv: string[]): Promise<void> {
         if (!isPlanId(plan)) throw new UsageError('plan must be free, pro or pro-plus');
         db.setUserPlan(user.id, plan as PlanId);
         db.audit(user.id, 'admin.set_plan', { from: user.plan, to: plan });
-        await provisioner.applyPlan({ ...user, plan: plan as PlanId });
-        console.log(`${user.email}: ${user.plan} → ${plan} (workspace restarted)`);
+        const restarted = await provisioner.applyPlan({ ...user, plan: plan as PlanId });
+        console.log(
+          `${user.email}: ${user.plan} → ${plan}${restarted ? ' (workspace restarted)' : ''}`,
+        );
         return;
       }
 

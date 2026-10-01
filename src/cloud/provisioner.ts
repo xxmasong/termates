@@ -64,9 +64,13 @@ export function nextPortBase(db: CloudDb): number | null {
   return null;
 }
 
+export const limitsFileFor = (dir: string, ws: Pick<WorkspaceRow, 'unix_user'>): string =>
+  path.join(dir, `${ws.unix_user}.json`);
+
 export function workspaceEnv(
   ws: Pick<WorkspaceRow, 'unix_user' | 'port_base'>,
   plan: PlanId,
+  limitsFile?: string,
 ): string {
   const limits = PLANS[plan];
   const home = `/home/${ws.unix_user}`;
@@ -81,6 +85,7 @@ export function workspaceEnv(
     `CLAUDE_BRIDGE_PORT=${ws.port_base + 2}`,
     `TERMHIVE_MAX_PROJECTS=${limits.maxProjects ?? ''}`,
     `TERMHIVE_MAX_AGENTS=${limits.maxAgents}`,
+    ...(limitsFile ? [`TERMHIVE_LIMITS_FILE=${limitsFile}`] : []),
     'TERMHIVE_CONFINE_HOME=1',
     'GEMINI_CLI_TRUST_WORKSPACE=true',
     'NO_BROWSER=1',
@@ -165,13 +170,26 @@ export class Provisioner {
   }
 
   /** Rewrite a workspace's env for a new plan and restart it. */
-  async applyPlan(user: UserRow): Promise<void> {
+  /**
+   * Apply a plan change. Workspaces started with TERMHIVE_LIMITS_FILE pick the
+   * new limits up live, so running agents keep running; older ones get the
+   * file added to their env and one restart. Returns whether it restarted.
+   */
+  async applyPlan(user: UserRow): Promise<boolean> {
     const ws = this.db.workspaceByUser(user.id);
-    if (!ws || isRootWorkspace(ws)) return;
+    if (!ws || isRootWorkspace(ws)) return false;
+    let hadLimitsFile = false;
+    try {
+      hadLimitsFile = fs.readFileSync(this.envFile(ws), 'utf-8').includes('TERMHIVE_LIMITS_FILE=');
+    } catch {
+      hadLimitsFile = false;
+    }
     this.writeEnv(ws, user.plan);
+    if (hadLimitsFile || ws.state !== 'running') return false;
     await this.run('systemctl', ['restart', unitFor(ws)]);
     await this.waitReady(ws);
     this.db.setWorkspaceState(user.id, 'running');
+    return true;
   }
 
   private async ensureUnixUser(name: string): Promise<void> {
@@ -199,11 +217,28 @@ export class Provisioner {
     fs.chmodSync(`/home/${name}`, 0o700);
   }
 
+  private envFile(ws: WorkspaceRow): string {
+    return path.join(this.config.wsEnvDir, `${ws.unix_user}.env`);
+  }
+
   private writeEnv(ws: WorkspaceRow, plan: PlanId): void {
     fs.mkdirSync(this.config.wsEnvDir, { recursive: true, mode: 0o700 });
-    const file = path.join(this.config.wsEnvDir, `${ws.unix_user}.env`);
-    fs.writeFileSync(file, workspaceEnv(ws, plan), { mode: 0o600 });
+    const limitsFile = this.writeLimits(ws, plan);
+    const file = this.envFile(ws);
+    fs.writeFileSync(file, workspaceEnv(ws, plan, limitsFile), { mode: 0o600 });
     fs.chmodSync(file, 0o600);
+  }
+
+  /** Root-owned 0644 JSON the workspace re-reads on every create. */
+  private writeLimits(ws: WorkspaceRow, plan: PlanId): string {
+    fs.mkdirSync(this.config.wsLimitsDir, { recursive: true, mode: 0o755 });
+    const file = limitsFileFor(this.config.wsLimitsDir, ws);
+    const { maxProjects, maxAgents } = PLANS[plan];
+    const tmp = `${file}.tmp`;
+    fs.writeFileSync(tmp, `${JSON.stringify({ maxProjects, maxAgents })}\n`, { mode: 0o644 });
+    fs.chmodSync(tmp, 0o644);
+    fs.renameSync(tmp, file);
+    return file;
   }
 
   /**
