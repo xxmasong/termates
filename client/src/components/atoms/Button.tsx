@@ -31,6 +31,9 @@ export const Button: React.FC<ButtonProps> = ({
   ...buttonProps
 }) => (
   <button
+    // An icon-only button has no text, so screen readers need a name: fall back
+    // to the tooltip.
+    aria-label={buttonProps['aria-label'] ?? (iconOnly ? buttonProps.title : undefined)}
     className={classNames(
       'btn',
       `btn--${variant}`,

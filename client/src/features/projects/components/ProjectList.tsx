@@ -35,7 +35,14 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   <section className="project-list">
     <header className="feature-section-header">
       <span>Projects</span>
-      <Button icon="plus" iconOnly onClick={onCreateProject} size="sm" variant="ghost" />
+      <Button
+        icon="plus"
+        iconOnly
+        onClick={onCreateProject}
+        size="sm"
+        title="New project"
+        variant="ghost"
+      />
     </header>
     {loading ? (
       <div className="feature-loading">
