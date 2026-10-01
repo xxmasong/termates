@@ -1,0 +1,117 @@
+/* Light theme ("Daylight hive") — depth and warmth on top of the tokens.
+   Everything here is scoped to [data-theme='light']; dark themes are untouched. */
+
+[data-theme='light'] body {
+  background:
+    radial-gradient(1200px 520px at 100% -10%, rgba(240, 168, 32, 0.1), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(122, 167, 255, 0.07), transparent 60%),
+    var(--bg-0);
+}
+
+/* Chrome: header + sidebar float slightly above the warm canvas. */
+[data-theme='light'] .app-header {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(1.4) blur(10px);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 2;
+}
+
+[data-theme='light'] .app-header__brand-mark,
+[data-theme='light'] .app-header__command-mark,
+[data-theme='light'] .placeholder-shell__eyebrow {
+  color: var(--accent-ink);
+}
+
+[data-theme='light'] .sidebar-shell__sidebar {
+  background: linear-gradient(180deg, #fbf8f1, var(--bg-2));
+}
+
+[data-theme='light'] .app-shell__main {
+  background: transparent;
+}
+
+[data-theme='light'] .status-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Selected rows: white card with the agent/honey bar. */
+[data-theme='light'] .project-list-item--selected .project-list-item__select,
+[data-theme='light'] .sidebar-agent-row--selected .sidebar-agent-row__select {
+  background: var(--bg-1);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Tabs: honey underline, ink text. */
+[data-theme='light'] .tab-bar [aria-selected='true'] {
+  color: var(--text-0);
+}
+
+/* Panes are cards. */
+[data-theme='light'] .grid-layout__pane {
+  border-color: var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme='light'] .grid-layout__pane--focused {
+  border-color: color-mix(in oklch, var(--accent) 70%, transparent);
+  box-shadow:
+    0 0 0 3px var(--accent-soft),
+    var(--shadow-lg);
+}
+
+[data-theme='light'] .agent-pane__header {
+  background: linear-gradient(180deg, #ffffff, #fdfaf3);
+}
+
+[data-theme='light'] .agent-pane__avatar {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 6px -1px rgba(74, 52, 12, 0.25);
+}
+
+[data-theme='light'] .agent-model-bar__select {
+  background: var(--bg-1);
+  border-color: var(--border-strong);
+  color: var(--text-1);
+}
+
+/* Stopped pane: soft honeycomb instead of a flat grey slab. */
+[data-theme='light'] .agent-pane__stopped {
+  background:
+    radial-gradient(420px 260px at 50% 55%, rgba(240, 168, 32, 0.09), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48' viewBox='0 0 28 48'%3E%3Cpath d='M14 0l14 8v16L14 32 0 24V8z M14 32l14 8v16M14 32L0 40' fill='none' stroke='%23a9650a' stroke-opacity='0.07'/%3E%3C/svg%3E"),
+    #fffdf8;
+}
+
+[data-theme='light'] .agent-pane__stopped-label {
+  color: var(--text-0);
+}
+
+/* Primary actions: honey with dark ink, a little lift. */
+[data-theme='light'] .btn--primary,
+[data-theme='light'] .empty-state__primary-action {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 8px -2px rgba(214, 140, 10, 0.45);
+  color: #1f1a12;
+}
+
+/* Agent cards & usage meters. */
+[data-theme='light'] .agent-card {
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme='light'] .usage-meters__bar {
+  background: var(--bg-3);
+  height: 4px;
+}
+
+/* Modals and the Keeper HUD float with real shadow. */
+[data-theme='light'] .modal,
+[data-theme='light'] .command-palette,
+[data-theme='light'] .keeper-hud__panel {
+  box-shadow: var(--shadow-lg);
+}
