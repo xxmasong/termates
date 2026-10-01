@@ -9,6 +9,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRouter } from './routes.js';
 import { WorkspaceService } from './services/workspace-service.js';
+import { createWorkspacePubSub } from './graphql/pubsub.js';
+import { createGraphQLHandler, GRAPHQL_PATH } from './graphql/yoga.js';
 import * as storage from './storage.js';
 import * as activity from './activity.js';
 import * as usage from './usage.js';
@@ -25,6 +27,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3200', 10);
 
 const app = express();
+const pubsub = createWorkspacePubSub();
+// GraphQL parses its own bodies (and streams subscriptions), so it is mounted
+// before express.json(). It is assigned once the service exists, below.
+let graphql: ReturnType<typeof createGraphQLHandler> | null = null;
+app.use((req, res, next) => (graphql && req.path === GRAPHQL_PATH ? graphql(req, res) : next()));
 app.use(express.json());
 
 const server = createServer(app);
@@ -49,10 +56,12 @@ function broadcast(msg: WSServerMessage) {
 
 function broadcastStatus(agentId: string, status: string) {
   broadcast({ type: 'agent:status', agentId, status });
+  pubsub.publish('agentStatus', { agentId, status });
 }
 
 function broadcastContentUpdate(projectId: string, filename: string) {
   broadcast({ type: 'content:updated', projectId, filename });
+  pubsub.publish('contentUpdated', { projectId, filename });
 }
 
 // Terminal output from the daemon → fan out to the browsers watching that agent
@@ -101,11 +110,13 @@ daemon.onOrgChanged(() => {
     activity.watchProject(project.id, project.name);
   }
   broadcast({ type: 'org:changed' });
+  pubsub.publish('orgChanged', true);
 });
 
 // Wire activity feed to broadcast
 activity.setBroadcast((event: ActivityEvent) => {
   broadcast({ type: 'activity', event });
+  pubsub.publish('activity', event);
   if (event.event.startsWith('content:')) {
     broadcastContentUpdate(event.projectId, event.detail.split(': ')[1] || '');
   }
@@ -122,6 +133,7 @@ const workspace = new WorkspaceService(daemon, {
   contentUpdated: broadcastContentUpdate,
 });
 app.use('/api', createRouter(workspace));
+graphql = createGraphQLHandler(workspace, pubsub);
 
 // Activity feed REST endpoint
 app.get('/api/activity', (req, res) => {
