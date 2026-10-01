@@ -69,3 +69,17 @@ describe('sessions', () => {
     assert.equal(resolveSession(db, { headers: { cookie: `th_session=${second.token}` } }), null);
   });
 });
+
+describe('clientIp', () => {
+  it('trusts only the last X-Forwarded-For hop', async () => {
+    const { clientIp } = await import('../../src/cloud/guards.js');
+    const req = (xff: string | undefined) =>
+      ({
+        headers: xff === undefined ? {} : { 'x-forwarded-for': xff },
+        socket: { remoteAddress: '127.0.0.1' },
+      }) as never;
+    assert.equal(clientIp(req('6.6.6.6, 100.64.1.2')), '100.64.1.2');
+    assert.equal(clientIp(req('100.64.1.2')), '100.64.1.2');
+    assert.equal(clientIp(req(undefined)), '127.0.0.1');
+  });
+});

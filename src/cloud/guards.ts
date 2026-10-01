@@ -5,13 +5,15 @@
 import type { IncomingMessage } from 'node:http';
 
 /**
- * The caller's IP. We only listen on loopback behind `tailscale serve`, which
- * sets X-Forwarded-For, so its first entry is trusted.
+ * The caller's IP. We only listen on loopback behind `tailscale serve`, the
+ * one trusted hop: it appends the real client to X-Forwarded-For, so only the
+ * LAST entry is trustworthy — earlier ones are whatever the client sent.
  */
 export function clientIp(req: IncomingMessage): string {
   const forwarded = req.headers['x-forwarded-for'];
-  const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
-  return first || req.socket.remoteAddress || 'unknown';
+  const value = Array.isArray(forwarded) ? forwarded[forwarded.length - 1] : forwarded;
+  const last = value?.split(',').pop()?.trim();
+  return last || req.socket.remoteAddress || 'unknown';
 }
 
 /** CSRF: a state-changing request must come from one of our origins. */
