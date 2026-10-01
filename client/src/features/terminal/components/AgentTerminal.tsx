@@ -36,8 +36,8 @@ const DARK_TERMINAL_THEME: ITheme = {
 };
 
 const LIGHT_TERMINAL_THEME: ITheme = {
-  background: '#f7f7f5',
-  black: '#37352f',
+  background: '#fffdf8',
+  black: '#2a2418',
   blue: '#2383e2',
   brightBlack: '#8b8680',
   brightBlue: '#529cca',
@@ -45,15 +45,15 @@ const LIGHT_TERMINAL_THEME: ITheme = {
   brightGreen: '#4dab9a',
   brightMagenta: '#b44dd7',
   brightRed: '#d77b53',
-  brightWhite: '#f7f7f5',
+  brightWhite: '#fffdf8',
   brightYellow: '#c49a1a',
-  cursor: '#2383e2',
+  cursor: '#d48a0c',
   cyan: '#0e7a7a',
-  foreground: '#37352f',
+  foreground: '#2a2418',
   green: '#2c7a39',
   magenta: '#8700af',
   red: '#c0392b',
-  selectionBackground: 'rgba(0, 153, 153, 0.2)',
+  selectionBackground: 'rgba(240, 168, 32, 0.28)',
   white: '#e0ddd8',
   yellow: '#966c1e',
 };
