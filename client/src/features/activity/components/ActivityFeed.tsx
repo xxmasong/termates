@@ -40,7 +40,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
       <header className="feature-panel__header">
         <div>
           <h2>Activity</h2>
-          <p>Bounded live history</p>
+          <p>Recent events, newest first</p>
         </div>
         <Badge tone="idle" withDot>
           {scopedEvents.length}
@@ -59,6 +59,11 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
           >
             {virtualizer.getVirtualItems().map((row) => {
               const event = scopedEvents[row.index];
+              const isMessage = event.event === 'agent:message';
+              const title = isMessage
+                ? `${event.fromAgent ?? event.agentName ?? 'Agent'} → ${event.toAgent ?? 'Broadcast'}`
+                : (event.agentName ?? event.detail);
+              const body = isMessage ? (event.message ?? event.detail) : event.detail;
               return (
                 <article
                   className="activity-event"
@@ -67,16 +72,9 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
                 >
                   <Badge tone={toneForEvent(event.event)}>{event.event}</Badge>
                   <div>
-                    <div className="activity-event__title">
-                      {event.event === 'agent:message'
-                        ? `${event.fromAgent ?? event.agentName ?? 'Agent'} -> ${event.toAgent ?? 'Broadcast'}`
-                        : (event.agentName ?? event.detail)}
-                    </div>
-                    <p>
-                      {event.event === 'agent:message'
-                        ? (event.message ?? event.detail)
-                        : event.detail}
-                    </p>
+                    <div className="activity-event__title">{title}</div>
+                    {/* File events have no agent, so their detail is already the title. */}
+                    {body !== title ? <p>{body}</p> : null}
                   </div>
                   <time>{new Date(event.timestamp).toLocaleTimeString()}</time>
                 </article>
