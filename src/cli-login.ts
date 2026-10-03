@@ -91,7 +91,8 @@ function send(ws: WebSocket, msg: WSServerMessage) {
 export function startLogin(ws: WebSocket, cli: string, cols: number, rows: number): void {
   stopLogin(ws);
 
-  const command = COMMANDS[cli];
+  // Own keys only: "constructor" or "__proto__" must not count as a CLI.
+  const command = Object.hasOwn(COMMANDS, cli) ? COMMANDS[cli] : undefined;
   if (!command) {
     send(ws, { type: 'login:output', data: `\r\nUnknown CLI: ${cli}\r\n` });
     send(ws, { type: 'login:exit', exitCode: 1 });
