@@ -21,7 +21,7 @@ export const MAX_FIELDS = 300;
 
 function measure(
   set: SelectionSetNode,
-  fragments: Record<string, FragmentDefinitionNode>,
+  fragments: ReadonlyMap<string, FragmentDefinitionNode>,
   depth: number,
   seen: Set<string>,
   tally: { fields: number; depth: number },
@@ -36,7 +36,7 @@ function measure(
       measure(selection.selectionSet, fragments, depth, seen, tally);
     } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
       const name = selection.name.value;
-      const fragment = fragments[name];
+      const fragment = fragments.get(name);
       if (fragment && !seen.has(name)) {
         seen.add(name);
         measure(fragment.selectionSet, fragments, depth, seen, tally);
@@ -48,9 +48,11 @@ function measure(
 
 /** Reject operations nested deeper than MAX_DEPTH or selecting more than MAX_FIELDS fields. */
 export const QueryLimitsRule: ValidationRule = (context: ValidationContext): ASTVisitor => {
-  const fragments: Record<string, FragmentDefinitionNode> = {};
+  // A Map, not an object: a spread of an undefined "constructor" fragment
+  // must not resolve to Object.prototype.constructor.
+  const fragments = new Map<string, FragmentDefinitionNode>();
   for (const definition of context.getDocument().definitions) {
-    if (definition.kind === Kind.FRAGMENT_DEFINITION) fragments[definition.name.value] = definition;
+    if (definition.kind === Kind.FRAGMENT_DEFINITION) fragments.set(definition.name.value, definition);
   }
   return {
     OperationDefinition(node) {

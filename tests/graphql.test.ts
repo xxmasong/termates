@@ -210,5 +210,7 @@ describe('GraphQL limits', () => {
     assert.deepEqual(run(withFragment), []);
     const wide = `{ projects { ${Array.from({ length: MAX_FIELDS + 1 }, (_, i) => `a${i}: name`).join(' ')} } }`;
     assert.match(run(wide).join(), /too many fields/);
+    // An unknown spread is reported by the spec rules, not thrown by ours.
+    assert.match(run('{ projects { ...constructor } }').join(), /Unknown fragment/);
   });
 });
