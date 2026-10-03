@@ -17,7 +17,8 @@ import * as usage from './usage.js';
 import * as auth from './auth.js';
 import * as cliLogin from './cli-login.js';
 import { DaemonClient } from './daemon/client.js';
-import type { WSClientMessage, WSServerMessage, ActivityEvent } from './types.js';
+import type { WSServerMessage, ActivityEvent } from './types.js';
+import { parseClientMessage } from './ws-messages.js';
 import { PROVIDERS } from './voice/providers.js';
 import { loadConfig as loadVoiceConfig, saveConfig as saveVoiceConfig, hasKey, saveApiKeys } from './voice/config.js';
 import { transcribeOpenAI, ttsOpenAI } from './voice/openai.js';
@@ -386,12 +387,8 @@ wss.on('connection', (ws) => {
   clients.add(ws);
 
   ws.on('message', (raw) => {
-    let msg: WSClientMessage;
-    try {
-      msg = JSON.parse(raw.toString());
-    } catch {
-      return;
-    }
+    const msg = parseClientMessage(raw.toString());
+    if (!msg) return;
 
     switch (msg.type) {
       case 'terminal:attach': {
