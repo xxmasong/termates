@@ -6,6 +6,11 @@ export interface FormFieldProps {
   error?: string;
   required?: boolean;
   htmlFor?: string;
+  /**
+   * The children are several controls (a radio group) rather than one, so the
+   * field is a labelled group: a label may only hold one control.
+   */
+  group?: boolean;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -14,13 +19,15 @@ export const FormField: React.FC<FormFieldProps> = ({
   error,
   required = false,
   htmlFor,
+  group = false,
 }) => {
   const generatedId = useId();
   const errorId = `${generatedId}-error`;
+  const labelId = `${generatedId}-label`;
 
-  return (
-    <label className="form-field" htmlFor={htmlFor}>
-      <span className="form-field__label">
+  const content = (
+    <>
+      <span className="form-field__label" id={labelId}>
         {label}
         {required ? <span className="form-field__required">*</span> : null}
       </span>
@@ -30,6 +37,16 @@ export const FormField: React.FC<FormFieldProps> = ({
           {error}
         </span>
       ) : null}
+    </>
+  );
+
+  return group ? (
+    <div aria-labelledby={labelId} className="form-field" role="group">
+      {content}
+    </div>
+  ) : (
+    <label className="form-field" htmlFor={htmlFor}>
+      {content}
     </label>
   );
 };

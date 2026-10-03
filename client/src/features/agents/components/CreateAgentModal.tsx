@@ -121,11 +121,12 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
             value={name}
           />
         </FormField>
-        <div className="agent-cli-picker" role="radiogroup">
+        <div aria-label="CLI" className="agent-cli-picker" role="radiogroup">
           {AGENT_CLI_OPTIONS.map((option) => (
             <label className="agent-cli-option" key={option.value}>
               <input
                 checked={cli === option.value}
+                name="create-agent-cli"
                 onChange={() => setCli(option.value)}
                 type="radio"
                 value={option.value}

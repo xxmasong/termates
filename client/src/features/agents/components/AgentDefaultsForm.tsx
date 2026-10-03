@@ -26,12 +26,13 @@ export const AgentDefaultsForm: React.FC<AgentDefaultsFormProps> = () => {
 
   return (
     <div className="feature-form">
-      <FormField label={AGENT_DEFAULTS_COPY.cli}>
+      <FormField group label={AGENT_DEFAULTS_COPY.cli}>
         <div aria-label={AGENT_DEFAULTS_COPY.cli} className="agent-cli-picker" role="radiogroup">
           {AGENT_CLI_OPTIONS.map((option) => (
             <label className="agent-cli-option" key={option.value}>
               <input
                 checked={defaults.cli === option.value}
+                name="agent-defaults-cli"
                 onChange={() => onCli(option.value)}
                 type="radio"
                 value={option.value}
