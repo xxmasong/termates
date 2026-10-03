@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { WAKE_WORD_ARM_TIMEOUT_MS, WAKE_WORD_RESTART_MS } from '../constants';
+import {
+  browserSpeechLanguage,
+  WAKE_WORD_ARM_TIMEOUT_MS,
+  WAKE_WORD_RESTART_MS,
+} from '../constants';
 
 interface WakeOptions {
   enabled: boolean;
@@ -40,13 +44,7 @@ const getSpeechRecognition = (): SpeechRecognitionCtor | undefined => {
   return source.SpeechRecognition ?? source.webkitSpeechRecognition;
 };
 
-export const useWakeWord = ({
-  enabled,
-  phrase,
-  language = 'zh-TW',
-  onCommand,
-  onWake,
-}: WakeOptions) => {
+export const useWakeWord = ({ enabled, phrase, language, onCommand, onWake }: WakeOptions) => {
   const [armed, setArmed] = useState(false);
   const [listening, setListening] = useState(false);
   const armedRef = useRef(false);
@@ -135,7 +133,7 @@ export const useWakeWord = ({
 
       try {
         recognition = new Recognition();
-        recognition.lang = language;
+        recognition.lang = language || browserSpeechLanguage();
         recognition.continuous = true;
         recognition.interimResults = false;
         recognition.onstart = () => setListening(true);

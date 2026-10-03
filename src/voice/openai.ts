@@ -15,7 +15,8 @@ export async function transcribeOpenAI(
   const form = new FormData();
   form.append('file', new Blob([audio], { type: mime }), `audio.${ext}`);
   form.append('model', model || 'gpt-4o-transcribe');
-  if (language) form.append('language', language);
+  // Whisper takes ISO-639-1 ("zh"), not a BCP 47 tag like the browser's ("zh-TW").
+  if (language) form.append('language', language.split('-')[0].toLowerCase());
 
   const r = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',

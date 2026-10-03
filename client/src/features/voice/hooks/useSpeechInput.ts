@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { browserSpeechLanguage } from '../constants';
 import type { SpeechProvider, SpeechResultHandler } from '../types';
 
 export interface SpeechOptions {
@@ -109,7 +110,7 @@ export const useSpeechInput = (onText: SpeechResultHandler, options: SpeechOptio
     }
 
     const recognition = new recognitionCtor();
-    recognition.lang = optionsRef.current.language ?? 'zh-TW';
+    recognition.lang = optionsRef.current.language || browserSpeechLanguage();
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.onresult = (event) => {

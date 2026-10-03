@@ -1,4 +1,11 @@
 export {};
+/**
+ * Speech recognition language when none is set: the browser's own (BCP 47),
+ * so every user is understood in their language out of the box.
+ */
+export const browserSpeechLanguage = (): string =>
+  (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+
 export const WAKE_WORD_ARM_TIMEOUT_MS = 9_000;
 export const WAKE_WORD_RESTART_MS = 600;
 

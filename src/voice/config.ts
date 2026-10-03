@@ -37,7 +37,7 @@ export interface VoiceConfig {
 }
 
 const DEFAULT: VoiceConfig = {
-  stt: { provider: 'browser', model: '', language: 'zh-TW', saveRecordings: false },
+  stt: { provider: 'browser', model: '', language: '', saveRecordings: false },
   tts: { enabled: true, provider: 'browser', model: '', voice: '', speed: 1.0 },
 };
 

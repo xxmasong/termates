@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button, FormField, Input, Modal, Toolbar, ToolbarGroup } from '@/components';
 import {
+  browserSpeechLanguage,
   UsageView,
   useSpeechInput,
   useUpdateVoiceConfig,
@@ -122,7 +123,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
               </select>
             </FormField>
             <FormField label="Language">
-              <Input onChange={onLanguageChange} placeholder="zh-TW" value={draft.language ?? ''} />
+              <Input
+                onChange={onLanguageChange}
+                placeholder={browserSpeechLanguage()}
+                value={draft.language ?? ''}
+              />
             </FormField>
             <FormField label="Wake word">
               <Input

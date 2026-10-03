@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { useSpeechInput, useVoiceConfig, useWakeWord } from '@/features/voice';
+import {
+  browserSpeechLanguage,
+  useSpeechInput,
+  useVoiceConfig,
+  useWakeWord,
+} from '@/features/voice';
 import { renderMarkdown } from '@/lib/utils';
 import type { BrainMessage } from '@/types';
 
@@ -18,7 +23,6 @@ interface UseKeeperHudOptions {
 }
 
 const DEFAULT_WAKE_WORD = 'Hey Queen';
-const DEFAULT_WAKE_LANGUAGE = 'zh-TW';
 
 const getLastAssistantMessage = (messages: BrainMessage[]): BrainMessage | null => {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
@@ -40,7 +44,7 @@ export const useKeeperHud = ({ headerListening }: UseKeeperHudOptions) => {
   const voiceConfig = useVoiceConfig();
   const wakeEnabled = Boolean(voiceConfig.data?.wakeWordEnabled);
   const wakePhrase = voiceConfig.data?.wakeWord ?? DEFAULT_WAKE_WORD;
-  const wakeLanguage = voiceConfig.data?.language ?? DEFAULT_WAKE_LANGUAGE;
+  const wakeLanguage = voiceConfig.data?.language || browserSpeechLanguage();
 
   const submitText = useCallback(
     (text: string) => {
