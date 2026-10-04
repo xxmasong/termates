@@ -98,7 +98,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CloudConfig {
     port: Number(env.CLOUD_PORT || 3200),
     dbPath: env.CLOUD_DB_PATH || '/var/lib/termates-cloud/cloud.db',
     clientDist: env.CLOUD_CLIENT_DIST || '/opt/termates/dist/client',
-    allowedOrigins: list(env.CLOUD_ORIGINS || 'https://sg1-termhive2.tailfa2e0b.ts.net'),
+    allowedOrigins: list(env.CLOUD_ORIGINS || 'https://sg1-termates.tailfa2e0b.ts.net'),
     cookieSecure: env.CLOUD_COOKIE_SECURE !== '0',
     signupMode: env.SIGNUP_MODE === 'invite' ? 'invite' : 'open',
     adminEmails: list(env.ADMIN_EMAILS).map((email) => email.toLowerCase()),
