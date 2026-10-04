@@ -23,6 +23,8 @@ const TOUCH_INTERVAL_MS = 60_000;
  */
 const USER_RATE_LIMIT = 1_200;
 const USER_RATE_WINDOW_MS = 60_000;
+/** How often a workspace whose start failed is tried again on demand. */
+const ERROR_RETRY_MS = 30_000;
 
 /** Hop-by-hop headers (RFC 9110 §7.6.1) plus ones a client must not smuggle in. */
 const STRIPPED_REQUEST_HEADERS = [
@@ -45,6 +47,7 @@ type Target =
 
 export class WorkspaceProxy {
   private readonly lastTouch = new Map<number, number>();
+  private readonly lastRetry = new Map<number, number>();
   private readonly limiter: RateLimiter;
 
   constructor(
@@ -80,7 +83,9 @@ export class WorkspaceProxy {
       return { ok: false, status: 429, code: 'RATE_LIMITED', error: 'Too many requests. Slow down.' };
     }
     let ws = this.db.workspaceByUser(user.id);
-    if (ws?.state === 'stopped') {
+    // A failed start (e.g. a slow boot on a busy host) is retried on demand,
+    // at most every ERROR_RETRY_MS, instead of leaving the user stuck on 503.
+    if (ws?.state === 'stopped' || (ws?.state === 'error' && this.mayRetry(user.id))) {
       await this.provisioner.start(user);
       ws = this.db.workspaceByUser(user.id);
     }
@@ -102,6 +107,13 @@ export class WorkspaceProxy {
     }
     this.touch(ws);
     return { ok: true, port: ws.port_base, user };
+  }
+
+  private mayRetry(userId: number): boolean {
+    const now = Date.now();
+    if (now - (this.lastRetry.get(userId) ?? 0) < ERROR_RETRY_MS) return false;
+    this.lastRetry.set(userId, now);
+    return true;
   }
 
   private touch(ws: WorkspaceRow): void {

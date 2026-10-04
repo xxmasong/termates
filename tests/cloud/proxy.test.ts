@@ -26,6 +26,10 @@ describe('WorkspaceProxy', () => {
   let base = '';
   let cookie = '';
   let pendingCookie = '';
+  let failedCookie = '';
+  let failedUserId = 0;
+  const starts: number[] = [];
+  let otherUpstream: http.Server;
   const seen: http.IncomingHttpHeaders[] = [];
 
   before(async () => {
@@ -77,7 +81,25 @@ describe('WorkspaceProxy', () => {
     });
     pendingCookie = `tm_session=${createSession(db, waiting.id, { ip: null, userAgent: null }).token}`;
 
-    const provisioner = { start: async () => undefined } as unknown as Provisioner;
+    const failed = db.insertUser({
+      firebaseUid: 'c',
+      email: 'c@x.test',
+      name: null,
+      avatarUrl: null,
+      plan: 'free',
+      role: 'user',
+    });
+    failedUserId = failed.id;
+    otherUpstream = http.createServer((_req, res) => res.end('ok'));
+    db.insertWorkspace({ userId: failed.id, unixUser: 'tm-c', portBase: await listen(otherUpstream), state: 'error' });
+    failedCookie = `tm_session=${createSession(db, failed.id, { ip: null, userAgent: null }).token}`;
+
+    const provisioner = {
+      start: async (user: { id: number }) => {
+        starts.push(user.id);
+        db.setWorkspaceState(user.id, 'running');
+      },
+    } as unknown as Provisioner;
     const proxy = new WorkspaceProxy(db, loadConfig({ CLOUD_ORIGINS: ORIGIN }), provisioner);
     proxyServer = http.createServer((req, res) => void proxy.handleHttp(req, res));
     proxyServer.on('upgrade', (req, socket, head) => void proxy.handleUpgrade(req, socket, head));
@@ -87,6 +109,7 @@ describe('WorkspaceProxy', () => {
   after(() => {
     proxyServer.close();
     upstream.close();
+    otherUpstream.close();
   });
 
   it('answers 401 JSON to XHR and redirects navigations without a session', async () => {
@@ -152,6 +175,18 @@ describe('WorkspaceProxy', () => {
     });
     assert.equal(response.status, 503);
     assert.equal((await response.json()).code, 'WORKSPACE_PROVISIONING');
+  });
+
+  it('retries a workspace whose start failed, at most every 30 s', async () => {
+    db.setWorkspaceState(failedUserId, 'error');
+    const first = await fetch(`http://${base}/api/projects`, { headers: { Cookie: failedCookie } });
+    assert.equal(first.status, 200);
+    assert.deepEqual(starts, [failedUserId]);
+    db.setWorkspaceState(failedUserId, 'error');
+    const second = await fetch(`http://${base}/api/projects`, { headers: { Cookie: failedCookie } });
+    assert.equal(second.status, 503);
+    assert.equal((await second.json()).code, 'WORKSPACE_ERROR');
+    assert.deepEqual(starts, [failedUserId]);
   });
 
   it('proxies WebSocket upgrades', async () => {
