@@ -8,3 +8,4 @@ export * from './usePlanUsage';
 export * from './useChangePlan';
 export * from './useSignOutEverywhere';
 export * from './usePlanTab';
+export * from './usePlanCapacity';

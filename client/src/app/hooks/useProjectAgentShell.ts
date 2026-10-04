@@ -3,7 +3,7 @@ import { useRecoilState } from 'recoil';
 
 import type { Agent, Project } from '@/types';
 
-import { usePlanLimitDialog } from '@/features/account';
+import { usePlanCapacity, usePlanLimitDialog } from '@/features/account';
 import {
   selectedAgentIdState,
   useAgentLifecycle,
@@ -46,6 +46,7 @@ export const useProjectAgentShell = () => {
   const deleteAgentMutation = useDeleteAgent();
   const lifecycle = useAgentLifecycle();
   const { offer: offerUpgrade } = usePlanLimitDialog();
+  const hasCapacity = usePlanCapacity();
 
   const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data]);
   const projectAgentSummaries = useProjectAgentSummaries(projects);
@@ -67,9 +68,13 @@ export const useProjectAgentShell = () => {
     (agentId: string) => setSelectedAgentId(agentId),
     [setSelectedAgentId],
   );
-  const openCreateProject = useCallback(() => setCreateProjectOpen(true), []);
+  const openCreateProject = useCallback(() => {
+    void hasCapacity('project').then((ok) => ok && setCreateProjectOpen(true));
+  }, [hasCapacity]);
   const closeCreateProject = useCallback(() => setCreateProjectOpen(false), []);
-  const openCreateAgent = useCallback(() => setCreateAgentOpen(true), []);
+  const openCreateAgent = useCallback(() => {
+    void hasCapacity('agent').then((ok) => ok && setCreateAgentOpen(true));
+  }, [hasCapacity]);
   const closeCreateAgent = useCallback(() => setCreateAgentOpen(false), []);
   const requestDeleteProject = useCallback(
     (project: Project) => setProjectPendingDelete(project),
