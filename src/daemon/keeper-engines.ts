@@ -44,6 +44,8 @@ export interface EngineTurn {
   sessionId: string | null;
   /** File the engine writes its final answer to, read when nothing streamed. */
   lastMessageFile?: string;
+  /** Runs once the process has exited. */
+  afterRun?: () => void;
 }
 
 export interface LineResult {
@@ -114,6 +116,31 @@ function userCodexDefaults(): string[] {
   return out;
 }
 
+/** `last_refresh` of a Codex auth.json, or 0 when missing or unreadable. */
+function authRefreshedAt(file: string): number {
+  try {
+    const value = (JSON.parse(fs.readFileSync(file, 'utf-8')) as { last_refresh?: unknown }).last_refresh;
+    const at = typeof value === 'string' ? Date.parse(value) : NaN;
+    return Number.isFinite(at) ? at : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Copy a Codex auth.json over another when it was refreshed more recently. */
+export function syncNewerAuth(from: string, to: string): void {
+  try {
+    if (!fs.existsSync(from)) return;
+    if (fs.existsSync(to) && authRefreshedAt(from) <= authRefreshedAt(to)) return;
+    const tmp = `${to}.${process.pid}.tmp`;
+    fs.copyFileSync(from, tmp);
+    fs.chmodSync(tmp, 0o600);
+    fs.renameSync(tmp, to);
+  } catch {
+    /* may still authenticate via OPENAI_API_KEY */
+  }
+}
+
 const codex: KeeperEngineSpec = {
   id: 'codex',
   label: 'Codex',
@@ -139,15 +166,9 @@ const codex: KeeperEngineSpec = {
     ].join('\n');
     fs.writeFileSync(path.join(home, 'config.toml'), config, 'utf-8');
     // The Keeper runs on the user's own Codex subscription.
-    try {
-      const auth = path.join(os.homedir(), '.codex', 'auth.json');
-      if (fs.existsSync(auth)) {
-        fs.copyFileSync(auth, path.join(home, 'auth.json'));
-        fs.chmodSync(path.join(home, 'auth.json'), 0o600);
-      }
-    } catch {
-      /* may still authenticate via OPENAI_API_KEY */
-    }
+    const userAuth = path.join(os.homedir(), '.codex', 'auth.json');
+    const keeperAuth = path.join(home, 'auth.json');
+    syncNewerAuth(userAuth, keeperAuth);
     fs.writeFileSync(path.join(ctx.brainDir, 'AGENTS.md'), ctx.persona, 'utf-8');
 
     const lastMessageFile = path.join(ctx.brainDir, `lastmsg-${randomUUID()}.txt`);
@@ -163,6 +184,9 @@ const codex: KeeperEngineSpec = {
       stdin: ctx.prompt,
       sessionId: ctx.sessionId,
       lastMessageFile,
+      // Codex rotates the refresh token when it refreshes; hand a refreshed
+      // login back, or the user's own cligents are left holding a dead token.
+      afterRun: () => syncNewerAuth(keeperAuth, userAuth),
     };
   },
   parser() {

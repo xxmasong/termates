@@ -159,3 +159,27 @@ describe('gemini engine', () => {
     ]);
   });
 });
+
+describe('syncNewerAuth', () => {
+  it('copies a Codex login only when it was refreshed more recently', async () => {
+    const { syncNewerAuth } = await import('../src/daemon/keeper-engines.js');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-auth-'));
+    const user = path.join(dir, 'user.json');
+    const keeper = path.join(dir, 'keeper.json');
+    const auth = (at: string, token: string) => JSON.stringify({ last_refresh: at, tokens: { refresh_token: token } });
+    fs.writeFileSync(user, auth('2026-10-01T00:00:00Z', 'old'));
+    syncNewerAuth(user, keeper);
+    assert.match(fs.readFileSync(keeper, 'utf-8'), /"old"/);
+    assert.equal(fs.statSync(keeper).mode & 0o777, 0o600);
+
+    // The Keeper's codex refreshed: the rotated token goes back to the user…
+    fs.writeFileSync(keeper, auth('2026-10-02T00:00:00Z', 'rotated'));
+    syncNewerAuth(keeper, user);
+    assert.match(fs.readFileSync(user, 'utf-8'), /"rotated"/);
+    // …and an older copy never overwrites a newer login.
+    fs.writeFileSync(keeper, auth('2026-09-01T00:00:00Z', 'stale'));
+    syncNewerAuth(keeper, user);
+    assert.match(fs.readFileSync(user, 'utf-8'), /"rotated"/);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+});

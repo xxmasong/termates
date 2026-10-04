@@ -439,6 +439,7 @@ export class Orchestrator {
         if (settled) return;
         settled = true;
         if (this.currentChild === child) this.currentChild = null;
+        try { turn.afterRun?.(); } catch { /* best-effort */ }
         if (turn.lastMessageFile) {
           try { fs.rmSync(turn.lastMessageFile, { force: true }); } catch { /* ignore */ }
         }
