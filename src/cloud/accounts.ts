@@ -44,12 +44,12 @@ export const normalizeInvite = (code: string): string => code.trim().toUpperCase
 export const hashInvite = (code: string): string =>
   crypto.createHash('sha256').update(normalizeInvite(code)).digest('hex');
 
-/** A readable invite code, e.g. `HIVE-7K2M-Q9XD`. */
+/** A readable invite code, e.g. `MATE-7K2M-Q9XD`. */
 export function generateInviteCode(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = crypto.randomBytes(8);
   const chars = Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
-  return `HIVE-${chars.slice(0, 4)}-${chars.slice(4)}`;
+  return `MATE-${chars.slice(0, 4)}-${chars.slice(4)}`;
 }
 
 export interface SignInInput {

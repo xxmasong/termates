@@ -84,14 +84,14 @@ describe('Accounts.signIn', () => {
   it('enforces invite mode and consumes invites', () => {
     const { db, accounts } = setup({ SIGNUP_MODE: 'invite' });
     const invite = generateInviteCode();
-    assert.match(invite, /^HIVE-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+    assert.match(invite, /^MATE-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
     db.insertInvite(hashInvite(invite), 1, null);
     assert.equal(
       code(() => accounts.signIn(claims(), {})),
       'SIGNUPS_CLOSED',
     );
     assert.equal(
-      code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })),
+      code(() => accounts.signIn(claims(), { inviteCode: 'MATE-NOPE-NOPE' })),
       'INVALID_INVITE',
     );
     assert.equal(
@@ -108,7 +108,7 @@ describe('Accounts.signIn', () => {
   it('open mode ignores a bad invite code', () => {
     const { accounts } = setup();
     assert.equal(
-      code(() => accounts.signIn(claims(), { inviteCode: 'HIVE-NOPE-NOPE' })),
+      code(() => accounts.signIn(claims(), { inviteCode: 'MATE-NOPE-NOPE' })),
       'OK',
     );
   });
