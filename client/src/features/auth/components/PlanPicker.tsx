@@ -9,7 +9,7 @@ const projectLimit = (maxProjects: number | null) =>
   maxProjects === null
     ? 'Unlimited projects'
     : `${maxProjects} ${maxProjects === 1 ? 'project' : 'projects'}`;
-const agentLimit = (maxAgents: number) => `${maxAgents} ${maxAgents === 1 ? 'agent' : 'agents'}`;
+const agentLimit = (maxAgents: number) => `${maxAgents} ${maxAgents === 1 ? 'cligent' : 'cligents'}`;
 
 export const PlanPicker: React.FC<PlanPickerProps> = ({ plan, onChange }) => (
   <fieldset className="auth-plans">

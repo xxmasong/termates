@@ -28,7 +28,7 @@ export const DeleteAgentDialog: React.FC<DeleteAgentDialogProps> = ({
     onCancel={onCancel}
     onConfirm={() => agent && onConfirm(agent)}
     open={Boolean(agent)}
-    title="Delete Agent"
+    title="Delete Cligent"
   >
     {error ? (
       <div className="feature-error" role="alert">

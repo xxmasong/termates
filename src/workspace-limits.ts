@@ -28,7 +28,7 @@ export type LimitKind = 'project' | 'agent';
 
 const NOUNS: Record<LimitKind, [singular: string, plural: string]> = {
   project: ['project', 'projects'],
-  agent: ['agent', 'agents'],
+  agent: ['cligent', 'cligents'],
 };
 
 export class PlanLimitError extends Error {

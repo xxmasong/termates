@@ -78,7 +78,7 @@ export const COPY = {
     freeCta: 'Start free',
     proCta: 'Choose Pro',
     proPlusCta: 'Choose Pro Plus',
-    note: 'Agents count across all projects, running or stopped. AI usage is billed by your own Claude, ChatGPT or Google plan.',
+    note: 'Cligents count across all projects, running or stopped. AI usage is billed by your own Claude, ChatGPT or Google plan.',
   },
   audience: { eyebrow: "WHO IT'S FOR", title: 'Made for people who ship.' },
   faq: { eyebrow: 'FAQ', title: 'Questions, answered.', hint: 'Swipe to compare →' },
@@ -164,12 +164,12 @@ export const FAQ_ENTRIES: readonly FaqEntry[] = [
   {
     question: 'What does it cost?',
     answer:
-      'Free covers 1 project and 3 agents. Pro raises that to 3 projects and 10 agents; Pro Plus gives you unlimited projects and 30 agents. Your AI usage stays on your own Claude, ChatGPT or Google plan.',
+      'Free covers 1 project and 3 cligents. Pro raises that to 3 projects and 10 cligents; Pro Plus gives you unlimited projects and 30 cligents. Your AI usage stays on your own Claude, ChatGPT or Google plan.',
   },
   {
-    question: 'What counts as an agent?',
+    question: 'What is a cligent?',
     answer:
-      'Every agent you create, running or stopped, across all your projects. Delete an agent to free its slot.',
+      'One agent terminal: a real Claude Code, Codex, Gemini or OpenCode session. Every cligent you create counts, running or stopped, across all your projects. Delete one to free its slot.',
   },
 ];
 export const COMPARISON_ROWS: readonly ComparisonRow[] = [
@@ -195,7 +195,7 @@ export const COMPARISON_HEADERS = [
 export const FEATURE_ENTRIES: readonly FeatureEntry[] = [
   {
     title: 'Real terminals, not wrappers',
-    body: 'Every agent is the actual CLI in a full PTY — slash commands, plans, permissions, all of it. Sessions live in a daemon, so closing the browser never kills a run.',
+    body: 'Every cligent is the actual CLI in a full PTY — slash commands, plans, permissions, all of it. Sessions live in a daemon, so closing the browser never kills a run.',
     lines: ['$ claude', '> /plan', '● session restored · 2,418 lines'],
     wide: true,
   },
@@ -233,7 +233,7 @@ export const HOW_STEPS: readonly StepEntry[] = [
   },
   {
     title: 'Assemble a team',
-    body: 'Create a project, add agents, give each a role — frontend, backend, QA, docs. Mix vendors freely.',
+    body: 'Create a project, add cligents, give each a role — frontend, backend, QA, docs. Mix vendors freely.',
   },
   {
     title: 'Direct the hive',

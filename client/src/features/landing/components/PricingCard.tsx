@@ -42,7 +42,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan }) => (
     </div>
     <div className="landing-pricing-card__stats">
       <PlanStat label={plan.maxProjects === 1 ? 'project' : 'projects'} value={plan.maxProjects} />
-      <PlanStat label="agents" value={plan.maxAgents} />
+      <PlanStat label="cligents" value={plan.maxAgents} />
     </div>
     <a
       className={`landing-button ${plan.highlighted ? 'landing-button--primary' : 'landing-button--secondary'}`}

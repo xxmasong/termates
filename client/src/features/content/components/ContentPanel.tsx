@@ -282,7 +282,7 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({ projectId, author = 
         confirmLabel="Delete"
         danger
         loading={deleteMutation.isPending}
-        message={`Delete ${selectedFilename ?? 'this file'}? Every agent in this project loses access to it.`}
+        message={`Delete ${selectedFilename ?? 'this file'}? Every cligent in this project loses access to it.`}
         onCancel={onCancelDelete}
         onConfirm={onDelete}
         open={confirmingDelete}

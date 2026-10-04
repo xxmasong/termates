@@ -115,7 +115,7 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
           ) : null}
           {!loading && brainState.messages.length === 0 ? (
             <EmptyState icon={<Icon name="logo" size={24} />} title="Talk to The Keeper">
-              Ask for project status, agent progress, or coordination help.
+              Ask for project status, cligent progress, or coordination help.
             </EmptyState>
           ) : null}
           {brainState.messages.map((message) => (

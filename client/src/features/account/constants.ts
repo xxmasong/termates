@@ -11,7 +11,7 @@ export const ACCOUNT_MODAL_WIDTH = 760;
 export const ACCOUNT_TABS = [
   { id: 'plan', label: 'Plan & usage' },
   { id: 'preferences', label: 'Preferences' },
-  { id: 'agents', label: 'Agent defaults' },
+  { id: 'agents', label: 'Cligent defaults' },
   { id: 'account', label: 'Account' },
 ] as const;
 
@@ -38,7 +38,7 @@ export const ACCOUNT_COPY = {
   admin: 'Admin',
   limitTitle: "You've reached your plan's limit",
   limitBody: (plan: string, limit: number, kind: 'project' | 'agent') =>
-    `${plan} includes ${limit} ${kind === 'project' ? (limit === 1 ? 'project' : 'projects') : limit === 1 ? 'agent' : 'agents'}. Upgrade to add more.`,
+    `${plan} includes ${limit} ${kind === 'project' ? (limit === 1 ? 'project' : 'projects') : limit === 1 ? 'cligent' : 'cligents'}. Upgrade to add more.`,
   seePlans: 'See plans',
   close: 'Close',
   settingsItem: 'Plan & settings',
@@ -46,7 +46,7 @@ export const ACCOUNT_COPY = {
   modalTitle: 'Account & settings',
   usageTitle: 'Your usage',
   projects: 'Projects',
-  agents: 'Agents',
+  agents: 'Cligents',
   agentsHint: 'across all projects, running or stopped',
   unlimited: 'Unlimited',
   usageUnavailable: "Usage isn't available while your workspace is starting.",
@@ -64,8 +64,8 @@ export const ACCOUNT_COPY = {
   voiceTitle: 'Voice & speech',
   voiceBody: 'Speech provider, language, wake word and the Keeper’s voice.',
   voiceButton: 'Open voice settings',
-  agentsTitle: 'New agent defaults',
-  agentsBody: 'The New agent form starts from these. Saved in this browser.',
+  agentsTitle: 'New cligent defaults',
+  agentsBody: 'The New cligent form starts from these. Saved in this browser.',
   accountTitle: 'Profile',
   workspaceTitle: 'Workspace',
   workspaceState: 'Status',

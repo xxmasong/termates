@@ -70,7 +70,7 @@ describe('assertCanCreate', () => {
       (err: unknown) => {
         assert.ok(err instanceof PlanLimitError);
         assert.deepEqual(err.toJSON(), {
-          error: 'Your plan includes 3 agents. Upgrade to add more.',
+          error: 'Your plan includes 3 cligents. Upgrade to add more.',
           code: 'PLAN_LIMIT',
           kind: 'agent',
           limit: 3,

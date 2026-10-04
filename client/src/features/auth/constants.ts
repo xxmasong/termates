@@ -15,7 +15,7 @@ export const AUTH_COPY = {
   },
   inviteRequired: 'Sign-ups are invite-only right now. Enter your invite code.',
   legal: 'By creating an account you agree to the Terms and Privacy Policy.',
-  panelTitle: 'Four agents. One team. Zero copy-paste.',
+  panelTitle: 'Four cligents. One team. Zero copy-paste.',
   panelAgents: 'Claude Code · Codex · Gemini CLI · OpenCode',
 } as const;
 export const AUTH_ROUTES = {

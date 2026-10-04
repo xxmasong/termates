@@ -57,7 +57,7 @@ export const TerminalWorkspace: React.FC<TerminalWorkspaceProps> = ({
   );
 
   if (agents.length === 0) {
-    return <EmptyState title="No agents yet" />;
+    return <EmptyState title="No cligents yet" />;
   }
 
   return (

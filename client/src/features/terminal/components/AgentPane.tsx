@@ -163,7 +163,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
             loading={modelMutation.isPending}
             onClick={applySettings}
             size="sm"
-            title={dirty ? 'Apply settings and restart the agent' : 'No changes to apply'}
+            title={dirty ? 'Apply settings and restart the cligent' : 'No changes to apply'}
             variant={dirty ? 'success' : 'ghost'}
           />
           <Button
@@ -183,7 +183,7 @@ export const AgentPane: React.FC<AgentPaneProps> = ({
           <AgentTerminal agentId={agent.id} focused={focused} onFocus={focusPane} />
         ) : (
           <div className="agent-pane__stopped">
-            <span className="agent-pane__stopped-label">agent stopped</span>
+            <span className="agent-pane__stopped-label">cligent stopped</span>
             <span className="agent-pane__stopped-meta">
               {agent.cli} · {agent.cwd}
             </span>

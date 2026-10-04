@@ -61,7 +61,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ projectId }) => {
               const event = scopedEvents[row.index];
               const isMessage = event.event === 'agent:message';
               const title = isMessage
-                ? `${event.fromAgent ?? event.agentName ?? 'Agent'} → ${event.toAgent ?? 'Broadcast'}`
+                ? `${event.fromAgent ?? event.agentName ?? 'Cligent'} → ${event.toAgent ?? 'Broadcast'}`
                 : (event.agentName ?? event.detail);
               const body = isMessage ? (event.message ?? event.detail) : event.detail;
               return (

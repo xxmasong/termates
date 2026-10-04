@@ -133,7 +133,7 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({
       <header className="feature-panel__header">
         <div>
           <h2>Messages</h2>
-          <p>Agent-to-agent coordination</p>
+          <p>Cligent-to-cligent coordination</p>
         </div>
         <Badge tone="idle" withDot>
           Live
@@ -147,7 +147,7 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({
           events.map((event) => (
             <article className="message-event" key={event.id}>
               <header className="message-event__meta">
-                <span>{event.fromAgent ?? event.agentName ?? 'Agent'}</span>
+                <span>{event.fromAgent ?? event.agentName ?? 'Cligent'}</span>
                 <Icon name="arrowR" size={13} />
                 <span>{event.toAgent ?? 'Broadcast'}</span>
                 <time>{new Date(event.timestamp).toLocaleTimeString()}</time>
@@ -162,7 +162,7 @@ export const MessagesPanel: React.FC<MessagesPanelProps> = ({
         <div className="messages-panel__row">
           <FormField label="From">
             <select className="input" onChange={onFromChange} value={fromAgentId}>
-              <option value="">Choose agent</option>
+              <option value="">Choose cligent</option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
                   {agent.name}

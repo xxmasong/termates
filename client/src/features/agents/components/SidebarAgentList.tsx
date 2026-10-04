@@ -33,15 +33,15 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
 }) => (
   <section className="sidebar-agent-list">
     <header className="feature-section-header feature-section-header--spaced">
-      <span>{selectedProjectName ? `${selectedProjectName} · agents` : 'Agents'}</span>
+      <span>{selectedProjectName ? `${selectedProjectName} · cligents` : 'Cligents'}</span>
       {selectedProjectName ? (
         <Button
-          aria-label="Add agent"
+          aria-label="Add cligent"
           icon="plus"
           iconOnly
           onClick={onCreateAgent}
           size="sm"
-          title="Add agent"
+          title="Add cligent"
           variant="ghost"
         />
       ) : null}
@@ -58,7 +58,7 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
         <div className="sidebar-agent-list__hint">Select a project above</div>
       ) : null}
       {!loading && selectedProjectName && agents.length === 0 ? (
-        <div className="sidebar-agent-list__hint">No agents yet</div>
+        <div className="sidebar-agent-list__hint">No cligents yet</div>
       ) : null}
       {agents.map((agent, index) => {
         const cliOption = AGENT_CLI_OPTIONS.find((option) => option.value === agent.cli);
@@ -107,7 +107,7 @@ export const SidebarAgentList: React.FC<SidebarAgentListProps> = ({
               iconOnly
               onClick={() => onDeleteAgent(agent)}
               size="sm"
-              title="Delete agent"
+              title="Delete cligent"
               variant="ghost"
             />
           </article>

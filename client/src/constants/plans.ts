@@ -24,7 +24,7 @@ export const PLANS: readonly Plan[] = [
     earlyAccess: false,
     maxProjects: 1,
     maxAgents: 3,
-    limitsLine: '1 project · 3 agents',
+    limitsLine: '1 project · 3 cligents',
     highlighted: false,
   },
   {
@@ -37,20 +37,20 @@ export const PLANS: readonly Plan[] = [
     earlyAccess: true,
     maxProjects: 3,
     maxAgents: 10,
-    limitsLine: 'Up to 3 projects · up to 10 agents',
+    limitsLine: 'Up to 3 projects · up to 10 cligents',
     highlighted: true,
   },
   {
     id: 'pro-plus',
     name: 'Pro Plus',
-    pitch: 'For teams of agents at full scale.',
+    pitch: 'For teams of cligents at full scale.',
     // placeholder prices — no billing yet; the plan chosen at signup is granted.
     price: '$29',
     priceNote: '/mo',
     earlyAccess: true,
     maxProjects: null,
     maxAgents: 30,
-    limitsLine: 'Unlimited projects · up to 30 agents',
+    limitsLine: 'Unlimited projects · up to 30 cligents',
     highlighted: false,
   },
 ] as const;

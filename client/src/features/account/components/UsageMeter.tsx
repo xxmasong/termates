@@ -9,7 +9,7 @@ interface UsageMeterProps {
   limit: number | null | undefined;
 }
 
-/** "Agents  4 / 10" with a bar; unlimited plans show the count only. */
+/** "Cligents  4 / 10" with a bar; unlimited plans show the count only. */
 export const UsageMeter: React.FC<UsageMeterProps> = ({ label, hint, used, limit }) => {
   const pct =
     used === undefined || limit === null || limit === undefined || limit === 0

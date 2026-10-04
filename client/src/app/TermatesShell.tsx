@@ -241,7 +241,7 @@ export const TermatesShell: React.FC<TermatesShellProps> = () => {
             {
               id: stableId,
               message: `${agent.name} is waiting for a human response.`,
-              title: 'Agent needs input',
+              title: 'Cligent needs input',
               tone: 'warning' as const,
             },
             ...current,
@@ -357,7 +357,7 @@ export const TermatesShell: React.FC<TermatesShellProps> = () => {
     const agentCommands = vm.agents.flatMap((agent) => [
       {
         description: agent.role ?? agent.cli,
-        group: 'Agents',
+        group: 'Cligents',
         icon: <Icon name="terminal" size={14} />,
         id: `agent:${agent.id}`,
         label: `Focus ${agent.name}`,
@@ -365,7 +365,7 @@ export const TermatesShell: React.FC<TermatesShellProps> = () => {
       {
         description: agent.name,
         disabled: vm.lifecycleBusy,
-        group: 'Agent Actions',
+        group: 'Cligent Actions',
         icon: <Icon name="play" size={14} />,
         id: `agent-action:start:${agent.id}`,
         label: `Start ${agent.name}`,
@@ -373,7 +373,7 @@ export const TermatesShell: React.FC<TermatesShellProps> = () => {
       {
         description: agent.name,
         disabled: vm.lifecycleBusy,
-        group: 'Agent Actions',
+        group: 'Cligent Actions',
         icon: <Icon name="stop" size={14} />,
         id: `agent-action:stop:${agent.id}`,
         label: `Stop ${agent.name}`,

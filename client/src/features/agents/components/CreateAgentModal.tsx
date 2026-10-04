@@ -109,7 +109,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
       }
       onClose={close}
       open={open}
-      title="Create Agent"
+      title="Create Cligent"
     >
       <form className="feature-form" id="create-agent-form" onSubmit={submit}>
         <FormField htmlFor={AGENT_FORM_FIELD_IDS.NAME} label="Name" required>
