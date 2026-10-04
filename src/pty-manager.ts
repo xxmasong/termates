@@ -156,13 +156,13 @@ function ensureSharedDir(projectName: string): string {
     fs.writeFileSync(readmePath, [
       `# Shared Content — ${projectName}`,
       '',
-      'This folder is shared across all agents in this project via Termhive.',
-      'Any file you create, edit, or delete here is visible to all agents and the Termhive web UI.',
+      'This folder is shared across all agents in this project via Termates.',
+      'Any file you create, edit, or delete here is visible to all agents and the Termates web UI.',
       '',
       '## Usage',
       '- Read files here for shared context (API specs, design docs, notes)',
       '- Write files here to share information with other agents or the user',
-      '- The user can also view and edit these files from the Termhive "Shared Content" tab',
+      '- The user can also view and edit these files from the Termates "Shared Content" tab',
       '',
     ].join('\n'), 'utf-8');
   }
@@ -170,21 +170,21 @@ function ensureSharedDir(projectName: string): string {
 }
 
 /**
- * Build the Termhive instruction section content.
+ * Build the Termates instruction section content.
  */
-function buildTermhiveSection(
+function buildTermatesSection(
   sharedPath: string,
   wikiPath: string,
   currentAgent: Agent,
   teammates: Agent[],
 ): { marker: string; section: string } {
-  const marker = '<!-- Termhive -->';
+  const marker = '<!-- Termates -->';
   const hasWiki = fs.existsSync(path.join(wikiPath, '_schema.md'));
 
   const lines = [
     '',
     marker,
-    '## Termhive — Multi-Agent Collaboration',
+    '## Termates — Multi-Agent Collaboration',
     '',
     'Shared content directory: `' + sharedPath + '`',
     '- Read/write files here to share information with other agents and the user',
@@ -201,7 +201,7 @@ function buildTermhiveSection(
     );
   } else {
     lines.push(
-      '- Wiki not initialized yet. User can initialize it from the Termhive Wiki tab.',
+      '- Wiki not initialized yet. User can initialize it from the Termates Wiki tab.',
       '- Once initialized, read `_index.md` to understand the project.',
     );
   }
@@ -235,7 +235,7 @@ function buildTermhiveSection(
         '',
         '#### Receiving messages',
         'When you see a prompt that starts with `[Message from <name>]:`, it is an',
-        'inter-agent message delivered by Termhive. You MUST:',
+        'inter-agent message delivered by Termates. You MUST:',
         '1. Read the message and do whatever it asks (answer a question, perform a task, etc.).',
         '2. **Reply by calling `message_agent`** with `target` set to the sender\'s name and',
         '   `message` set to your response. This is the ONLY way your reply reaches them —',
@@ -248,12 +248,12 @@ function buildTermhiveSection(
     }
   }
 
-  lines.push('', '<!-- End Termhive -->', '');
+  lines.push('', '<!-- End Termates -->', '');
   return { marker, section: lines.join('\n') };
 }
 
 /**
- * Write Termhive instructions to a markdown file (CLAUDE.md or AGENTS.md).
+ * Write Termates instructions to a markdown file (CLAUDE.md or AGENTS.md).
  */
 function ensureInstructionFile(
   filePath: string,
@@ -263,13 +263,16 @@ function ensureInstructionFile(
   currentAgent: Agent,
   teammates: Agent[],
 ) {
-  const { section } = buildTermhiveSection(sharedPath, wikiPath, currentAgent, teammates);
+  const { section } = buildTermatesSection(sharedPath, wikiPath, currentAgent, teammates);
 
   if (fs.existsSync(filePath)) {
     let existing = fs.readFileSync(filePath, 'utf-8');
-    // Remove all old sections (AgentOrg, Termhive Shared Content, previous Termhive)
+    // Remove all old sections (AgentOrg, pre-rename Termhive, previous Termates)
     existing = existing.replace(/\n*<!-- AgentOrg[^>]*-->[\s\S]*?<!-- End AgentOrg -->\n*/g, '\n');
-    existing = existing.replace(/\n*<!-- Termhive[^>]*-->[\s\S]*?<!-- End Termhive -->\n*/g, '\n');
+    existing = existing.replace(
+      /\n*<!-- (Termhive|Termates)[^>]*-->[\s\S]*?<!-- End \1 -->\n*/g,
+      '\n',
+    );
     // Append fresh section
     fs.writeFileSync(filePath, existing.trimEnd() + '\n' + section, 'utf-8');
   } else {
