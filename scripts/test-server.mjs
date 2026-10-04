@@ -3,6 +3,7 @@
 import { build } from 'esbuild';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +28,10 @@ if (entries.length === 0) {
 // ignores NODE_PATH). dist/ is gitignored.
 mkdirSync(path.join(root, 'dist'), { recursive: true });
 const outdir = mkdtempSync(path.join(root, 'dist', '.tests-'));
+// Tests swap HOME per case, but a late watcher event can still land after one
+// restores it. Give the whole run a throwaway HOME so nothing ever reaches the
+// real ~/.termates (or migrates a real ~/.termhive) on a live host.
+const home = mkdtempSync(path.join(os.tmpdir(), 'termates-test-home-'));
 try {
   await build({
     entryPoints: entries,
@@ -46,8 +51,10 @@ try {
   const result = spawnSync(process.execPath, ['--test', ...outputs], {
     stdio: 'inherit',
     cwd: root,
+    env: { ...process.env, HOME: home },
   });
   process.exitCode = result.status ?? 1;
 } finally {
   rmSync(outdir, { recursive: true, force: true });
+  rmSync(home, { recursive: true, force: true });
 }
