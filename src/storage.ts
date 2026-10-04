@@ -1,10 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 import { randomUUID as uuid } from 'crypto';
-import type { Project, Agent, ProjectData, SharedContent } from './types.js';
+import { AGENT_CLIS, type Project, type Agent, type ProjectData, type SharedContent } from './types.js';
 import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
 import { ConflictError, InvalidInputError } from './storage-errors.js';
-import { isSafeId, resolveInside, validateProjectName } from './storage-paths.js';
+import {
+  isSafeId,
+  resolveInside,
+  validateAgentFlags,
+  validateAgentName,
+  validateAgentRole,
+  validateLaunchSetting,
+  validateProjectName,
+} from './storage-paths.js';
 import { withStorageLock } from './storage-lock.js';
 import { appHomeDir } from './app-home.js';
 
@@ -63,6 +71,28 @@ const AGENT_UPDATE_KEYS = [
   'name', 'role', 'cli', 'cwd', 'status', 'pid', 'flags',
   'model', 'effort', 'thinking', 'permissionMode', 'autocompact',
 ] as const;
+const LAUNCH_SETTING_KEYS = ['model', 'effort', 'thinking', 'permissionMode', 'autocompact'] as const;
+
+function validateCli(raw: unknown): Agent['cli'] {
+  if (typeof raw !== 'string' || !(AGENT_CLIS as readonly string[]).includes(raw)) {
+    throw new InvalidInputError(`cli must be one of: ${AGENT_CLIS.join(', ')}.`);
+  }
+  return raw as Agent['cli'];
+}
+
+/** Validate every client-settable agent field present in `fields`. */
+function validateAgentFields<T extends Partial<Agent>>(fields: T): T {
+  const out: Partial<Agent> = { ...fields };
+  if ('name' in fields) out.name = validateAgentName(fields.name);
+  if ('role' in fields) out.role = validateAgentRole(fields.role);
+  if ('cli' in fields) out.cli = validateCli(fields.cli);
+  if ('flags' in fields) out.flags = validateAgentFlags(fields.flags);
+  for (const key of LAUNCH_SETTING_KEYS) {
+    if (key in fields) out[key] = validateLaunchSetting(key, fields[key]);
+  }
+  if ('cwd' in fields && typeof fields.cwd !== 'string') throw new InvalidInputError('cwd must be a path.');
+  return out as T;
+}
 
 /** Keep only whitelisted keys — REST bodies must never overwrite ids. */
 function pick<T extends object, K extends keyof T>(source: unknown, keys: readonly K[]): Partial<Pick<T, K>> {
@@ -226,17 +256,18 @@ export function createAgent(projectId: string, name: string, cli: Agent['cli'], 
   return locked(() => {
     const data = getProjectData(projectId);
     if (!data) return null;
+    const fields = validateAgentFields({ name, role, cli, cwd, flags });
     assertCwdAllowed(cwd);
     assertCanCreateAgent();
     const agent: Agent = {
       id: uuid(),
       projectId,
-      name,
-      role,
-      cli,
+      name: fields.name,
+      role: fields.role || undefined,
+      cli: fields.cli,
       cwd,
       status: 'stopped',
-      flags,
+      flags: fields.flags,
     };
     data.agents.push(agent);
     saveProjectData(data);
@@ -250,7 +281,7 @@ export function updateAgent(projectId: string, agentId: string, updates: Partial
     if (!data) return null;
     const agent = data.agents.find(a => a.id === agentId);
     if (!agent) return null;
-    const safe = pick<Agent, (typeof AGENT_UPDATE_KEYS)[number]>(updates, AGENT_UPDATE_KEYS);
+    const safe = validateAgentFields(pick<Agent, (typeof AGENT_UPDATE_KEYS)[number]>(updates, AGENT_UPDATE_KEYS));
     if (typeof safe.cwd === 'string') assertCwdAllowed(safe.cwd);
     Object.assign(agent, safe);
     saveProjectData(data);

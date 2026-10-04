@@ -19,6 +19,7 @@ describe('storage path guards', () => {
       'a\\b',
       '.hidden',
       'x\0y',
+      'line\nbreak',
       'n'.repeat(81),
     ]) {
       assert.throws(() => validateProjectName(bad), InvalidInputError, JSON.stringify(bad));
@@ -124,5 +125,38 @@ describe('storage hardening', () => {
     assert.ok(storage.deleteProject(first.id, true));
     assert.ok(!fs.existsSync(shared('Storefront')));
     assert.ok(fs.existsSync(path.join(shared('Keep'), 'k.md')));
+  });
+
+  it('validates agent fields before they reach a CLI', () => {
+    const project = storage.createProject('Agents', home);
+    for (const bad of [
+      { name: '' },
+      { name: 'x\u001b[31m' },
+      { cli: 'bash' },
+      { model: '--dangerously-skip-permissions' },
+      { model: 'opus"; rm -rf ~; echo "' },
+      { effort: 'high high' },
+      { flags: { dangerouslySkipPermissions: 'yes' } },
+      { cwd: 7 },
+    ]) {
+      const agent = storage.createAgent(project.id, 'a', 'claude', home)!;
+      assert.throws(
+        () => storage.updateAgent(project.id, agent.id, bad as never),
+        InvalidInputError,
+        JSON.stringify(bad),
+      );
+      storage.deleteAgent(project.id, agent.id);
+    }
+    assert.throws(() => storage.createAgent(project.id, 'b', 'sh' as never, home), InvalidInputError);
+    const agent = storage.createAgent(project.id, '  Ana  ', 'codex', home, ' front\nend ')!;
+    assert.equal(agent.name, 'Ana');
+    assert.equal(agent.role, 'front end');
+    const updated = storage.updateAgent(project.id, agent.id, {
+      model: 'opus[1m]',
+      effort: '',
+      flags: { remoteControl: true },
+    })!;
+    assert.equal(updated.model, 'opus[1m]');
+    assert.deepEqual(updated.flags, { remoteControl: true });
   });
 });

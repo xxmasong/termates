@@ -21,6 +21,10 @@ import {
 import { badRequest, notFound, ServiceError } from './errors.js';
 
 export type AgentUpdate = Parameters<typeof storage.updateAgent>[2];
+
+const USER_EDITABLE_AGENT_KEYS = [
+  'name', 'role', 'cli', 'cwd', 'flags', 'model', 'effort', 'thinking', 'permissionMode', 'autocompact',
+] as const satisfies readonly (keyof AgentUpdate)[];
 export type ProjectUpdate = Parameters<typeof storage.updateProject>[1];
 
 export interface CreateAgentInput {
@@ -155,7 +159,12 @@ export class WorkspaceService {
   }
 
   updateAgent(projectId: string, agentId: string, updates: AgentUpdate): Agent {
-    const agent = storage.updateAgent(projectId, agentId, updates);
+    // status and pid belong to the daemon; clients only edit the agent itself.
+    const editable: AgentUpdate = {};
+    for (const key of USER_EDITABLE_AGENT_KEYS) {
+      if (updates && key in updates) Object.assign(editable, { [key]: updates[key] });
+    }
+    const agent = storage.updateAgent(projectId, agentId, editable);
     if (!agent) throw notFound('Agent not found');
     return agent;
   }
