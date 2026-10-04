@@ -56,16 +56,15 @@ export const PROVIDERS: ProviderSpec[] = [
     label: 'Google Gemini',
     needsKey: 'GEMINI_API_KEY',
     sttModels: [
-      { id: 'gemini-3-flash-preview', label: 'gemini-3-flash-preview (latest)' },
-      { id: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
-      { id: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
-      { id: 'gemini-2.5-flash-lite', label: 'gemini-2.5-flash-lite (cheap)' },
+      { id: 'gemini-3.8-flash', label: 'gemini-3.8-flash (latest)' },
+      { id: 'gemini-3.5-flash', label: 'gemini-3.5-flash' },
+      { id: 'gemini-3.1-pro-preview', label: 'gemini-3.1-pro-preview' },
+      { id: 'gemini-3.5-flash-lite', label: 'gemini-3.5-flash-lite (cheap)' },
     ],
     ttsModels: [
-      { id: 'gemini-3.1-flash-tts-preview', label: 'gemini-3.1-flash-tts-preview (latest, expressive)' },
-      { id: 'gemini-2.5-flash-tts', label: 'gemini-2.5-flash-tts' },
-      { id: 'gemini-2.5-pro-tts', label: 'gemini-2.5-pro-tts' },
-      { id: 'gemini-2.5-flash-lite-preview-tts', label: 'gemini-2.5-flash-lite-preview-tts (cheap)' },
+      { id: 'gemini-3.8-flash-tts', label: 'gemini-3.8-flash-tts (latest)' },
+      { id: 'gemini-3.1-flash-tts-preview', label: 'gemini-3.1-flash-tts-preview (expressive)' },
+      { id: 'gemini-3.8-flash-lite-tts', label: 'gemini-3.8-flash-lite-tts (cheap)' },
     ],
     voices: [
       { id: 'Kore', label: 'Kore (firm)' },

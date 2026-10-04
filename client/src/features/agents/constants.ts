@@ -33,12 +33,13 @@ export const AGENT_MODEL_OPTIONS: Record<AgentCli, string[]> = {
   // using Codex with a ChatGPT account"), so it is not offered.
   codex: ['gpt-5.6-sol', 'gpt-5.6-codex', 'gpt-5.2-codex'],
   gemini: [
+    'gemini-3.8-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
     'gemini-3.1-pro-preview',
-    'gemini-3-flash-preview',
     'gemini-3.1-flash-lite',
-    'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
+    'gemini-pro-latest',
+    'gemini-flash-latest',
   ],
 };
 
@@ -72,8 +73,7 @@ export const AGENT_THINKING_OPTIONS: Record<AgentCli, string[]> = {
 /** Gemini models whose thinking cannot be turned off. */
 export const AGENT_THINKING_ALWAYS_ON = [
   'gemini-3.1-pro-preview',
-  'gemini-3-flash-preview',
-  'gemini-2.5-pro',
+  'gemini-pro-latest',
 ];
 
 /**
