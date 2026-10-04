@@ -27,6 +27,18 @@ export interface BrainMessage {
 
 export type BrainStatus = 'idle' | 'thinking';
 
+/** The CLIs the Keeper can run on. */
+export const KEEPER_ENGINES = ['codex', 'claude', 'gemini'] as const;
+export type KeeperEngine = (typeof KEEPER_ENGINES)[number];
+
+/** One engine as the Keeper panel offers it. */
+export interface KeeperEngineInfo {
+  id: KeeperEngine;
+  label: string;
+  /** Its CLI is installed on this workspace's PATH. */
+  available: boolean;
+}
+
 /** Lightweight conversation entry for the Command panel's switcher. */
 export interface BrainConversationMeta {
   id: string;
@@ -40,8 +52,12 @@ export interface BrainState {
   /** Messages of the *current* conversation. */
   messages: BrainMessage[];
   status: BrainStatus;
-  /** Which CLI powers the brain — Phase 1 is always 'codex'. */
-  engine: 'codex' | 'claude';
+  /** Which CLI runs the Keeper's next turn. */
+  engine: KeeperEngine;
+  /** Model for that engine; '' is the engine's own default. */
+  model: string;
+  /** Every engine the Keeper supports, with whether it is installed. */
+  engines: KeeperEngineInfo[];
   /** Id of the current conversation. */
   currentId: string;
   /** All conversations, newest first — for the switcher. */
@@ -123,7 +139,8 @@ export type DaemonRequest =
   | { op: 'brain:new' }
   | { op: 'brain:abort' }
   | { op: 'brain:switch'; conversationId: string }
-  | { op: 'brain:delete'; conversationId: string };
+  | { op: 'brain:delete'; conversationId: string }
+  | { op: 'brain:settings'; engine: KeeperEngine; model: string };
 
 /** Daemon → Web. */
 export type DaemonMessage =

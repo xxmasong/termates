@@ -185,6 +185,7 @@ async function handleRequest(ws: WebSocket, req: DaemonRequest): Promise<void> {
         return;
       case 'brain:switch': orchestrator.switchConversation(req.conversationId); return;
       case 'brain:delete': orchestrator.deleteConversation(req.conversationId); return;
+      case 'brain:settings': orchestrator.setSettings(req.engine, req.model); return;
     }
     return;
   }

@@ -2,26 +2,36 @@
  * The Keeper — Termates' orchestrator brain.
  *
  * A long-lived conversational agent hosted inside the daemon. The user talks
- * to it from the Command panel; it inspects the workspace through the Keeper
- * Orchestrator MCP and reports back.
+ * to it from the Command panel; it inspects the workspace through the keeper
+ * MCP toolset and reports back.
  *
- * Runtime: **Codex**. Each turn is a `codex exec` invocation that resumes the
- * conversation's own thread, so context is continuous and — because
- * programmatic Codex is subscription-covered (plan §3) — free.
+ * Runtime: the user picks the engine — Codex, Claude or Gemini (see
+ * keeper-engines.ts). Each turn is one headless CLI run that resumes that
+ * engine's session for the conversation, so context is continuous and runs on
+ * the user's own subscription.
  *
- * The brain keeps **multiple conversations** (like chat threads); each has its
- * own Codex thread. All of them persist to ~/.termates/brain/state.json and
- * survive daemon restarts.
+ * The brain keeps **multiple conversations** (like chat threads). Each keeps
+ * one session per engine; switching engines mid-conversation starts the new
+ * engine's session with a recap of the conversation so far. Everything
+ * persists to ~/.termates/brain/state.json and survives daemon restarts.
  */
 
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-import type { BrainEvent, BrainMessage, BrainState, BrainStatus } from './protocol.js';
-import { DAEMON_HTTP_URL } from './protocol.js';
+import {
+  DAEMON_HTTP_URL,
+  KEEPER_ENGINES,
+  type BrainEvent,
+  type BrainMessage,
+  type BrainState,
+  type BrainStatus,
+  type KeeperEngine,
+} from './protocol.js';
+import { KEEPER_ENGINE_SPECS, isOnPath, type TurnMessage } from './keeper-engines.js';
+import { MAX_KEEPER_MESSAGE, isValidModel } from './keeper-limits.js';
 import { appHomePath } from '../app-home.js';
 
 const __dirname_ = path.dirname(fileURLToPath(import.meta.url));
@@ -30,15 +40,17 @@ const __dirname_ = path.dirname(fileURLToPath(import.meta.url));
 const MAX_HISTORY = 240;
 /** Cap how many conversations are kept (oldest dropped beyond this). */
 const MAX_CONVERSATIONS = 50;
+/** How much earlier conversation a newly switched-in engine is given. */
+const RECAP_MESSAGES = 30;
+const RECAP_CHARS = 12_000;
 
 const BRAIN_DIR = appHomePath('brain');
-const CODEX_HOME = path.join(BRAIN_DIR, 'codex-home');
 const STATE_PATH = path.join(BRAIN_DIR, 'state.json');
-const AGENTS_MD_PATH = path.join(BRAIN_DIR, 'AGENTS.md');
+const DEFAULT_ENGINE: KeeperEngine = 'codex';
 
 /**
- * Appended to every turn's input. Codex bakes AGENTS.md in at conversation
- * creation — `exec resume` does NOT re-read it — so a rule that must apply to
+ * Appended to every turn's input. Engines bake the persona in when a session
+ * starts and do not re-read it on resume, so a rule that must apply to
  * existing conversations has to ride on the turn itself.
  */
 const TURN_SUFFIX =
@@ -53,7 +65,7 @@ const TURN_SUFFIX =
   'needed next. Informative and specific, not a one-line platitude.\n' +
   'All spoken lines: plain language, no markdown, no file paths.';
 
-/** The brain's persona + operating rules — loaded by Codex as AGENTS.md. */
+/** The Keeper's persona + operating rules, given to every engine. */
 const AGENTS_MD = `# The Keeper — Termates Orchestrator Brain
 
 You are **The Keeper**, the orchestrator brain of Termates — a command center
@@ -125,25 +137,33 @@ about what needs the user's attention.
 - Never pretend you reached an agent you didn't.
 `;
 
-/** One brain conversation — its own Codex thread and transcript. */
+
+/** One brain conversation — one session per engine, and its transcript. */
 interface Conversation {
   id: string;
   title: string;
-  threadId: string | null;
+  sessions: Partial<Record<KeeperEngine, string>>;
+  /** Engine of the last turn; a different one gets a recap first. */
+  lastEngine?: KeeperEngine;
   messages: BrainMessage[];
   createdAt: string;
   updatedAt: string;
 }
 
+interface KeeperSettings {
+  engine: KeeperEngine;
+  /** Per-engine model; missing or '' is the engine's default. */
+  models: Partial<Record<KeeperEngine, string>>;
+}
+
 interface PersistedState {
   conversations: Conversation[];
   currentId: string;
+  settings: KeeperSettings;
 }
 
-/** TOML basic-string literal with proper escaping (Windows paths included). */
-function tomlStr(s: string): string {
-  return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
-}
+const isEngine = (value: unknown): value is KeeperEngine =>
+  typeof value === 'string' && (KEEPER_ENGINES as readonly string[]).includes(value);
 
 /** cmd.exe-safe quoting — only needed when spawning with `shell: true`. */
 function winQuote(arg: string): string {
@@ -155,10 +175,11 @@ function winQuote(arg: string): string {
 export class Orchestrator {
   private conversations: Conversation[] = [];
   private currentId = '';
+  private settings: KeeperSettings = { engine: DEFAULT_ENGINE, models: {} };
   private status: BrainStatus = 'idle';
   private busy = false;
-  /** The codex child for the in-flight turn, so abortTurn() can kill it. */
-  private currentChild: ReturnType<typeof spawn> | null = null;
+  /** The CLI child for the in-flight turn, so abortTurn() can kill it. */
+  private currentChild: ChildProcess | null = null;
   /** True between an abortTurn() call and the next send() — keeps repeated
    *  Stop presses from spamming "Cancelled by user" messages. */
   private aborting = false;
@@ -176,7 +197,13 @@ export class Orchestrator {
     return {
       messages: cur.messages,
       status: this.status,
-      engine: 'codex',
+      engine: this.settings.engine,
+      model: this.settings.models[this.settings.engine] ?? '',
+      engines: KEEPER_ENGINES.map((id) => ({
+        id,
+        label: KEEPER_ENGINE_SPECS[id].label,
+        available: isOnPath(KEEPER_ENGINE_SPECS[id].binary),
+      })),
       currentId: this.currentId,
       conversations: [...this.conversations]
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -187,6 +214,17 @@ export class Orchestrator {
           messageCount: c.messages.length,
         })),
     };
+  }
+
+  /** Choose the engine (and its model) for the next turns. */
+  setSettings(engine: KeeperEngine, model: string): void {
+    if (!isEngine(engine) || !isValidModel(model)) return;
+    this.settings = {
+      engine,
+      models: { ...this.settings.models, [engine]: model },
+    };
+    this.save();
+    this.emitState();
   }
 
   /** Start a fresh conversation (keeps the existing ones). */
@@ -226,7 +264,7 @@ export class Orchestrator {
 
   /** Run one brain turn for a user message. */
   async send(message: string): Promise<void> {
-    const text = message.trim();
+    const text = message.trim().slice(0, MAX_KEEPER_MESSAGE);
     if (!text) return;
 
     // The turn targets whichever conversation is current right now; capture it
@@ -243,16 +281,18 @@ export class Orchestrator {
 
     this.busy = true;
     this.aborting = false;
+    const engine = this.settings.engine;
+    const prompt = this.recapFor(conv, engine) + text;
     if (conv.messages.length === 0) conv.title = makeTitle(text);
     this.append(conv, { role: 'user', text });
     this.setStatus('thinking');
 
     try {
-      await this.runCodexTurn(conv, text);
+      await this.runTurn(conv, engine, prompt);
     } catch (err) {
       this.append(conv, {
         role: 'error',
-        text: 'Brain turn failed: ' + (err instanceof Error ? err.message : String(err)),
+        text: 'The Keeper turn failed: ' + (err instanceof Error ? err.message : String(err)),
       });
     } finally {
       this.busy = false;
@@ -263,36 +303,30 @@ export class Orchestrator {
   }
 
   /**
-   * Cancel the in-flight Keeper turn. Kills the running codex child; its
-   * `close` handler then resolves runCodexTurn, send()'s finally block runs,
-   * busy clears, status flips back to idle. A system marker is appended so
-   * the conversation shows what happened.
+   * Cancel the in-flight Keeper turn. Kills the running CLI child; its `close`
+   * handler then resolves runTurn, send()'s finally block runs, busy clears,
+   * status flips back to idle. A system marker is appended so the conversation
+   * shows what happened.
    */
   abortTurn(): boolean {
     const child = this.currentChild;
-    console.log('[orchestrator] abortTurn called — busy:', this.busy, 'child pid:', child?.pid ?? null);
-    if (!child || !this.busy) {
-      console.log('[orchestrator] abortTurn: nothing to kill (no child or not busy)');
-      return false;
-    }
+    if (!child || !this.busy) return false;
     // Don't null currentChild here — let the child's 'close' handler clear
-    // it when the process actually dies. That way a second Stop press can
-    // retry the kill if the first attempt missed (e.g. taskkill raced).
-
+    // it when the process actually dies, so a second Stop press can retry.
     if (process.platform === 'win32' && child.pid) {
-      // shell: true → child IS cmd.exe, with codex spawned underneath it.
-      // child.kill() would only kill cmd.exe and orphan codex (which keeps
-      // running until it finishes its task). taskkill /T /F kills the whole
-      // tree in one shot — that's the only thing that actually works here.
+      // shell: true → child IS cmd.exe; taskkill /T /F takes the whole tree.
       try {
         const tk = spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true });
-        tk.on('exit', (code) => console.log('[orchestrator] taskkill exited with code', code));
         tk.on('error', (err) => console.warn('[orchestrator] taskkill spawn failed:', err));
-      } catch (err) { console.warn('[orchestrator] taskkill spawn threw:', err); }
+      } catch (err) {
+        console.warn('[orchestrator] taskkill spawn threw:', err);
+      }
     } else {
-      // Non-Windows: shell: false → child IS codex. SIGTERM works.
-      try { child.kill(); console.log('[orchestrator] child.kill() called on pid', child.pid); }
-      catch (err) { console.warn('[orchestrator] child.kill() threw:', err); }
+      try {
+        child.kill();
+      } catch (err) {
+        console.warn('[orchestrator] child.kill() threw:', err);
+      }
     }
 
     if (!this.aborting) {
@@ -305,59 +339,81 @@ export class Orchestrator {
     return true;
   }
 
-  // ─────────────────────────── Codex turn ───────────────────────────
+  // ─────────────────────────── One turn ───────────────────────────
 
-  private runCodexTurn(conv: Conversation, prompt: string): Promise<void> {
-    this.ensureBrainEnv();
+  /**
+   * A conversation continued on a different engine than its last turn starts
+   * that engine's session with the transcript so far, so nothing is lost.
+   */
+  private recapFor(conv: Conversation, engine: KeeperEngine): string {
+    if (conv.sessions[engine] || !conv.lastEngine || conv.lastEngine === engine) return '';
+    const lines = conv.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .slice(-RECAP_MESSAGES)
+      .map((m) => `${m.role === 'user' ? 'User' : 'Keeper'}: ${m.text}`);
+    let recap = lines.join('\n\n');
+    if (recap.length > RECAP_CHARS) recap = '…' + recap.slice(-RECAP_CHARS);
+    if (!recap) return '';
+    return (
+      '[Earlier in this conversation, on another engine — for context only]\n' +
+      recap +
+      '\n[End of earlier conversation]\n\n'
+    );
+  }
 
-    const outFile = path.join(BRAIN_DIR, `lastmsg-${Date.now()}.txt`);
-    // The brain runs non-interactively, so nobody can answer Codex approval
-    // prompts — and under the default `never` policy every gated call (which
-    // includes MCP tool calls) is auto-cancelled. `--dangerously-bypass-...`
-    // is Codex's supported flag for headless automation. It is safe here: the
-    // brain's only capability is the Keeper MCP toolset (its AGENTS.md forbids
-    // shell use), and real write-actions still flow through sandboxed agents.
-    const turnArgs = [
-      '--dangerously-bypass-approvals-and-sandbox',
-      '--json', '--skip-git-repo-check', '-o', outFile, '-',
-    ];
-    const args = conv.threadId
-      ? ['exec', 'resume', conv.threadId, ...turnArgs]
-      : ['exec', '--cd', BRAIN_DIR, ...turnArgs];
+  private runTurn(conv: Conversation, engine: KeeperEngine, prompt: string): Promise<void> {
+    const spec = KEEPER_ENGINE_SPECS[engine];
+    fs.mkdirSync(BRAIN_DIR, { recursive: true });
+    const turn = spec.prepare({
+      brainDir: BRAIN_DIR,
+      persona: AGENTS_MD,
+      mcpCommand: process.execPath,
+      mcpArgs: [this.keeperMcpPath, '--daemon', DAEMON_HTTP_URL],
+      model: this.settings.models[engine] ?? '',
+      sessionId: conv.sessions[engine] ?? null,
+      // The spoken-summary rule rides on every turn — resume won't re-read
+      // the persona.
+      prompt: prompt + TURN_SUFFIX,
+    });
+    const parser = spec.parser();
+
+    const setSession = (id: string | undefined) => {
+      if (!id || conv.sessions[engine] === id) return;
+      conv.sessions = { ...conv.sessions, [engine]: id };
+      this.save();
+    };
+    conv.lastEngine = engine;
+    if (turn.sessionId) setSession(turn.sessionId);
 
     const isWin = process.platform === 'win32';
-    const spawnArgs = isWin ? args.map(winQuote) : args;
-
     return new Promise<void>((resolve) => {
-      let child;
+      let child: ChildProcess;
       try {
-        child = spawn('codex', spawnArgs, {
-          cwd: BRAIN_DIR,
-          env: { ...process.env, CODEX_HOME },
+        child = spawn(turn.command, isWin ? turn.args.map(winQuote) : turn.args, {
+          cwd: turn.cwd,
+          env: turn.env,
           shell: isWin,
           windowsHide: true,
         });
       } catch (err) {
-        this.append(conv, {
-          role: 'error',
-          text: 'Could not start Codex. Is the `codex` CLI installed and on PATH? ' +
-            (err instanceof Error ? err.message : String(err)),
-        });
+        this.append(conv, { role: 'error', text: this.notInstalled(spec.label, spec.binary, err) });
         resolve();
         return;
       }
-
-      // Track the child so abortTurn() can find and kill it.
       this.currentChild = child;
 
       let stdoutBuf = '';
       let stderrBuf = '';
-      let producedAssistant = false;
+      let answered = false;
+      const take = (messages: TurnMessage[]) => {
+        for (const m of messages) {
+          this.append(conv, m);
+          if (m.role === 'assistant') answered = true;
+        }
+      };
 
       child.stdin?.on('error', () => { /* ignore broken pipe */ });
-      // The spoken-summary rule rides on every turn — exec resume won't pick
-      // it up from AGENTS.md.
-      child.stdin?.write(prompt + TURN_SUFFIX);
+      if (turn.stdin) child.stdin?.write(turn.stdin);
       child.stdin?.end();
 
       child.stdout?.on('data', (d: Buffer) => {
@@ -366,7 +422,10 @@ export class Orchestrator {
         while ((nl = stdoutBuf.indexOf('\n')) >= 0) {
           const line = stdoutBuf.slice(0, nl).trim();
           stdoutBuf = stdoutBuf.slice(nl + 1);
-          if (line && this.handleCodexLine(conv, line)) producedAssistant = true;
+          if (!line) continue;
+          const result = parser.line(line);
+          setSession(result.sessionId);
+          take(result.messages);
         }
       });
 
@@ -375,145 +434,51 @@ export class Orchestrator {
         if (stderrBuf.length > 8000) stderrBuf = stderrBuf.slice(-8000);
       });
 
-      child.on('error', (err) => {
-        this.append(conv, {
-          role: 'error',
-          text: 'Could not start Codex (`codex` CLI not found?): ' + err.message,
-        });
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (this.currentChild === child) this.currentChild = null;
+        if (turn.lastMessageFile) {
+          try { fs.rmSync(turn.lastMessageFile, { force: true }); } catch { /* ignore */ }
+        }
         resolve();
+      };
+
+      child.on('error', (err) => {
+        this.append(conv, { role: 'error', text: this.notInstalled(spec.label, spec.binary, err) });
+        finish();
       });
 
       child.on('close', (code) => {
-        if (this.currentChild === child) this.currentChild = null;
-        // Safety net: if no agent_message streamed through, fall back to the
-        // canonical last-message file Codex wrote.
-        if (!producedAssistant) {
-          let last = '';
-          try {
-            if (fs.existsSync(outFile)) last = fs.readFileSync(outFile, 'utf-8').trim();
-          } catch { /* ignore */ }
-          if (last) {
-            this.append(conv, { role: 'assistant', text: last });
-          } else if (code !== 0) {
-            const detail = stderrBuf.trim().split('\n').slice(-4).join('\n');
-            this.append(conv, {
-              role: 'error',
-              text: `Codex exited with code ${code}.` + (detail ? `\n${detail}` : ''),
-            });
-          }
+        if (stdoutBuf.trim()) {
+          const result = parser.line(stdoutBuf.trim());
+          setSession(result.sessionId);
+          take(result.messages);
         }
-        try { if (fs.existsSync(outFile)) fs.unlinkSync(outFile); } catch { /* ignore */ }
-        resolve();
+        take(parser.end());
+        // Safety net: an engine that wrote its answer to a file but streamed
+        // none of it.
+        if (!answered && turn.lastMessageFile) {
+          let last = '';
+          try { last = fs.readFileSync(turn.lastMessageFile, 'utf-8').trim(); } catch { /* none */ }
+          if (last) take([{ role: 'assistant', text: last }]);
+        }
+        if (!answered && code !== 0 && !this.aborting) {
+          const detail = stderrBuf.trim().split('\n').slice(-4).join('\n');
+          this.append(conv, {
+            role: 'error',
+            text: `${spec.label} exited with code ${code}.` + (detail ? `\n${detail}` : ''),
+          });
+        }
+        finish();
       });
     });
   }
 
-  /** Parse one Codex `--json` event line. Returns true if it was an answer. */
-  private handleCodexLine(conv: Conversation, line: string): boolean {
-    let obj: Record<string, unknown>;
-    try { obj = JSON.parse(line); } catch { return false; }
-
-    const type = obj.type;
-    if (type === 'thread.started') {
-      const id = obj.thread_id;
-      if (typeof id === 'string' && id) { conv.threadId = id; this.save(); }
-      return false;
-    }
-    if (type === 'item.completed') {
-      const msg = this.itemToMessage(obj.item as Record<string, unknown> | undefined);
-      if (msg) {
-        this.append(conv, msg);
-        return msg.role === 'assistant';
-      }
-      return false;
-    }
-    if (type === 'turn.failed' || type === 'error') {
-      const e = (obj.error || obj) as { message?: string };
-      this.append(conv, { role: 'error', text: e.message || 'Brain turn failed.' });
-      return false;
-    }
-    return false;
-  }
-
-  /** Map a Codex turn item to a renderable brain message (or null to skip). */
-  private itemToMessage(item: Record<string, unknown> | undefined): Omit<BrainMessage, 'id' | 'ts'> | null {
-    if (!item) return null;
-    const type = String(item.type || '');
-
-    if (type === 'agent_message') {
-      const text = String(item.text || '').trim();
-      return text ? { role: 'assistant', text } : null;
-    }
-    if (type === 'reasoning') {
-      const text = String(item.text || item.summary || '').trim();
-      return text ? { role: 'reasoning', text } : null;
-    }
-    if (type === 'command_execution') {
-      const cmd = String(item.command || item.cmd || '(command)');
-      return { role: 'tool', tool: 'shell', text: '$ ' + cmd };
-    }
-    if (type === 'mcp_tool_call' || type.includes('mcp') || type.includes('tool_call')) {
-      const name = String(item.tool || item.name || item.tool_name || 'tool');
-      const server = item.server ? `${item.server}/` : '';
-      let summary = '';
-      const rawArgs = item.arguments ?? item.input ?? item.args;
-      if (rawArgs !== undefined) {
-        try { summary = typeof rawArgs === 'string' ? rawArgs : JSON.stringify(rawArgs); }
-        catch { summary = ''; }
-      }
-      return { role: 'tool', tool: server + name, text: summary.slice(0, 600) };
-    }
-    if (type === 'error') {
-      return { role: 'error', text: String(item.message || 'error') };
-    }
-    // todo_list / file_change / web_search / etc. — not surfaced in Phase 1.
-    return null;
-  }
-
-  // ─────────────────────────── Brain environment ───────────────────────────
-
-  /** Write the brain's AGENTS.md + dedicated Codex home (config + auth). */
-  private ensureBrainEnv(): void {
-    fs.mkdirSync(BRAIN_DIR, { recursive: true });
-    fs.mkdirSync(CODEX_HOME, { recursive: true });
-
-    fs.writeFileSync(AGENTS_MD_PATH, AGENTS_MD, 'utf-8');
-
-    // Dedicated Codex config — only the Keeper MCP server + the user's model.
-    const config = [
-      '# Termates Orchestrator brain — managed by Termates. Do not edit.',
-      this.userCodexModelConfig(),
-      '',
-      '[mcp_servers.keeper]',
-      `command = ${tomlStr(process.execPath)}`,
-      `args = [${[this.keeperMcpPath, '--daemon', DAEMON_HTTP_URL].map(tomlStr).join(', ')}]`,
-      '',
-    ].filter((l) => l !== '').join('\n') + '\n';
-    fs.writeFileSync(path.join(CODEX_HOME, 'config.toml'), config, 'utf-8');
-
-    // Copy the user's Codex auth so the brain inherits their subscription.
-    try {
-      const src = path.join(os.homedir(), '.codex', 'auth.json');
-      if (fs.existsSync(src)) {
-        fs.copyFileSync(src, path.join(CODEX_HOME, 'auth.json'));
-      }
-    } catch { /* the brain may still authenticate via env / OPENAI_API_KEY */ }
-  }
-
-  /** Inherit `model` / `service_tier` from the user's Codex config, if set. */
-  private userCodexModelConfig(): string {
-    const out: string[] = [];
-    try {
-      const userCfg = path.join(os.homedir(), '.codex', 'config.toml');
-      if (fs.existsSync(userCfg)) {
-        for (const raw of fs.readFileSync(userCfg, 'utf-8').split('\n')) {
-          const line = raw.trim();
-          if (line.startsWith('[')) break; // top-level scalars only
-          if (/^(model|service_tier)\s*=/.test(line)) out.push(line);
-        }
-      }
-    } catch { /* fall back to Codex defaults */ }
-    return out.join('\n');
+  private notInstalled(label: string, binary: string, err: unknown): string {
+    const detail = err instanceof Error ? err.message : String(err);
+    return `Could not start ${label}. Is the \`${binary}\` CLI installed and signed in? ${detail}`;
   }
 
   // ─────────────────────────── State ───────────────────────────
@@ -527,7 +492,7 @@ export class Orchestrator {
     return {
       id: randomUUID(),
       title: 'New conversation',
-      threadId: null,
+      sessions: {},
       messages: [],
       createdAt: now,
       updatedAt: now,
@@ -541,7 +506,7 @@ export class Orchestrator {
     this.conversations = this.conversations.slice(0, MAX_CONVERSATIONS);
   }
 
-  private append(conv: Conversation, m: Omit<BrainMessage, 'id' | 'ts'>): void {
+  private append(conv: Conversation, m: TurnMessage): void {
     const message: BrainMessage = { id: randomUUID(), ts: new Date().toISOString(), ...m };
     conv.messages.push(message);
     if (conv.messages.length > MAX_HISTORY) {
@@ -566,17 +531,24 @@ export class Orchestrator {
       if (fs.existsSync(STATE_PATH)) {
         const data = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8'));
         if (Array.isArray(data.conversations) && data.conversations.length > 0) {
-          this.conversations = data.conversations;
+          this.conversations = data.conversations.map(normalizeConversation);
           this.currentId = typeof data.currentId === 'string' ? data.currentId : '';
         } else if (Array.isArray(data.messages)) {
           // Migrate the old single-conversation shape ({ threadId, messages }).
-          const conv = this.makeConversation();
-          conv.threadId = typeof data.threadId === 'string' ? data.threadId : null;
-          conv.messages = data.messages;
-          const firstUser = data.messages.find((m: BrainMessage) => m?.role === 'user');
+          const conv = normalizeConversation({ ...this.makeConversation(), threadId: data.threadId, messages: data.messages });
+          const firstUser = conv.messages.find((m) => m?.role === 'user');
           if (firstUser) conv.title = makeTitle(firstUser.text);
           this.conversations = [conv];
           this.currentId = conv.id;
+        }
+        const settings = data.settings as Partial<KeeperSettings> | undefined;
+        if (settings && isEngine(settings.engine)) {
+          const models: Partial<Record<KeeperEngine, string>> = {};
+          for (const id of KEEPER_ENGINES) {
+            const model = settings.models?.[id];
+            if (typeof model === 'string' && isValidModel(model)) models[id] = model;
+          }
+          this.settings = { engine: settings.engine, models };
         }
       }
     } catch {
@@ -598,10 +570,38 @@ export class Orchestrator {
       const data: PersistedState = {
         conversations: this.conversations,
         currentId: this.currentId,
+        settings: this.settings,
       };
-      fs.writeFileSync(STATE_PATH, JSON.stringify(data, null, 2), 'utf-8');
+      // Write-then-rename so a crash mid-write never truncates the history.
+      const tmp = `${STATE_PATH}.${process.pid}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 });
+      fs.renameSync(tmp, STATE_PATH);
     } catch { /* best-effort persistence */ }
   }
+}
+
+/**
+ * Accept a stored conversation from any earlier version: pre-engine ones kept
+ * a single Codex `threadId`.
+ */
+function normalizeConversation(raw: Record<string, unknown>): Conversation {
+  const now = new Date().toISOString();
+  const sessions: Partial<Record<KeeperEngine, string>> = {};
+  const stored = raw.sessions as Record<string, unknown> | undefined;
+  for (const id of KEEPER_ENGINES) {
+    if (typeof stored?.[id] === 'string') sessions[id] = stored[id] as string;
+  }
+  if (!sessions.codex && typeof raw.threadId === 'string' && raw.threadId) sessions.codex = raw.threadId;
+  const messages = Array.isArray(raw.messages) ? (raw.messages as BrainMessage[]) : [];
+  return {
+    id: typeof raw.id === 'string' ? raw.id : randomUUID(),
+    title: typeof raw.title === 'string' ? raw.title : 'New conversation',
+    sessions,
+    lastEngine: isEngine(raw.lastEngine) ? raw.lastEngine : sessions.codex ? 'codex' : undefined,
+    messages,
+    createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : now,
+    updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : now,
+  };
 }
 
 /** Make a short conversation title from the first user message. */

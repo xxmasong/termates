@@ -55,4 +55,23 @@ describe('parseClientMessage', () => {
       rows: 1,
     });
   });
+  it('accepts Keeper settings only for known engines and plain model ids', () => {
+    assert.deepEqual(parseClientMessage('{"type":"brain:settings","engine":"gemini","model":""}'), {
+      type: 'brain:settings',
+      engine: 'gemini',
+      model: '',
+    });
+    for (const bad of [
+      { type: 'brain:settings', engine: 'bash', model: '' },
+      { type: 'brain:settings', engine: 'codex', model: '--dangerously-bypass-approvals-and-sandbox' },
+      { type: 'brain:settings', engine: 'claude' },
+    ]) {
+      assert.equal(parseClientMessage(JSON.stringify(bad)), null, JSON.stringify(bad));
+    }
+  });
+
+  it('drops oversized Keeper messages', () => {
+    const big = JSON.stringify({ type: 'brain:send', message: 'x'.repeat(20_001) });
+    assert.equal(parseClientMessage(big), null);
+  });
 });

@@ -438,6 +438,10 @@ wss.on('connection', (ws) => {
         daemon.deleteBrainConversation(msg.conversationId);
         break;
       }
+      case 'brain:settings': {
+        daemon.setBrainSettings(msg.engine, msg.model);
+        break;
+      }
       case 'login:start': {
         cliLogin.startLogin(ws, msg.cli, msg.cols, msg.rows);
         break;

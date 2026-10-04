@@ -6,6 +6,8 @@
  * the web server down. Anything malformed is dropped.
  */
 
+import { KEEPER_ENGINES, type KeeperEngine } from './daemon/protocol.js';
+import { MAX_KEEPER_MESSAGE, isValidModel } from './daemon/keeper-limits.js';
 import type { WSClientMessage } from './types.js';
 
 /** Terminal sizes are clamped to what a screen can show; node-pty throws on NaN or ≤ 0. */
@@ -16,6 +18,9 @@ type Raw = Record<string, unknown>;
 
 const isId = (value: unknown): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= MAX_ID_LENGTH;
+
+const isEngine = (value: unknown): value is KeeperEngine =>
+  typeof value === 'string' && (KEEPER_ENGINES as readonly string[]).includes(value);
 
 const dimension = (value: unknown): number | null =>
   typeof value === 'number' && Number.isFinite(value)
@@ -42,7 +47,13 @@ function parse(raw: Raw): WSClientMessage | null {
       return isId(raw.agentId) && size ? { type: raw.type, agentId: raw.agentId, ...size } : null;
     }
     case 'brain:send':
-      return typeof raw.message === 'string' ? { type: raw.type, message: raw.message } : null;
+      return typeof raw.message === 'string' && raw.message.length <= MAX_KEEPER_MESSAGE
+        ? { type: raw.type, message: raw.message }
+        : null;
+    case 'brain:settings':
+      return isEngine(raw.engine) && typeof raw.model === 'string' && isValidModel(raw.model)
+        ? { type: raw.type, engine: raw.engine, model: raw.model }
+        : null;
     case 'brain:new':
     case 'brain:abort':
     case 'login:stop':

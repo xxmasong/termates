@@ -12,6 +12,7 @@ import {
   type DaemonMessage,
   type DaemonRpcResults,
   type BrainEvent,
+  type KeeperEngine,
   type AgentDispatch,
   type CodexItem,
 } from './protocol.js';
@@ -207,6 +208,10 @@ export class DaemonClient {
   /** Switch the active brain conversation. */
   switchBrainConversation(conversationId: string): void {
     this.command({ op: 'brain:switch', conversationId });
+  }
+  /** Choose the Keeper's engine and model. */
+  setBrainSettings(engine: KeeperEngine, model: string): void {
+    this.command({ op: 'brain:settings', engine, model });
   }
   /** Delete a brain conversation. */
   deleteBrainConversation(conversationId: string): void {
