@@ -39,11 +39,9 @@ const ICON_DEFINITIONS = {
   hash: { paths: ['M6 2v12M10 2v12M2 6h12M2 10h12'] },
   info: { paths: ['M8 14A6 6 0 108 2a6 6 0 000 12zM8 7.5v3.5M8 5h.01'] },
   logo: {
-    paths: [
-      'M8 1.4L13.7 4.8L13.7 11.2L8 14.6L2.3 11.2L2.3 4.8Z',
-      'M5.6 6L8 8L5.6 10',
-      'M8.6 10.2H11',
-    ],
+    paths: ['M4.4 6.9H11.6', 'M6.3 8.3L7.6 9.05L6.3 9.8Z'],
+    circles: [{ cx: 8, cy: 8, r: 6.6 }],
+    rects: [{ x: 4.4, y: 5.2, width: 7.2, height: 5.6, rx: 0.9 }],
   },
   logOut: { paths: ['M6.5 2.5h-4v11h4', 'M10 5l3 3-3 3', 'M13 8H6'] },
   menu: { viewBox: '0 0 18 18', paths: ['M3 5h12M3 9h12M3 13h12'] },
