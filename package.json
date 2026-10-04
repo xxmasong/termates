@@ -11,7 +11,7 @@
     "build:server": "tsup",
     "daemon": "node dist/daemon/daemon.js",
     "start": "node dist/server.js",
-    "start:all": "concurrently -n daemon,web --restart-tries -1 --restart-after 2000 \"npm run daemon\" \"npm run start\"",
+    "start:all": "node scripts/start-all.mjs",
     "typecheck": "tsc --noEmit",
     "typecheck:server": "tsc -p tsconfig.server.json",
     "test:server": "node scripts/test-server.mjs",
