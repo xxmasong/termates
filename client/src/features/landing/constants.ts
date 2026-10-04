@@ -38,7 +38,7 @@ export const COPY = {
       'Uses the subscriptions you already have · Runs in any browser · Keeps working when you close the tab',
   },
   sim: {
-    title: 'checkout-redesign — 4 agents',
+    title: 'checkout-redesign — 4 cligents',
     live: '● live',
     toast: '✉ from codex: orders API now returns {total, currency}',
     keeper: 'All four agents done. PR ready: 3 files, tests green.',

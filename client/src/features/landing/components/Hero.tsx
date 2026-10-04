@@ -1,13 +1,13 @@
 import { ROUTES } from '@/constants';
 import { COPY } from '../constants';
-import { HexPattern } from './HexPattern';
+import { RingPattern } from './RingPattern';
 import { HiveSim } from './HiveSim';
 interface HeroProps {
   children?: never;
 }
 export const Hero: React.FC<HeroProps> = () => (
   <section className="landing-hero" id="top">
-    <HexPattern />
+    <RingPattern />
     <div className="landing-hero__copy">
       <p className="landing-eyebrow">{COPY.hero.eyebrow}</p>
       <h1>

@@ -236,21 +236,18 @@ html.landing-document {
   gap: 12px;
   margin-top: 28px;
 }
-.landing-hex {
+.landing-rings {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M24 0H0V24' fill='none' stroke='%23ffffff' stroke-opacity='.06'/%3E%3C/svg%3E");
+  background-repeat: repeat;
   height: 600px;
   left: 45%;
-  mask-image: radial-gradient(circle, black, transparent 70%);
-  opacity: 1;
+  mask-image: radial-gradient(circle at 56% 48%, #000 0, transparent 72%);
   position: absolute;
   stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 1px;
   top: 0;
   width: 700px;
   z-index: 0;
-}
-.landing-hex {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='49' viewBox='0 0 56 49'%3E%3Cpath d='M14 1h28l14 23.5L42 48H14L0 24.5Z' fill='none' stroke='%23ffffff' stroke-opacity='.09'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  mask-image: radial-gradient(circle at 56% 48%, #000 0, transparent 72%);
 }
 .hive-pane--claude pre {
   display: -webkit-box;

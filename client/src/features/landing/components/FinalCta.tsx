@@ -1,6 +1,6 @@
 import { ROUTES } from '@/constants';
 import { COPY } from '../constants';
-import { HexPattern } from './HexPattern';
+import { RingPattern } from './RingPattern';
 
 interface FinalCtaProps {
   children?: never;
@@ -8,7 +8,7 @@ interface FinalCtaProps {
 
 export const FinalCta: React.FC<FinalCtaProps> = () => (
   <section className="landing-final-cta">
-    <HexPattern />
+    <RingPattern />
     <h2>{COPY.cta.title}</h2>
     <p>{COPY.cta.body}</p>
     <div className="landing-actions">

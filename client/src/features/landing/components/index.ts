@@ -1,5 +1,5 @@
 export * from './Hero';
-export * from './HexPattern';
+export * from './RingPattern';
 export * from './HiveSim';
 export * from './HiveSimPane';
 export * from './KeeperHud';
