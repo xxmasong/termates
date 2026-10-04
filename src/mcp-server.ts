@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Termhive MCP Server
+ * Termates MCP Server
  *
  * Provides coding-agent-to-agent messaging via MCP. Spawned as a stdio MCP server
  * per Claude Code / Codex CLI agent session. Each instance is configured with its
  * own identity (project, agent) via command-line args, then forwards tool calls
- * to the Termhive backend over HTTP.
+ * to the Termates backend over HTTP.
  *
  * Args:
- *   --hub    <url>         Termhive server URL (default http://localhost:3200)
+ *   --hub    <url>         Termates server URL (default http://localhost:3200)
  *   --project <projectId>  UUID of the project this agent belongs to
  *   --agent   <agentId>    UUID of this agent
  *   --name    <agentName>  Display name of this agent
@@ -53,12 +53,12 @@ async function main() {
   const args = parseArgs();
 
   if (!args.projectId || !args.agentId) {
-    console.error('[termhive-mcp] Missing --project or --agent arg. MCP will start but tools may fail.');
+    console.error('[termates-mcp] Missing --project or --agent arg. MCP will start but tools may fail.');
   }
 
   const server = new Server(
     {
-      name: 'termhive',
+      name: 'termates',
       version: '0.1.0',
     },
     {
@@ -141,7 +141,7 @@ async function main() {
               type: 'text',
               text: delivered
                 ? `Message delivered to ${to}.`
-                : `NOT delivered: ${to} is not running, and TermHive does not queue messages. Tell the user.`,
+                : `NOT delivered: ${to} is not running, and Termates does not queue messages. Tell the user.`,
             },
           ],
         };
@@ -174,10 +174,10 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`[termhive-mcp] connected as ${args.agentName} (${args.agentId})`);
+  console.error(`[termates-mcp] connected as ${args.agentName} (${args.agentId})`);
 }
 
 main().catch((err) => {
-  console.error('[termhive-mcp] fatal:', err);
+  console.error('[termates-mcp] fatal:', err);
   process.exit(1);
 });

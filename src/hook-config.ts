@@ -99,7 +99,7 @@ export function writeClaudeHookConfig(agentId: string, hookBaseUrl: string): str
       ...(allow ? { allow: split(allow) } : {}),
       // Every agent registers as a peer Claude session, so the built-in
       // SendMessage shadows the MCP tool and silently delivers to the wrong
-      // process. Denying it forces mcp__termhive__message_agent.
+      // process. Denying it forces mcp__termates__message_agent.
       ...(deny ? { deny: split(deny) } : {}),
     };
   }
