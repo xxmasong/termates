@@ -345,6 +345,16 @@ function writeGeminiWorkspaceSettings(agent: Agent, cwd: string): void {
   }
 }
 
+/** Longest message injected into an agent's terminal in one go. */
+const MAX_INJECTED_MESSAGE = 32_000;
+
+/** cmd.exe argument quoting (Windows only — elsewhere args never meet a shell). */
+function winQuote(arg: string): string {
+  if (arg === '') return '""';
+  if (!/[ \t"&|<>()^%]/.test(arg)) return arg;
+  return '"' + arg.replace(/"/g, '""') + '"';
+}
+
 function getCliCommand(agent: Agent, sharedPath: string, wikiPath: string, mcpConfigPath: string | null, hookConfigPath: string | null, cwd: string): { cmd: string; args: string[] } {
   const args: string[] = [];
   switch (agent.cli) {
@@ -476,11 +486,16 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   ensureGeminiTrustedFolders(agent, [cwd, sharedPath, wikiPath]);
 
   const { cmd, args } = getCliCommand(agent, sharedPath, wikiPath, claudeMcpConfigPath, claudeHookConfigPath, cwd);
-  const shell = process.platform === 'win32' ? 'cmd.exe' : '/bin/bash';
+  const isWin = process.platform === 'win32';
 
   let proc: IPty;
   try {
-    proc = pty.spawn(shell, [], {
+    // An interactive bash runs the CLI so it gets the user's shell setup
+    // (~/.bashrc PATH etc.), but it `exec`s it with the arguments as "$@":
+    // the shell never parses them, so spaces, quotes or `$(...)` in a project
+    // name or launch setting stay literal. The PTY ends when the CLI exits,
+    // so nothing typed at the agent can ever land in a bare shell.
+    proc = pty.spawn(isWin ? 'cmd.exe' : '/bin/bash', isWin ? [] : ['-ic', 'exec "$0" "$@"', cmd, ...args], {
       name: 'xterm-256color',
       cols: 120,
       rows: 30,
@@ -500,8 +515,7 @@ export function startAgent(agent: Agent, onStatus: (agentId: string, status: str
   };
   sessions.set(agent.id, session);
 
-  // Send the CLI command to the shell
-  proc.write(`${cmd} ${args.join(' ')}\r`);
+  if (isWin) proc.write(`${cmd} ${args.map(winQuote).join(' ')}\r`);
 
   proc.onData((data: string) => {
     session.buffer.push(data);
@@ -553,7 +567,10 @@ export function injectMessage(targetAgentId: string, fromName: string, message: 
   // beat later. Claude Code's TUI treats a CR that arrives in the same burst
   // as the text as a literal newline (it looks like a multi-line paste) — only
   // a standalone CR is read as the Enter key that actually submits the prompt.
-  const clean = message.replace(/\r/g, '').trim();
+  // Control characters would act as keystrokes in the target's TUI (Ctrl-C,
+  // escape sequences), so only printable text and newlines get through.
+  // eslint-disable-next-line no-control-regex
+  const clean = message.replace(/\r/g, '').replace(/[\x00-\x09\x0b-\x1f\x7f]/g, ' ').trim().slice(0, MAX_INJECTED_MESSAGE);
   const payload =
     `[Message from ${fromName}]: ${clean} ` +
     `— Reply to ${fromName} by calling message_agent(target="${fromName}", message="<your reply>").`;
