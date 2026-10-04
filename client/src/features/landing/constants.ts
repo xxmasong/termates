@@ -32,7 +32,7 @@ export const COPY = {
     titleA: 'Your coding agents,',
     titleB: 'working as one team.',
     body: 'Run Claude Code, Codex, Gemini and OpenCode side by side in real terminals. They message each other, share a project memory, and take direction from the Keeper — an orchestrator you just talk to.',
-    primary: 'Start your hive',
+    primary: 'Start your team',
     secondary: 'See how it works',
     micro:
       'Uses the subscriptions you already have · Runs in any browser · Keeps working when you close the tab',
@@ -51,14 +51,14 @@ export const COPY = {
     eyebrow: 'THE PROBLEM',
     title: 'Four terminals. Four tabs. Zero coordination.',
     body: "Every coding agent is brilliant alone and oblivious together. You copy output from one into another, lose track of who's doing what, and babysit sessions that die the moment your laptop sleeps.",
-    caption: 'After: one hive.',
+    caption: 'After: one team.',
   },
   features: { eyebrow: 'WHAT YOU GET', title: 'A control room, not another chat box.' },
-  how: { eyebrow: 'HOW IT WORKS', title: 'From zero to a working hive in three steps.' },
+  how: { eyebrow: 'HOW IT WORKS', title: 'From zero to a working team in three steps.' },
   keeper: {
     eyebrow: 'MEET THE KEEPER',
     title: 'One conversation to run them all.',
-    body: 'The Keeper is an orchestrator agent that can see your whole hive. Ask it to spin up a team, check on progress, or get an answer from a specific agent — it does the legwork and reports back.',
+    body: 'The Keeper is an orchestrator agent that can see your whole team. Ask it to spin up a team, check on progress, or get an answer from a specific agent — it does the legwork and reports back.',
   },
   compare: {
     eyebrow: "HOW WE'RE DIFFERENT",
@@ -69,8 +69,8 @@ export const COPY = {
   },
   pricing: {
     eyebrow: 'PRICING',
-    title: 'Start free. Grow your hive.',
-    body: 'Every plan gets every CLI, the Keeper, agent messaging, shared memory and mobile access. Plans differ only in how big your hive can get.',
+    title: 'Start free. Grow your team.',
+    body: 'Every plan gets every CLI, the Keeper, agent messaging, shared memory and mobile access. Plans differ only in how big your team can get.',
     includedTitle: 'Everything included',
     earlyAccess: 'Early access',
     noCharge: 'No charge during early access',
@@ -84,7 +84,7 @@ export const COPY = {
   faq: { eyebrow: 'FAQ', title: 'Questions, answered.', hint: 'Swipe to compare →' },
   cta: {
     title: 'Put your agents to work — together.',
-    body: 'Create your hive in under a minute.',
+    body: 'Create your team in under a minute.',
     primary: 'Get started free',
   },
   footer: '© 2026 Termates. Built for the multi-agent era.',
@@ -211,7 +211,7 @@ export const FEATURE_ENTRIES: readonly FeatureEntry[] = [
   },
   {
     title: 'Any layout, any device',
-    body: 'Single, split, grid or a free canvas — drag panes where you want them. Install it on your phone and check on the hive from the train.',
+    body: 'Single, split, grid or a free canvas — drag panes where you want them. Install it on your phone and check on your team from the train.',
     lines: ['□ □ □ □  ▯'],
     wide: true,
   },
@@ -236,7 +236,7 @@ export const HOW_STEPS: readonly StepEntry[] = [
     body: 'Create a project, add cligents, give each a role — frontend, backend, QA, docs. Mix vendors freely.',
   },
   {
-    title: 'Direct the hive',
+    title: 'Direct the team',
     body: 'Type into any terminal, broadcast to all of them, or just tell the Keeper what you want done.',
   },
 ];
@@ -271,7 +271,7 @@ export const AUDIENCE_ENTRIES: readonly AudienceEntry[] = [
   },
   {
     title: 'Small teams',
-    body: 'Give every project its own hive, share the memory, and stop re-explaining context.',
+    body: 'Give every project its own team, share the memory, and stop re-explaining context.',
   },
   {
     title: 'Agent tinkerers',

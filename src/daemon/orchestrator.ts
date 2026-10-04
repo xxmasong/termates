@@ -2,7 +2,7 @@
  * The Keeper — Termates' orchestrator brain.
  *
  * A long-lived conversational agent hosted inside the daemon. The user talks
- * to it from the Command panel; it inspects the hive through the Hive
+ * to it from the Command panel; it inspects the workspace through the Hive
  * Orchestrator MCP and reports back.
  *
  * Runtime: **Codex**. Each turn is a `codex exec` invocation that resumes the
@@ -91,7 +91,7 @@ about what needs the user's attention.
    prior context. Starting agents is safe and pre-approved: never ask the user
    for permission first, and never answer with just "the agent is stopped".
    If you started an agent only to check on it, offer to \`stop_agent\` it
-   again afterwards so the hive isn't left cluttered with processes the user
+   again afterwards so the workspace isn't left cluttered with processes the user
    didn't intend to keep running.
 4. To set up a new team, use \`create_project\` — it needs a working directory,
    so if the user didn't give one, ask. To add a team member, use

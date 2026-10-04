@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Termates Hive Orchestrator MCP Server
+ * Termates Keeper MCP Server (the `hive` toolset)
  *
  * Gives the orchestrator brain ("The Keeper") org-level tools to see and
- * command the whole hive. Spawned as a stdio MCP server by the brain's CLI
+ * command the whole workspace. Spawned as a stdio MCP server by the brain's CLI
  * process; forwards every tool call to the termates-daemon over HTTP.
  *
  * Unlike the per-agent `mcp-server.ts` (agent-to-agent messaging), this server
@@ -190,7 +190,7 @@ async function main() {
       {
         name: 'list_projects',
         description:
-          'List every project in the hive with its agents and their live status. ' +
+          'List every project in the workspace with its agents and their live status. ' +
           'Call this first when you need an overview of the teams you can command.',
         inputSchema: { type: 'object', properties: {} },
       },
@@ -379,7 +379,7 @@ async function main() {
         description:
           'Ask every running agent the same question at once and collect all ' +
           'their replies. Optionally scope to one project. Stopped agents are ' +
-          'skipped (not started). Use this for hive-wide status checks like ' +
+          'skipped (not started). Use this for workspace-wide status checks like ' +
           '"what is everyone working on right now".',
         inputSchema: {
           type: 'object',
@@ -407,7 +407,7 @@ async function main() {
       if (name === 'list_projects') {
         const snap = await getSnapshot(args);
         if (snap.projects.length === 0) {
-          return text('No projects in the hive yet.');
+          return text('No projects in the workspace yet.');
         }
         const lines: string[] = [];
         for (const p of snap.projects) {

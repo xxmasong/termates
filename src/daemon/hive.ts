@@ -1,5 +1,5 @@
 /**
- * Hive dispatch — the org-level operations behind the Hive Orchestrator MCP.
+ * Hive dispatch — the org-level operations behind the Keeper's MCP.
  *
  *  - `orgSnapshot`  builds the projects + agents + live-status view the brain
  *    reads through `list_projects` / `list_agents` / `get_agent_status`.
@@ -25,6 +25,8 @@ import { hookEvents } from './hook-events.js';
  *  When this fires we don't assume the agent failed — we check whether the
  *  PTY is still alive and return 'busy' vs 'crashed' accordingly. */
 const TURN_TIMEOUT_MS = 300_000; // 5 min
+/** Sender name on messages the Keeper injects into a cligent's terminal. */
+export const KEEPER_SENDER = 'The Keeper';
 
 // ─────────────────────────── Org snapshot ───────────────────────────
 
@@ -329,7 +331,7 @@ export async function askAgentDispatch(
   if (agent.cli === 'claude') {
     // Claude → PTY injection + status-engine turn detection + transcript read.
     const turnEnded = waitForTurnEnd(agent.id, TURN_TIMEOUT_MS);
-    const injected = runtime.injectMessage(agent.id, 'Hive Orchestrator', message);
+    const injected = runtime.injectMessage(agent.id, KEEPER_SENDER, message);
     if (!injected) {
       return { ok: false, status: 'not-running', ...base, reply: null };
     }
@@ -364,7 +366,7 @@ export async function askAgentDispatch(
     await sleep(800); // let the final transcript line flush to disk
     // Match the prefix of the injected payload (pty-manager appends a reply
     // hint after the message body, but the distinguishing part is this prefix).
-    const injectedText = `[Message from Hive Orchestrator]: ${message.replace(/\r/g, '').trim()}`;
+    const injectedText = `[Message from ${KEEPER_SENDER}]: ${message.replace(/\r/g, '').trim()}`;
     const reply = readClaudeReply(expandHome(agent.cwd), since, injectedText);
     return { ok: true, status: reply ? 'replied' : 'no-reply', ...base, reply };
   }
@@ -373,7 +375,7 @@ export async function askAgentDispatch(
   // Codex previously ran on the app-server, which returned a structured reply.
   // It now runs as an interactive TUI in a PTY like the others, and there is no
   // transcript file to read a reply back from, so delivery is one-way.
-  const injected = runtime.injectMessage(agent.id, 'Hive Orchestrator', message);
+  const injected = runtime.injectMessage(agent.id, KEEPER_SENDER, message);
   return {
     ok: injected,
     status: injected ? 'delivered' : 'not-running',
@@ -595,7 +597,7 @@ export interface BroadcastResult {
 /**
  * Ask every running agent at once — optionally scoped to one project. Stopped
  * agents are skipped (not auto-started: a broadcast should not spin up the
- * whole hive); the brain can start specific ones if it needs them.
+ * whole workspace); the brain can start specific ones if it needs them.
  */
 export async function broadcastDispatch(
   projectRef: string | undefined,

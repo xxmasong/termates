@@ -18,7 +18,7 @@ export const PLANS: readonly Plan[] = [
   {
     id: 'free',
     name: 'Free',
-    pitch: 'Try a full hive on one project.',
+    pitch: 'Try a full team on one project.',
     price: '$0',
     priceNote: 'forever',
     earlyAccess: false,

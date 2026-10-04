@@ -1,6 +1,6 @@
 export const AUTH_COPY = {
-  login: { title: 'Welcome back', body: 'Sign in to your hive.' },
-  signup: { title: 'Create your hive', body: 'Free forever on one project. Upgrade anytime.' },
+  login: { title: 'Welcome back', body: 'Sign in to your workspace.' },
+  signup: { title: 'Create your workspace', body: 'Free forever on one project. Upgrade anytime.' },
   verify: { title: 'Check your inbox', body: 'We sent a verification link to' },
   forgot: {
     title: 'Reset your password',
@@ -35,7 +35,7 @@ export const ACTION_MODES = {
 
 export const ACTION_COPY = {
   verifiedTitle: 'Email verified',
-  verifiedBody: 'Your email is confirmed. Your hive is ready when you are.',
+  verifiedBody: 'Your email is confirmed. Your workspace is ready when you are.',
   continue: 'Continue',
   invalidTitle: 'This link has expired',
   invalidReset: 'This reset link is invalid or has expired.',

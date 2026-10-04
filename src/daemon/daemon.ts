@@ -31,6 +31,7 @@ import {
   createProjectDispatch,
   createAgentDispatch,
   stopAgentDispatch,
+  KEEPER_SENDER,
 } from './hive.js';
 import {
   DAEMON_HOST,
@@ -312,7 +313,7 @@ async function handleHttp(httpReq: IncomingMessage, res: ServerResponse) {
     return;
   }
 
-  // GET /org/snapshot — whole-hive view for the Hive Orchestrator MCP
+  // GET /org/snapshot — whole-workspace view for the Keeper's MCP
   if (httpReq.method === 'GET' && route === '/org/snapshot') {
     sendJson(res, 200, orgSnapshot(liveStatus));
     return;
@@ -338,7 +339,7 @@ async function handleHttp(httpReq: IncomingMessage, res: ServerResponse) {
           projectId: result.projectId,
           projectName: result.projectName || '',
           agentName: result.agentName,
-          fromName: 'Hive Orchestrator',
+          fromName: KEEPER_SENDER,
           message,
           status: result.status,
           reply: result.reply ?? null,
@@ -423,7 +424,7 @@ async function handleHttp(httpReq: IncomingMessage, res: ServerResponse) {
           projectId: r.projectId,
           projectName: r.projectName,
           agentName: r.agentName,
-          fromName: 'Hive Orchestrator',
+          fromName: KEEPER_SENDER,
           message,
           status: r.status,
           reply: r.reply ?? null,
