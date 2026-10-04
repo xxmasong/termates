@@ -171,6 +171,6 @@ type UsageSummary = Record<string, CliUsage | null | undefined>;
 ```
 
 ## Runtime
-Two services: `termhive.service` (web, serves client + `/api` + `/ws`) and a
+Two services: `termates.service` (web, serves client + `/api` + `/ws`) and a
 daemon owning all PTYs on `127.0.0.1:3210`. The client only ever talks to the
 web server.
