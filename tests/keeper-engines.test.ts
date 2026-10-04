@@ -48,6 +48,7 @@ describe('codex engine', () => {
     const config = fs.readFileSync(path.join(brainDir, 'codex-home', 'config.toml'), 'utf-8');
     assert.match(config, /sandbox_mode = "read-only"/);
     assert.match(config, /approval_policy = "never"/);
+    assert.match(config, /\[features\][\s\S]*shell_tool = false[\s\S]*unified_exec = false/);
     assert.match(config, /\[mcp_servers\.keeper\][\s\S]*default_tools_approval_mode = "approve"/);
     assert.match(config, /model = "gpt-5.6"/);
     assert.equal(turn.stdin, 'hello');

@@ -5,8 +5,9 @@
  * nothing else: no shell, no file tools, no approval bypass. One headless CLI
  * process runs per turn and resumes the engine's own session on the next one.
  *
- *   codex   `codex exec [resume <thread>] --json`, read-only sandbox, the
- *           keeper server's tools pre-approved in a dedicated CODEX_HOME
+ *   codex   `codex exec [resume <thread>] --json`, read-only sandbox, shell
+ *           and other built-in tools off, the keeper server's tools
+ *           pre-approved in a dedicated CODEX_HOME
  *   claude  `claude -p --output-format stream-json`, built-in tools disabled
  *           (`--tools ""`), only mcp__keeper__* allowed
  *   gemini  `gemini -p -o stream-json`, built-in tools disabled
@@ -117,6 +118,19 @@ function userCodexDefaults(): string[] {
   return out;
 }
 
+/** Codex built-in tools the Keeper must not have (`codex features list`). */
+const CODEX_DISABLED_FEATURES = [
+  'shell_tool',
+  'unified_exec',
+  'browser_use',
+  'browser_use_external',
+  'computer_use',
+  'in_app_browser',
+  'image_generation',
+  'apps',
+  'view_image',
+];
+
 /** `last_refresh` of a Codex auth.json, or 0 when missing or unreadable. */
 function authRefreshedAt(file: string): number {
   try {
@@ -155,9 +169,14 @@ const codex: KeeperEngineSpec = {
       ...defaults,
       ...(ctx.model ? [`model = ${tomlStr(ctx.model)}`] : []),
       // Read-only and never asks: the Keeper acts only through its MCP tools,
-      // which are pre-approved below. Shell commands cannot write anything.
+      // which are pre-approved below.
       'sandbox_mode = "read-only"',
       'approval_policy = "never"',
+      '',
+      // No shell (even a read-only one can read files), browser, computer or
+      // app tools — only the keeper toolset.
+      '[features]',
+      ...CODEX_DISABLED_FEATURES.map((feature) => `${feature} = false`),
       '',
       `[mcp_servers.${MCP_SERVER}]`,
       `command = ${tomlStr(ctx.mcpCommand)}`,
