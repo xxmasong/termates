@@ -1,13 +1,13 @@
 /*
  * Service worker — app shell only.
  *
- * TermHive's data is live (agent state, terminal streams, the WebSocket), so
+ * Termates' data is live (agent state, terminal streams, the WebSocket), so
  * caching API responses would show stale agents and mislead the user. This
  * caches the static shell so the app opens when installed, and lets every
  * other request (/api, /ws, /auth, …) go straight to the network.
  */
 
-const CACHE = 'termhive-shell-v2';
+const CACHE = 'termates-shell-v1';
 const SHELL = ['/', '/manifest.webmanifest', '/favicon.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (event) => {

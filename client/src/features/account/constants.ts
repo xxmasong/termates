@@ -71,5 +71,5 @@ export const ACCOUNT_COPY = {
   workspaceState: 'Status',
   sessionsTitle: 'Sessions',
   signOutEverywhere: 'Sign out of all devices',
-  signOutEverywhereBody: 'Ends every TermHive session for your account, including this one.',
+  signOutEverywhereBody: 'Ends every Termates session for your account, including this one.',
 } as const;

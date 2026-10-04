@@ -71,11 +71,11 @@ const NOTIFICATION_TTL_MS = 6_000;
 const MOD_KEY =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
 
-interface TermHiveShellProps {
+interface TermatesShellProps {
   children?: never;
 }
 
-export const TermHiveShell: React.FC<TermHiveShellProps> = () => {
+export const TermatesShell: React.FC<TermatesShellProps> = () => {
   const vm = useProjectAgentShell();
   // Below the mobile breakpoint the sidebar is an overlay drawer, so it must
   // start closed or it covers the whole app on a first visit. SidebarShell

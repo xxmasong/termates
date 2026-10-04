@@ -10,7 +10,7 @@ export const AUTH_COPY = {
   genericError: 'Something went wrong. Please try again.',
   notConfigured: {
     title: "Sign-in isn't configured yet",
-    body: "TermHive accounts aren't switched on for this site yet. Check back soon.",
+    body: "Termates accounts aren't switched on for this site yet. Check back soon.",
     home: 'Back to the homepage',
   },
   inviteRequired: 'Sign-ups are invite-only right now. Enter your invite code.',
@@ -103,8 +103,8 @@ export const SESSION_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   ACCOUNT_SUSPENDED: 'This account is suspended.',
   INVALID_TOKEN: 'Your sign-in expired. Please sign in again.',
   NOT_CONFIGURED: "Sign-in isn't configured yet.",
-  NO_EMAIL: 'Your account needs an email address to use TermHive.',
-  CAPACITY: 'TermHive is full right now. Please try again later.',
+  NO_EMAIL: 'Your account needs an email address to use Termates.',
+  CAPACITY: 'Termates is full right now. Please try again later.',
 };
 
 /** Session errors that are fixed by entering an invite code. */

@@ -30,7 +30,7 @@ export const AccountActionPage: React.FC<AccountActionPageProps> = () => {
       : state.kind === 'invalid'
         ? ACTION_COPY.invalidTitle
         : AUTH_COPY.reset.title;
-  useDocumentTitle(`${title} — TermHive`);
+  useDocumentTitle(`${title} — Termates`);
 
   const onContinue = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {

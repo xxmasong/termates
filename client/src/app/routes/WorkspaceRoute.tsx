@@ -1,4 +1,4 @@
-import { TermHiveShell } from '@/app/TermHiveShell';
+import { TermatesShell } from '@/app/TermatesShell';
 import { AppProviders } from '@/app/providers/AppProviders';
 import { LiveProviders } from '@/app/providers/LiveProviders';
 import { WorkspaceGate } from '@/features/account';
@@ -11,7 +11,7 @@ export const WorkspaceRoute: React.FC<WorkspaceRouteProps> = () => (
   <AppProviders>
     <WorkspaceGate>
       <LiveProviders>
-        <TermHiveShell />
+        <TermatesShell />
       </LiveProviders>
     </WorkspaceGate>
   </AppProviders>

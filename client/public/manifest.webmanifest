@@ -1,6 +1,6 @@
 {
-  "name": "TermHive",
-  "short_name": "TermHive",
+  "name": "Termates",
+  "short_name": "Termates",
   "description": "Multi-CLI coding agent orchestrator",
   "id": "/",
   "start_url": "/app",

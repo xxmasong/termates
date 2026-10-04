@@ -21,7 +21,7 @@ export interface OAuthOptions {
   requireInvite?: boolean;
 }
 
-/** Google / GitHub popup sign-in followed by the TermHive session exchange. */
+/** Google / GitHub popup sign-in followed by the Termates session exchange. */
 export const useOAuthSignIn = (auth: Auth | null) => {
   const [pendingProvider, setPendingProvider] = useState<OAuthProviderId | null>(null);
   const [error, setError] = useState<string>();

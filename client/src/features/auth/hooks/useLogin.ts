@@ -5,7 +5,7 @@ import { AUTH_ROUTES, FIELD_REQUIRED } from '../constants';
 import type { FieldErrors } from '../types';
 import { authErrorMessage, completeSignIn, errorCode, isInviteError } from '../utils';
 
-/** Email + password sign-in: Firebase first, then the TermHive session. */
+/** Email + password sign-in: Firebase first, then the Termates session. */
 export const useLogin = (auth: Auth | null, navigate: (path: string) => void) => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();

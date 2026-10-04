@@ -11,7 +11,7 @@ interface VerifyEmailPageProps {
 }
 
 export const VerifyEmailPage: React.FC<VerifyEmailPageProps> = () => {
-  useDocumentTitle('Verify email — TermHive');
+  useDocumentTitle('Verify email — Termates');
   const queryEmail = new URLSearchParams(window.location.search).get('email');
   const [inviteCode, setInviteCode] = useState('');
   const { status, auth } = useAuthConfig();

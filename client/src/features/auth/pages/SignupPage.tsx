@@ -35,7 +35,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ navigate }) => {
   const parameters = new URLSearchParams(window.location.search);
   const inviteParameter = parameters.get('invite') ?? '';
   const hasInviteParameter = parameters.has('invite');
-  useDocumentTitle('Create account — TermHive');
+  useDocumentTitle('Create account — Termates');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

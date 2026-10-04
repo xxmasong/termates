@@ -132,7 +132,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) =
             <FormField label="Wake word">
               <Input
                 onChange={onWakeWordChange}
-                placeholder="TermHive"
+                placeholder="Termates"
                 value={draft.wakeWord ?? ''}
               />
             </FormField>

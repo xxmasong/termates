@@ -8,7 +8,7 @@ interface ForgotPasswordPageProps {
   children?: never;
 }
 export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = () => {
-  useDocumentTitle('Reset password — TermHive');
+  useDocumentTitle('Reset password — Termates');
   const [email, setEmail] = useState('');
   const { status, auth } = useAuthConfig();
   const { pending, sent, error, submit } = useForgotPassword(auth);

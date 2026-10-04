@@ -29,7 +29,7 @@ export const Hero: React.FC<HeroProps> = () => (
     <div>
       <HiveSim />
       <span className="sr-only">
-        A live TermHive workspace where four coding agents coordinate checkout work.
+        A live Termates workspace where four coding agents coordinate checkout work.
       </span>
     </div>
   </section>

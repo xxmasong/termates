@@ -12,10 +12,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => (
     <section className="auth-main">
       <a className="auth-brand" href="/">
         <Icon name="logo" size={22} />
-        TermHive
+        Termates
       </a>
       <div className="auth-content">{children}</div>
-      <small>© 2026 TermHive</small>
+      <small>© 2026 Termates</small>
     </section>
     <aside className="auth-panel">
       <HiveSim />

@@ -23,7 +23,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
-  useDocumentTitle('Sign in — TermHive');
+  useDocumentTitle('Sign in — Termates');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -92,7 +92,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ navigate }) => {
           </form>
         </AuthGate>
         <p className="auth-footer">
-          New to TermHive? <a href={AUTH_ROUTES.SIGNUP}>Create an account</a>
+          New to Termates? <a href={AUTH_ROUTES.SIGNUP}>Create an account</a>
         </p>
       </AuthCard>
     </AuthLayout>

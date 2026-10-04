@@ -81,7 +81,7 @@ export const AppHeader = <TValue extends string>({
         <span className="app-header__brand-mark">
           <Icon name="logo" size={14} />
         </span>
-        <span className="app-header__brand-name">TermHive</span>
+        <span className="app-header__brand-name">Termates</span>
       </div>
       {breadcrumb ? (
         <div className="app-header__breadcrumb">

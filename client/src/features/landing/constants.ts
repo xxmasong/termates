@@ -11,7 +11,7 @@ import type {
 
 export const SCROLL_THRESHOLD = 8;
 export const SIM_STEP_MS = 2_000;
-export const LANDING_TITLE = 'TermHive — your coding agents, working as one team';
+export const LANDING_TITLE = 'Termates — your coding agents, working as one team';
 /** Control-plane session check; 200 = signed in, 401 = not. */
 export const SESSION_ENDPOINT = '/auth/me';
 
@@ -23,7 +23,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: 'FAQ', href: '#faq' },
 ];
 export const COPY = {
-  brand: 'TermHive',
+  brand: 'Termates',
   signIn: 'Sign in',
   getStarted: 'Get started',
   openWorkspace: 'Open workspace →',
@@ -63,7 +63,7 @@ export const COPY = {
   compare: {
     eyebrow: "HOW WE'RE DIFFERENT",
     title: 'Built for teams of agents, not a single one.',
-    body: 'Most tools give you one very good agent. TermHive gives you a coordinated team — and lets you keep the agents you already trust.',
+    body: 'Most tools give you one very good agent. Termates gives you a coordinated team — and lets you keep the agents you already trust.',
     footnote:
       'Categories summarize typical products as of 2026. Individual tools vary and change quickly.',
   },
@@ -87,7 +87,7 @@ export const COPY = {
     body: 'Create your hive in under a minute.',
     primary: 'Get started free',
   },
-  footer: '© 2026 TermHive. Built for the multi-agent era.',
+  footer: '© 2026 Termates. Built for the multi-agent era.',
   footerTagline: 'The control room for your coding agents.',
 } as const;
 export const PRICING_INCLUDED = [
@@ -140,10 +140,10 @@ export const FAQ_ENTRIES: readonly FaqEntry[] = [
   {
     question: 'Do I need API keys?',
     answer:
-      "No. TermHive runs each vendor's own CLI, so you sign in with your existing Claude, ChatGPT or Google account. API keys work too if you prefer them.",
+      "No. Termates runs each vendor's own CLI, so you sign in with your existing Claude, ChatGPT or Google account. API keys work too if you prefer them.",
   },
   {
-    question: 'Is my code sent to TermHive?',
+    question: 'Is my code sent to Termates?',
     answer:
       'Your agents work inside your own isolated workspace. Code goes only where your chosen CLI sends it — the same as running it on your laptop.',
   },
@@ -154,7 +154,7 @@ export const FAQ_ENTRIES: readonly FaqEntry[] = [
   {
     question: 'What happens when I close the browser?',
     answer:
-      'Nothing stops. Agents run in a background daemon; reopen TermHive on any device and every terminal picks up where it left off.',
+      'Nothing stops. Agents run in a background daemon; reopen Termates on any device and every terminal picks up where it left off.',
   },
   {
     question: 'Can agents break things?',
@@ -186,7 +186,7 @@ export const COMPARISON_ROWS: readonly ComparisonRow[] = [
   { label: 'Works from your phone', values: ['yes', 'no', 'no', 'partial', 'no'] },
 ];
 export const COMPARISON_HEADERS = [
-  { title: 'TermHive', subtitle: '' },
+  { title: 'Termates', subtitle: '' },
   { title: 'Single-agent CLIs', subtitle: 'Claude Code, Codex CLI…' },
   { title: 'AI IDEs', subtitle: 'Cursor, Windsurf…' },
   { title: 'Cloud agents', subtitle: 'Devin, Copilot agent…' },
@@ -217,7 +217,7 @@ export const FEATURE_ENTRIES: readonly FeatureEntry[] = [
   },
   {
     title: 'Pay nothing extra',
-    body: 'TermHive drives your existing Claude, ChatGPT and Google plans through their own CLIs. No per-token markup.',
+    body: 'Termates drives your existing Claude, ChatGPT and Google plans through their own CLIs. No per-token markup.',
     lines: ['claude 34%', 'codex 12%', 'gemini 5%'],
   },
   {

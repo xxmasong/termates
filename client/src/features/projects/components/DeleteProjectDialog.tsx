@@ -37,7 +37,7 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
       confirmLabel="Delete"
       danger
       loading={loading}
-      message={project ? `Delete "${project.name}" from TermHive?` : ''}
+      message={project ? `Delete "${project.name}" from Termates?` : ''}
       onCancel={cancel}
       onConfirm={confirm}
       open={Boolean(project)}
