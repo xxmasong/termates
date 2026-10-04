@@ -9,7 +9,8 @@
  *           keeper server's tools pre-approved in a dedicated CODEX_HOME
  *   claude  `claude -p --output-format stream-json`, built-in tools disabled
  *           (`--tools ""`), only mcp__keeper__* allowed
- *   gemini  `gemini -p -o stream-json`, only the trusted keeper server
+ *   gemini  `gemini -p -o stream-json`, built-in tools disabled
+ *           (`tools.core: []`), only the trusted keeper server
  */
 import fs from 'fs';
 import os from 'os';
@@ -319,7 +320,12 @@ const gemini: KeeperEngineSpec = {
     fs.writeFileSync(
       path.join(dir, '.gemini', 'settings.json'),
       JSON.stringify(
-        { mcpServers: { [MCP_SERVER]: { command: ctx.mcpCommand, args: ctx.mcpArgs, trust: true } } },
+        {
+          // An empty allowlist registers none of Gemini's built-in tools (file
+          // reads, glob, shell…); MCP tools are discovered separately.
+          tools: { core: [] },
+          mcpServers: { [MCP_SERVER]: { command: ctx.mcpCommand, args: ctx.mcpArgs, trust: true } },
+        },
         null,
         2,
       ),

@@ -123,7 +123,7 @@ describe('claude engine', () => {
 });
 
 describe('gemini engine', () => {
-  it('trusts only the keeper server and passes the prompt as an argument', () => {
+  it('disables built-in tools, trusts only the keeper server and passes the prompt as an argument', () => {
     const turn = KEEPER_ENGINE_SPECS.gemini.prepare(ctx());
     const at = (flag: string) => turn.args[turn.args.indexOf(flag) + 1];
     assert.equal(at('--allowed-mcp-server-names'), 'keeper');
@@ -132,6 +132,7 @@ describe('gemini engine', () => {
     assert.ok(!turn.args.includes('yolo'));
     const settings = JSON.parse(fs.readFileSync(path.join(turn.cwd, '.gemini', 'settings.json'), 'utf-8'));
     assert.equal(settings.mcpServers.keeper.trust, true);
+    assert.deepEqual(settings.tools, { core: [] });
     assert.equal(fs.readFileSync(path.join(turn.cwd, 'GEMINI.md'), 'utf-8'), '# Keeper');
   });
 
