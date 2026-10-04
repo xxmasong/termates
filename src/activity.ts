@@ -5,17 +5,86 @@ import { randomUUID as uuid } from 'crypto';
 import { SHARED_CONTENT_DIR } from './storage.js';
 import type { ActivityEvent } from './types.js';
 
-const MAX_EVENTS = 200;
+/** Events kept in memory and served to the UI (the newest). */
+const MAX_EVENTS = 1000;
+/**
+ * The full history is appended to ~/.termhive/activity.jsonl and survives
+ * restarts. Past this size the log rotates to activity.1.jsonl (one
+ * generation), so a busy workspace keeps a long history in bounded disk.
+ */
+const LOG_ROTATE_BYTES = 20 * 1024 * 1024;
 const events: ActivityEvent[] = [];
 const watchers = new Map<string, FSWatcher>();
 
 let broadcastFn: ((event: ActivityEvent) => void) | null = null;
+let loadedFrom: string | null = null;
+
+const logPath = () =>
+  path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive', 'activity.jsonl');
+
+const isEvent = (value: unknown): value is ActivityEvent =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as ActivityEvent).id === 'string' &&
+  typeof (value as ActivityEvent).projectId === 'string' &&
+  typeof (value as ActivityEvent).event === 'string' &&
+  typeof (value as ActivityEvent).timestamp === 'string';
+
+/** Read the newest events back from the log once per log file (i.e. per HOME). */
+function ensureLoaded(): void {
+  const file = logPath();
+  if (loadedFrom === file) return;
+  loadedFrom = file;
+  events.length = 0;
+  let text = '';
+  try {
+    text = fs.readFileSync(file, 'utf-8');
+  } catch {
+    return; // no history yet
+  }
+  // End a torn last line so the next append starts on a line of its own.
+  if (text && !text.endsWith('\n')) {
+    try {
+      fs.appendFileSync(file, '\n');
+    } catch {
+      /* read-only: loading still works */
+    }
+  }
+  for (const line of text.split('\n').slice(-MAX_EVENTS - 1)) {
+    if (!line) continue;
+    try {
+      const parsed: unknown = JSON.parse(line);
+      if (isEvent(parsed)) events.push(parsed);
+    } catch {
+      /* a torn last line from a crash: skip it */
+    }
+  }
+}
+
+function persist(event: ActivityEvent): void {
+  const file = logPath();
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    try {
+      if (fs.statSync(file).size > LOG_ROTATE_BYTES) {
+        fs.renameSync(file, file.replace(/\.jsonl$/, '.1.jsonl'));
+      }
+    } catch {
+      /* no log yet */
+    }
+    fs.appendFileSync(file, `${JSON.stringify(event)}\n`, { mode: 0o600 });
+  } catch (error) {
+    // History is best effort: a full disk must not break agents or the UI.
+    console.error('[activity] could not persist event:', error);
+  }
+}
 
 export function setBroadcast(fn: (event: ActivityEvent) => void) {
   broadcastFn = fn;
 }
 
 export function pushEvent(event: Omit<ActivityEvent, 'id' | 'timestamp'>) {
+  ensureLoaded();
   const full: ActivityEvent = {
     ...event,
     id: uuid(),
@@ -23,10 +92,12 @@ export function pushEvent(event: Omit<ActivityEvent, 'id' | 'timestamp'>) {
   };
   events.push(full);
   if (events.length > MAX_EVENTS) events.splice(0, events.length - MAX_EVENTS);
+  persist(full);
   broadcastFn?.(full);
 }
 
 export function getEvents(projectId?: string): ActivityEvent[] {
+  ensureLoaded();
   if (projectId) return events.filter(e => e.projectId === projectId);
   return [...events];
 }
