@@ -52,7 +52,43 @@ export function loadConfig(): VoiceConfig {
       };
     }
   } catch { /* fall through */ }
-  return DEFAULT;
+  return structuredClone(DEFAULT);
+}
+
+const PROVIDER_IDS = ['browser', 'openai', 'gemini'] as const;
+/** Model and voice ids end up in provider URLs and request bodies. */
+const VOICE_TOKEN = /^[A-Za-z0-9][\w.:-]{0,99}$/;
+const LANGUAGE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+
+const provider = (value: unknown, fallback: VoiceConfig['stt']['provider']) =>
+  (PROVIDER_IDS as readonly unknown[]).includes(value) ? (value as VoiceConfig['stt']['provider']) : fallback;
+const token = (value: unknown, fallback: string, pattern = VOICE_TOKEN) =>
+  value === '' ? '' : typeof value === 'string' && pattern.test(value) ? value : fallback;
+const flag = (value: unknown, fallback: boolean) => (typeof value === 'boolean' ? value : fallback);
+
+/**
+ * The voice settings a client sent, merged over `current`: unknown fields are
+ * dropped and every invalid value keeps the current one.
+ */
+export function sanitizeVoiceConfig(input: { stt?: unknown; tts?: unknown }, current: VoiceConfig): VoiceConfig {
+  const stt = (input.stt && typeof input.stt === 'object' ? input.stt : {}) as Record<string, unknown>;
+  const tts = (input.tts && typeof input.tts === 'object' ? input.tts : {}) as Record<string, unknown>;
+  const speed = typeof tts.speed === 'number' && Number.isFinite(tts.speed) ? tts.speed : current.tts.speed;
+  return {
+    stt: {
+      provider: provider(stt.provider, current.stt.provider),
+      model: token(stt.model, current.stt.model),
+      language: token(stt.language, current.stt.language, LANGUAGE),
+      saveRecordings: flag(stt.saveRecordings, current.stt.saveRecordings),
+    },
+    tts: {
+      enabled: flag(tts.enabled, current.tts.enabled),
+      provider: provider(tts.provider, current.tts.provider),
+      model: token(tts.model, current.tts.model),
+      voice: token(tts.voice, current.tts.voice),
+      speed: Math.min(4, Math.max(0.25, speed)),
+    },
+  };
 }
 
 export function saveConfig(cfg: VoiceConfig): void {
@@ -90,7 +126,8 @@ export function saveApiKeys(partial: ApiKeys): void {
     if (v === '') delete next[k];
     else next[k] = v;
   }
-  fs.writeFileSync(KEYS_PATH, JSON.stringify(next, null, 2), 'utf-8');
+  // Created owner-only, so the keys are never briefly world-readable.
+  fs.writeFileSync(KEYS_PATH, JSON.stringify(next, null, 2), { encoding: 'utf-8', mode: 0o600 });
   // Best-effort owner-only permissions (Windows ignores this — file lives in
   // the user's profile so the OS ACL already restricts access).
   try { fs.chmodSync(KEYS_PATH, 0o600); } catch { /* ignore */ }

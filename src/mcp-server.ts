@@ -8,7 +8,7 @@
  * to the Termates backend over HTTP.
  *
  * Args:
- *   --hub    <url>         Termates server URL (default http://localhost:3200)
+ *   --hub    <url>         Termates server URL (default http://127.0.0.1:3200)
  *   --project <projectId>  UUID of the project this agent belongs to
  *   --agent   <agentId>    UUID of this agent
  *   --name    <agentName>  Display name of this agent
@@ -34,7 +34,7 @@ function parseArgs(): Args {
     return idx >= 0 && idx + 1 < argv.length ? argv[idx + 1] : undefined;
   };
   return {
-    hubUrl: getArg('hub') || process.env.TERMATES_HUB_URL || 'http://localhost:3200',
+    hubUrl: getArg('hub') || process.env.TERMATES_HUB_URL || 'http://127.0.0.1:3200',
     projectId: getArg('project') || process.env.TERMATES_PROJECT_ID || '',
     agentId: getArg('agent') || process.env.TERMATES_AGENT_ID || '',
     agentName: getArg('name') || process.env.TERMATES_AGENT_NAME || 'unknown',

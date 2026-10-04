@@ -31,7 +31,7 @@ export function getClaudeMcpConfigPath(agentId: string): string {
 export interface McpWriteContext {
   agent: Agent;
   agentCwd: string;         // resolved cwd (already expanded)
-  hubUrl: string;           // e.g. http://localhost:3200
+  hubUrl: string;           // e.g. http://127.0.0.1:3200
   mcpServerPath: string;    // absolute path to compiled dist/mcp-server.js
 }
 

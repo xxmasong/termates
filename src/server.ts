@@ -20,14 +20,31 @@ import { DaemonClient } from './daemon/client.js';
 import type { WSServerMessage, ActivityEvent } from './types.js';
 import { parseClientMessage } from './ws-messages.js';
 import { PROVIDERS } from './voice/providers.js';
-import { loadConfig as loadVoiceConfig, saveConfig as saveVoiceConfig, hasKey, saveApiKeys } from './voice/config.js';
+import {
+  loadConfig as loadVoiceConfig,
+  saveConfig as saveVoiceConfig,
+  sanitizeVoiceConfig,
+  hasKey,
+  saveApiKeys,
+} from './voice/config.js';
 import { transcribeOpenAI, ttsOpenAI } from './voice/openai.js';
 import { transcribeGemini, ttsGemini } from './voice/gemini.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3200', 10);
+/**
+ * The workspace server has no auth of its own — it sits behind the control
+ * plane or `tailscale serve` — so it listens on loopback unless HOST says
+ * otherwise.
+ */
+const HOST = process.env.HOST || '127.0.0.1';
+/** Largest browser WebSocket frame (pasting into a terminal included). */
+const WS_MAX_PAYLOAD = 1024 * 1024;
+const MAX_API_KEY = 512;
+const MAX_BROADCAST = 32_000;
 
 const app = express();
+app.disable('x-powered-by');
 const pubsub = createWorkspacePubSub();
 // GraphQL parses its own bodies (and streams subscriptions), so it is mounted
 // before express.json(). It is assigned once the service exists, below.
@@ -39,7 +56,7 @@ const JSON_BODY_LIMIT = '10mb';
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: WS_MAX_PAYLOAD });
 
 // --- Daemon connection — the daemon owns every agent PTY ---
 const daemon = new DaemonClient();
@@ -189,15 +206,17 @@ app.put('/api/voice/config', (req, res) => {
     };
     // Settings (stt/tts) live in voice.json.
     if (body.stt || body.tts) {
-      const cur = loadVoiceConfig();
-      saveVoiceConfig({
-        stt: (body.stt as typeof cur.stt) || cur.stt,
-        tts: (body.tts as typeof cur.tts) || cur.tts,
-      });
+      saveVoiceConfig(sanitizeVoiceConfig(body, loadVoiceConfig()));
     }
     // Secrets (apiKeys) live in api-keys.json — never echoed back.
     if (body.apiKeys && typeof body.apiKeys === 'object') {
-      saveApiKeys(body.apiKeys);
+      const keys = body.apiKeys;
+      const ok = (v: unknown) => v === undefined || (typeof v === 'string' && v.length <= MAX_API_KEY);
+      if (!ok(keys.openai) || !ok(keys.gemini)) {
+        res.status(400).json({ error: 'invalid API key' });
+        return;
+      }
+      saveApiKeys(keys);
     }
     res.json({ ok: true });
   } catch (err) {
@@ -285,7 +304,9 @@ app.get('/api/brain', async (_req, res) => {
     const state = await daemon.request('brain:state');
     res.json(state);
   } catch {
-    res.status(503).json({ messages: [], status: 'idle', engine: 'codex' });
+    res.status(503).json({
+      messages: [], status: 'idle', engine: 'codex', model: '', engines: [], currentId: '', conversations: [],
+    });
   }
 });
 
@@ -300,6 +321,7 @@ const clientDist = path.join(__dirname, 'client');
 app.post('/api/projects/:id/broadcast', express.json(), async (req, res) => {
   const text = String((req.body as { text?: string })?.text || '').trim();
   if (!text) { res.status(400).json({ error: 'text required' }); return; }
+  if (text.length > MAX_BROADCAST) { res.status(413).json({ error: 'text too long' }); return; }
   const project = storage.listProjects().find((p) => p.id === req.params.id);
   if (!project) { res.status(404).json({ error: 'project not found' }); return; }
   const agents = storage.listAgents(req.params.id);
@@ -468,7 +490,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Termates web server running on http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Termates web server running on http://${HOST}:${PORT}`);
   console.log(`[server] daemon: ${daemon.isConnected() ? 'connected' : 'connecting…'}`);
 });
