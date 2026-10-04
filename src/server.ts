@@ -381,6 +381,10 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(clientDist, 'index.html'));
 });
 
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandled rejection:', reason);
+});
+
 // --- Graceful shutdown ---
 // The web server NO LONGER kills agents — the daemon owns them and outlives us.
 // We just exit cleanly; agents keep running for the next web start to reattach.

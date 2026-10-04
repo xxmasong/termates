@@ -527,7 +527,7 @@ const httpServer = createServer((req, res) => {
     try { res.writeHead(500); res.end(); } catch { /* already sent */ }
   });
 });
-const wss = new WebSocketServer({ server: httpServer });
+const wss = new WebSocketServer({ server: httpServer, maxPayload: 8 * 1024 * 1024 });
 
 wss.on('connection', (ws) => {
   clients.add(ws);
@@ -571,6 +571,12 @@ httpServer.listen(DAEMON_PORT, DAEMON_HOST, () => {
 httpServer.on('error', (err) => {
   console.error('[daemon] server error:', err);
   process.exit(1);
+});
+
+// The daemon owns every agent: a stray rejected promise must not take them all
+// down with it (Node exits on an unhandled rejection by default).
+process.on('unhandledRejection', (reason) => {
+  console.error('[daemon] unhandled rejection:', reason);
 });
 
 // Graceful shutdown — kill every PTY so nothing is orphaned.
