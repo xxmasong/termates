@@ -29,7 +29,7 @@ function getMcpServerPath(): string {
  * that server.ts listens on.
  */
 function getHubUrl(): string {
-  return process.env.TERMHIVE_HUB_URL || `http://localhost:${process.env.PORT || '3200'}`;
+  return process.env.TERMATES_HUB_URL || `http://localhost:${process.env.PORT || '3200'}`;
 }
 
 /** Expand leading ~ to the user's home directory */

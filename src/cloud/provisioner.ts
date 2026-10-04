@@ -81,12 +81,12 @@ export function workspaceEnv(
     'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
     'NODE_ENV=production',
     `PORT=${ws.port_base}`,
-    `TERMHIVE_DAEMON_PORT=${ws.port_base + 1}`,
+    `TERMATES_DAEMON_PORT=${ws.port_base + 1}`,
     `CLAUDE_BRIDGE_PORT=${ws.port_base + 2}`,
-    `TERMHIVE_MAX_PROJECTS=${limits.maxProjects ?? ''}`,
-    `TERMHIVE_MAX_AGENTS=${limits.maxAgents}`,
-    ...(limitsFile ? [`TERMHIVE_LIMITS_FILE=${limitsFile}`] : []),
-    'TERMHIVE_CONFINE_HOME=1',
+    `TERMATES_MAX_PROJECTS=${limits.maxProjects ?? ''}`,
+    `TERMATES_MAX_AGENTS=${limits.maxAgents}`,
+    ...(limitsFile ? [`TERMATES_LIMITS_FILE=${limitsFile}`] : []),
+    'TERMATES_CONFINE_HOME=1',
     'GEMINI_CLI_TRUST_WORKSPACE=true',
     'NO_BROWSER=1',
   ];
@@ -171,7 +171,7 @@ export class Provisioner {
 
   /** Rewrite a workspace's env for a new plan and restart it. */
   /**
-   * Apply a plan change. Workspaces started with TERMHIVE_LIMITS_FILE pick the
+   * Apply a plan change. Workspaces started with TERMATES_LIMITS_FILE pick the
    * new limits up live, so running agents keep running; older ones get the
    * file added to their env and one restart. Returns whether it restarted.
    */
@@ -180,7 +180,7 @@ export class Provisioner {
     if (!ws || isRootWorkspace(ws)) return false;
     let hadLimitsFile = false;
     try {
-      hadLimitsFile = fs.readFileSync(this.envFile(ws), 'utf-8').includes('TERMHIVE_LIMITS_FILE=');
+      hadLimitsFile = fs.readFileSync(this.envFile(ws), 'utf-8').includes('TERMATES_LIMITS_FILE=');
     } catch {
       hadLimitsFile = false;
     }

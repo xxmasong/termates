@@ -10,7 +10,7 @@
  *   termhive-admin sync-firewall
  *   termhive-admin create-admin <email>
  *   termhive-admin login-link <email> [--minutes N]
- *   termhive-admin dev-session <email> [--plan P]   (needs TERMHIVE_DEV_SESSIONS=1)
+ *   termhive-admin dev-session <email> [--plan P]   (needs TERMATES_DEV_SESSIONS=1)
  *
  * Reads the same /etc/termhive/cloud.env as the service.
  */
@@ -41,7 +41,7 @@ const USAGE = `usage:
   termhive-admin sync-firewall
   termhive-admin create-admin <email>
   termhive-admin login-link <email> [--minutes N]
-  termhive-admin dev-session <email> [--plan P]   (TERMHIVE_DEV_SESSIONS=1 only)`;
+  termhive-admin dev-session <email> [--plan P]   (TERMATES_DEV_SESSIONS=1 only)`;
 
 function option(args: string[], name: string): string | undefined {
   const index = args.indexOf(name);
@@ -184,7 +184,7 @@ async function main(argv: string[]): Promise<void> {
       case 'dev-session': {
         if (!config.devSessions) {
           throw new UsageError(
-            'dev sessions are disabled (set TERMHIVE_DEV_SESSIONS=1 in cloud.env)',
+            'dev sessions are disabled (set TERMATES_DEV_SESSIONS=1 in cloud.env)',
           );
         }
         const email = args[0];

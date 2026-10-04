@@ -48,9 +48,9 @@ describe('WorkspaceService + REST adapter', () => {
   before(async () => {
     home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-service-'));
     process.env.HOME = home;
-    delete process.env.TERMHIVE_MAX_PROJECTS;
-    delete process.env.TERMHIVE_MAX_AGENTS;
-    process.env.TERMHIVE_MAX_AGENTS = '2';
+    delete process.env.TERMATES_MAX_PROJECTS;
+    delete process.env.TERMATES_MAX_AGENTS;
+    process.env.TERMATES_MAX_AGENTS = '2';
     const { WorkspaceService } = await import('../src/services/workspace-service.js');
     const { createRouter } = await import('../src/routes.js');
     service = new WorkspaceService(daemon, {

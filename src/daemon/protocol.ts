@@ -7,7 +7,7 @@
  */
 
 export const DAEMON_HOST = '127.0.0.1';
-export const DAEMON_PORT = parseInt(process.env.TERMHIVE_DAEMON_PORT || '3210', 10);
+export const DAEMON_PORT = parseInt(process.env.TERMATES_DAEMON_PORT || '3210', 10);
 export const DAEMON_URL = `ws://${DAEMON_HOST}:${DAEMON_PORT}`;
 /** HTTP base — the daemon serves hook callbacks and the Hive org API here. */
 export const DAEMON_HTTP_URL = `http://${DAEMON_HOST}:${DAEMON_PORT}`;

@@ -57,8 +57,8 @@ if (!isMainThread) {
     before(async () => {
       home = fs.mkdtempSync(path.join(os.tmpdir(), 'th-race-'));
       process.env.HOME = home;
-      delete process.env.TERMHIVE_MAX_AGENTS;
-      delete process.env.TERMHIVE_LIMITS_FILE;
+      delete process.env.TERMATES_MAX_AGENTS;
+      delete process.env.TERMATES_LIMITS_FILE;
       storage = await import('../src/storage.js');
     });
     after(() => {

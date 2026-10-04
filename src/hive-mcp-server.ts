@@ -30,7 +30,7 @@ function parseArgs(): Args {
     return idx >= 0 && idx + 1 < argv.length ? argv[idx + 1] : undefined;
   };
   return {
-    daemonUrl: getArg('daemon') || process.env.TERMHIVE_DAEMON_HTTP || 'http://127.0.0.1:3210',
+    daemonUrl: getArg('daemon') || process.env.TERMATES_DAEMON_HTTP || 'http://127.0.0.1:3210',
   };
 }
 

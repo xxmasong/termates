@@ -57,17 +57,17 @@ describe('provisioner', () => {
     for (const line of [
       'HOME=/home/th-x',
       'PORT=4020',
-      'TERMHIVE_DAEMON_PORT=4021',
+      'TERMATES_DAEMON_PORT=4021',
       'CLAUDE_BRIDGE_PORT=4022',
-      'TERMHIVE_MAX_PROJECTS=1',
-      'TERMHIVE_MAX_AGENTS=3',
-      'TERMHIVE_CONFINE_HOME=1',
+      'TERMATES_MAX_PROJECTS=1',
+      'TERMATES_MAX_AGENTS=3',
+      'TERMATES_CONFINE_HOME=1',
     ]) {
       assert.ok(free.split('\n').includes(line), line);
     }
     const plus = workspaceEnv({ unix_user: 'th-x', port_base: 4020 }, 'pro-plus');
-    assert.ok(plus.split('\n').includes('TERMHIVE_MAX_PROJECTS='));
-    assert.ok(plus.split('\n').includes('TERMHIVE_MAX_AGENTS=30'));
+    assert.ok(plus.split('\n').includes('TERMATES_MAX_PROJECTS='));
+    assert.ok(plus.split('\n').includes('TERMATES_MAX_AGENTS=30'));
   });
 
   it('rebuilds the per-user nft allow chain, skipping root and missing users', async () => {

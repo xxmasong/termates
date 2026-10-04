@@ -116,7 +116,7 @@ server.listen(config.port, config.host, () => {
     `[cloud] firebase ${config.firebase ? `configured (${config.firebase.projectId})` : 'NOT configured'}, signups ${config.signupMode}`,
   );
   if (config.devSessions)
-    console.warn('[cloud] TERMHIVE_DEV_SESSIONS=1 — dev sessions are enabled');
+    console.warn('[cloud] TERMATES_DEV_SESSIONS=1 — dev sessions are enabled');
 });
 
 // Per-user firewall rules live only in the kernel; rebuild them on start and

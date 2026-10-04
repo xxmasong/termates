@@ -2,7 +2,7 @@
  * workspace-limits.ts — plan limits and cwd confinement for one workspace.
  *
  * The control plane starts each workspace with its plan's limits in the
- * environment, plus TERMHIVE_LIMITS_FILE: a root-owned JSON file outside HOME
+ * environment, plus TERMATES_LIMITS_FILE: a root-owned JSON file outside HOME
  * (agents can read it, never write it) that is re-read on every create, so a
  * plan change applies without restarting the workspace. Both the
  * REST routes and the Keeper's MCP tools end in storage.create*, so storage
@@ -13,12 +13,12 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-export const MAX_PROJECTS_ENV = 'TERMHIVE_MAX_PROJECTS';
-export const MAX_AGENTS_ENV = 'TERMHIVE_MAX_AGENTS';
-export const CONFINE_HOME_ENV = 'TERMHIVE_CONFINE_HOME';
-export const LIMITS_FILE_ENV = 'TERMHIVE_LIMITS_FILE';
+export const MAX_PROJECTS_ENV = 'TERMATES_MAX_PROJECTS';
+export const MAX_AGENTS_ENV = 'TERMATES_MAX_AGENTS';
+export const CONFINE_HOME_ENV = 'TERMATES_CONFINE_HOME';
+export const LIMITS_FILE_ENV = 'TERMATES_LIMITS_FILE';
 
-/** Contents of TERMHIVE_LIMITS_FILE. `null` means unlimited. */
+/** Contents of TERMATES_LIMITS_FILE. `null` means unlimited. */
 export interface LimitsFile {
   maxProjects: number | null;
   maxAgents: number | null;
@@ -83,7 +83,7 @@ function readLimitsFile(env: NodeJS.ProcessEnv): Partial<LimitsFile> | null {
 }
 
 /**
- * The current limit: TERMHIVE_LIMITS_FILE when readable, else the environment.
+ * The current limit: TERMATES_LIMITS_FILE when readable, else the environment.
  * Unset or blank means unlimited.
  */
 export function readLimit(kind: LimitKind, env: NodeJS.ProcessEnv = process.env): number | null {
@@ -138,7 +138,7 @@ function realpathExisting(p: string): string {
 }
 
 /**
- * With TERMHIVE_CONFINE_HOME=1, a project/agent cwd must resolve inside HOME
+ * With TERMATES_CONFINE_HOME=1, a project/agent cwd must resolve inside HOME
  * (symlinks followed), else CwdOutsideHomeError. Returns the input unchanged so
  * stored values keep their original spelling (e.g. `~/code`).
  */

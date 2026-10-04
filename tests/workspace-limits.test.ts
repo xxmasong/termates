@@ -15,28 +15,28 @@ import {
 describe('readLimit', () => {
   it('treats unset and blank as unlimited', () => {
     assert.equal(readLimit('project', {}), null);
-    assert.equal(readLimit('agent', { TERMHIVE_MAX_AGENTS: '  ' }), null);
+    assert.equal(readLimit('agent', { TERMATES_MAX_AGENTS: '  ' }), null);
   });
 
   it('parses non-negative integers', () => {
-    assert.equal(readLimit('project', { TERMHIVE_MAX_PROJECTS: '3' }), 3);
-    assert.equal(readLimit('agent', { TERMHIVE_MAX_AGENTS: '0' }), 0);
+    assert.equal(readLimit('project', { TERMATES_MAX_PROJECTS: '3' }), 3);
+    assert.equal(readLimit('agent', { TERMATES_MAX_AGENTS: '0' }), 0);
   });
 
   it('fails closed on malformed values', () => {
-    assert.equal(readLimit('project', { TERMHIVE_MAX_PROJECTS: 'lots' }), 0);
-    assert.equal(readLimit('agent', { TERMHIVE_MAX_AGENTS: '-1' }), 0);
-    assert.equal(readLimit('agent', { TERMHIVE_MAX_AGENTS: '2.5' }), 0);
+    assert.equal(readLimit('project', { TERMATES_MAX_PROJECTS: 'lots' }), 0);
+    assert.equal(readLimit('agent', { TERMATES_MAX_AGENTS: '-1' }), 0);
+    assert.equal(readLimit('agent', { TERMATES_MAX_AGENTS: '2.5' }), 0);
   });
 });
 
-describe('readLimit from TERMHIVE_LIMITS_FILE', () => {
+describe('readLimit from TERMATES_LIMITS_FILE', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'th-limits-'));
   const file = path.join(dir, 'ws.json');
   after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
   it('prefers the file and re-reads it on every call', () => {
-    const env = { TERMHIVE_LIMITS_FILE: file, TERMHIVE_MAX_AGENTS: '3' };
+    const env = { TERMATES_LIMITS_FILE: file, TERMATES_MAX_AGENTS: '3' };
     fs.writeFileSync(file, JSON.stringify({ maxProjects: 3, maxAgents: 10 }));
     assert.equal(readLimit('agent', env), 10);
     fs.writeFileSync(file, JSON.stringify({ maxProjects: null, maxAgents: 30 }));
@@ -45,28 +45,28 @@ describe('readLimit from TERMHIVE_LIMITS_FILE', () => {
   });
 
   it('falls back to the environment when the file is missing or unreadable', () => {
-    const env = { TERMHIVE_LIMITS_FILE: path.join(dir, 'nope.json'), TERMHIVE_MAX_AGENTS: '3' };
+    const env = { TERMATES_LIMITS_FILE: path.join(dir, 'nope.json'), TERMATES_MAX_AGENTS: '3' };
     assert.equal(readLimit('agent', env), 3);
     fs.writeFileSync(file, 'not json');
-    assert.equal(readLimit('agent', { ...env, TERMHIVE_LIMITS_FILE: file }), 3);
+    assert.equal(readLimit('agent', { ...env, TERMATES_LIMITS_FILE: file }), 3);
   });
 
   it('fails closed on a malformed value in the file', () => {
     fs.writeFileSync(file, JSON.stringify({ maxProjects: -1, maxAgents: 'x' }));
-    assert.equal(readLimit('project', { TERMHIVE_LIMITS_FILE: file }), 0);
-    assert.equal(readLimit('agent', { TERMHIVE_LIMITS_FILE: file }), 0);
+    assert.equal(readLimit('project', { TERMATES_LIMITS_FILE: file }), 0);
+    assert.equal(readLimit('agent', { TERMATES_LIMITS_FILE: file }), 0);
   });
 });
 
 describe('assertCanCreate', () => {
   it('allows creates below the limit and when unlimited', () => {
-    assert.doesNotThrow(() => assertCanCreate('project', 0, { TERMHIVE_MAX_PROJECTS: '1' }));
+    assert.doesNotThrow(() => assertCanCreate('project', 0, { TERMATES_MAX_PROJECTS: '1' }));
     assert.doesNotThrow(() => assertCanCreate('agent', 500, {}));
   });
 
   it('rejects at the limit with the PLAN_LIMIT payload', () => {
     assert.throws(
-      () => assertCanCreate('agent', 3, { TERMHIVE_MAX_AGENTS: '3' }),
+      () => assertCanCreate('agent', 3, { TERMATES_MAX_AGENTS: '3' }),
       (err: unknown) => {
         assert.ok(err instanceof PlanLimitError);
         assert.deepEqual(err.toJSON(), {
@@ -83,7 +83,7 @@ describe('assertCanCreate', () => {
 
   it('uses the singular noun for a limit of one', () => {
     assert.throws(
-      () => assertCanCreate('project', 1, { TERMHIVE_MAX_PROJECTS: '1' }),
+      () => assertCanCreate('project', 1, { TERMATES_MAX_PROJECTS: '1' }),
       /includes 1 project\. /,
     );
   });
@@ -97,8 +97,8 @@ describe('storage enforcement', () => {
   before(async () => {
     home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-limits-'));
     process.env.HOME = home;
-    process.env.TERMHIVE_MAX_PROJECTS = '2';
-    process.env.TERMHIVE_MAX_AGENTS = '3';
+    process.env.TERMATES_MAX_PROJECTS = '2';
+    process.env.TERMATES_MAX_AGENTS = '3';
     storage = await import('../src/storage.js');
   });
 
@@ -147,9 +147,9 @@ describe('assertCwdAllowed', () => {
     fs.rmSync(outside, { recursive: true, force: true });
   });
 
-  const confined = () => ({ HOME: home, TERMHIVE_CONFINE_HOME: '1' });
+  const confined = () => ({ HOME: home, TERMATES_CONFINE_HOME: '1' });
 
-  it('is a no-op unless TERMHIVE_CONFINE_HOME=1', () => {
+  it('is a no-op unless TERMATES_CONFINE_HOME=1', () => {
     assert.equal(assertCwdAllowed('/etc', { HOME: home }), '/etc');
   });
 

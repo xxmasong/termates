@@ -85,14 +85,14 @@ export function writeClaudeHookConfig(agentId: string, hookBaseUrl: string): str
   // be restated here or every agent silently falls back to the CLI defaults.
   const settings: Record<string, unknown> = { hooks };
 
-  const model = process.env.TERMHIVE_AGENT_MODEL;
+  const model = process.env.TERMATES_AGENT_MODEL;
   if (model) settings.model = model;
 
   // Models without auto mode prompt on every tool call, which deadlocks an
   // unattended agent. An allowlist unblocks them without the root-incompatible
   // --dangerously-skip-permissions flag.
-  const allow = process.env.TERMHIVE_AGENT_ALLOW;
-  const deny = process.env.TERMHIVE_AGENT_DENY;
+  const allow = process.env.TERMATES_AGENT_ALLOW;
+  const deny = process.env.TERMATES_AGENT_DENY;
   if (allow || deny) {
     const split = (v: string) => v.split(',').map((rule) => rule.trim()).filter(Boolean);
     settings.permissions = {

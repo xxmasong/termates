@@ -39,8 +39,8 @@ describe('GraphQL API', () => {
   before(async () => {
     home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-gql-'));
     process.env.HOME = home;
-    delete process.env.TERMHIVE_MAX_PROJECTS;
-    process.env.TERMHIVE_MAX_AGENTS = '2';
+    delete process.env.TERMATES_MAX_PROJECTS;
+    process.env.TERMATES_MAX_AGENTS = '2';
     const { WorkspaceService } = await import('../src/services/workspace-service.js');
     const { createWorkspacePubSub } = await import('../src/graphql/pubsub.js');
     const { createGraphQLHandler } = await import('../src/graphql/yoga.js');

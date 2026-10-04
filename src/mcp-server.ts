@@ -34,10 +34,10 @@ function parseArgs(): Args {
     return idx >= 0 && idx + 1 < argv.length ? argv[idx + 1] : undefined;
   };
   return {
-    hubUrl: getArg('hub') || process.env.TERMHIVE_HUB_URL || 'http://localhost:3200',
-    projectId: getArg('project') || process.env.TERMHIVE_PROJECT_ID || '',
-    agentId: getArg('agent') || process.env.TERMHIVE_AGENT_ID || '',
-    agentName: getArg('name') || process.env.TERMHIVE_AGENT_NAME || 'unknown',
+    hubUrl: getArg('hub') || process.env.TERMATES_HUB_URL || 'http://localhost:3200',
+    projectId: getArg('project') || process.env.TERMATES_PROJECT_ID || '',
+    agentId: getArg('agent') || process.env.TERMATES_AGENT_ID || '',
+    agentName: getArg('name') || process.env.TERMATES_AGENT_NAME || 'unknown',
   };
 }
 
