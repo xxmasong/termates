@@ -249,23 +249,23 @@ html.landing-document {
   width: 700px;
   z-index: 0;
 }
-.hive-pane--claude pre {
+.team-pane--claude pre {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
   overflow: hidden;
 }
-.hive-message-path {
+.team-message-path {
   top: 22%;
   height: 78%;
 }
-.hive-toast {
+.team-toast {
   z-index: 2;
 }
-.hive-pane--claude.hive-pane--has-toast pre {
+.team-pane--claude.team-pane--has-toast pre {
   -webkit-line-clamp: 3;
 }
-.hive-sim {
+.team-sim {
   background: var(--l-bg-sunken);
   border: 1px solid var(--l-line-strong);
   border-radius: var(--l-radius);
@@ -274,7 +274,7 @@ html.landing-document {
   overflow: hidden;
   position: relative;
 }
-.hive-sim__chrome {
+.team-sim__chrome {
   align-items: center;
   border-bottom: 1px solid var(--l-line);
   display: flex;
@@ -282,7 +282,7 @@ html.landing-document {
   justify-content: center;
   position: relative;
 }
-.hive-sim__chrome i {
+.team-sim__chrome i {
   background: #5a5854;
   border-radius: 50%;
   height: 8px;
@@ -291,16 +291,16 @@ html.landing-document {
   top: 14px;
   width: 8px;
 }
-.hive-sim__chrome i:nth-child(2) {
+.team-sim__chrome i:nth-child(2) {
   left: 28px;
 }
-.hive-sim__chrome i:nth-child(3) {
+.team-sim__chrome i:nth-child(3) {
   left: 42px;
 }
-.hive-sim__chrome span {
+.team-sim__chrome span {
   font: 11px var(--l-ff-mono);
 }
-.hive-sim__chrome b {
+.team-sim__chrome b {
   background: var(--l-honey-soft);
   color: var(--l-honey);
   font: 10px var(--l-ff-mono);
@@ -308,7 +308,7 @@ html.landing-document {
   position: absolute;
   right: 10px;
 }
-.hive-sim__body {
+.team-sim__body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 330px;
@@ -316,64 +316,64 @@ html.landing-document {
   gap: 1px;
   background: var(--l-line);
 }
-.hive-pane {
+.team-pane {
   background: var(--l-bg-sunken);
   min-width: 0;
   padding: 10px;
   position: relative;
 }
-.hive-pane header {
+.team-pane header {
   align-items: center;
   color: #aaa8a4;
   display: flex;
   font: 10px var(--l-ff-mono);
   gap: 6px;
 }
-.hive-pane header strong {
+.team-pane header strong {
   color: #e8e6e3;
   font-weight: 500;
 }
-.hive-pane header span:not(.hive-dot) {
+.team-pane header span:not(.team-dot) {
   border: 1px solid #383735;
   border-radius: 99px;
   padding: 2px 5px;
 }
-.hive-pane header em {
+.team-pane header em {
   color: var(--l-text-3);
   font-style: normal;
   margin-left: auto;
 }
-.hive-pane--codex header em {
+.team-pane--codex header em {
   color: var(--l-ok);
 }
-.hive-dot {
+.team-dot {
   background: var(--l-claude);
   border-radius: 50%;
   height: 6px;
   width: 6px;
 }
-.hive-pane--codex .hive-dot {
+.team-pane--codex .team-dot {
   background: var(--l-codex);
 }
-.hive-pane--gemini .hive-dot {
+.team-pane--gemini .team-dot {
   background: var(--l-gemini);
 }
-.hive-pane--opencode .hive-dot {
+.team-pane--opencode .team-dot {
   background: var(--l-opencode);
 }
-.hive-dot--running {
-  animation: hive-pulse 1.4s infinite;
+.team-dot--running {
+  animation: team-pulse 1.4s infinite;
 }
-.hive-pane pre {
+.team-pane pre {
   color: #c5c4c1;
   font: 12.5px/1.55 var(--l-ff-mono);
   margin: 17px 0;
   white-space: pre-wrap;
 }
-.hive-pane pre span {
+.team-pane pre span {
   display: block;
 }
-.hive-toast {
+.team-toast {
   background: #272622;
   border: 1px solid #45433e;
   border-radius: 6px;
@@ -383,9 +383,9 @@ html.landing-document {
   position: absolute;
   bottom: 10px;
   right: 10px;
-  animation: hive-toast-in 0.25s ease-out;
+  animation: team-toast-in 0.25s ease-out;
 }
-.hive-message-path {
+.team-message-path {
   height: 100%;
   left: 0;
   pointer-events: none;
@@ -393,22 +393,22 @@ html.landing-document {
   top: 0;
   width: 100%;
 }
-.hive-message-path path {
+.team-message-path path {
   fill: none;
   opacity: 0;
   stroke: var(--l-codex);
   stroke-dasharray: 5;
   stroke-width: 1;
 }
-.hive-message-path defs path {
+.team-message-path defs path {
   fill: var(--l-codex);
   stroke: none;
 }
-.hive-message-path--visible path {
-  animation: hive-dash 1s linear infinite;
+.team-message-path--visible path {
+  animation: team-dash 1s linear infinite;
   opacity: 1;
 }
-.hive-keeper {
+.team-keeper {
   align-items: center;
   background: #24231f;
   border: 1px solid var(--l-honey);
@@ -425,13 +425,13 @@ html.landing-document {
   transform: translateY(8px);
   transition: 0.2s;
 }
-.hive-keeper span {
+.team-keeper span {
   border: 2px solid var(--l-honey);
   border-radius: 50%;
   color: var(--l-honey);
   padding: 2px;
 }
-.hive-keeper--visible {
+.team-keeper--visible {
   opacity: 1;
   transform: none;
 }
@@ -520,18 +520,18 @@ html.landing-document {
   height: 100vh;
   justify-content: center;
 }
-@keyframes hive-pulse {
+@keyframes team-pulse {
   50% {
     opacity: 0.35;
     transform: scale(1.5);
   }
 }
-@keyframes hive-dash {
+@keyframes team-dash {
   to {
     stroke-dashoffset: -10;
   }
 }
-@keyframes hive-toast-in {
+@keyframes team-toast-in {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -555,20 +555,20 @@ html.landing-document {
   .landing-hero__copy {
     margin-bottom: 46px;
   }
-  .hive-sim__body {
+  .team-sim__body {
     min-height: 300px;
   }
-  .hive-pane {
+  .team-pane {
     padding: 7px;
   }
-  .hive-pane header {
+  .team-pane header {
     font-size: 8px;
     gap: 3px;
   }
-  .hive-pane pre {
+  .team-pane pre {
     font-size: 11px;
   }
-  .hive-toast {
+  .team-toast {
     font-size: 8px !important;
   }
   .landing-footer {

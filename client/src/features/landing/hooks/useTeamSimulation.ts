@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SIM_STEPS, SIM_STEP_MS } from '../constants';
 import { useReducedMotion } from './useReducedMotion';
-export const useHiveSimulation = () => {
+export const useTeamSimulation = () => {
   const reduced = useReducedMotion();
   const [step, setStep] = useState(reduced ? SIM_STEPS.length - 1 : 0);
   useEffect(() => {

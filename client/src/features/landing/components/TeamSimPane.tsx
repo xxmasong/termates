@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { SimPane } from '../types';
-interface HiveSimPaneProps {
+interface TeamSimPaneProps {
   pane: SimPane;
   lines: readonly string[];
   running: boolean;
@@ -8,7 +8,7 @@ interface HiveSimPaneProps {
   paneRef?: RefObject<HTMLElement>;
   toastRef?: RefObject<HTMLParagraphElement>;
 }
-export const HiveSimPane: React.FC<HiveSimPaneProps> = ({
+export const TeamSimPane: React.FC<TeamSimPaneProps> = ({
   pane,
   lines,
   running,
@@ -17,11 +17,11 @@ export const HiveSimPane: React.FC<HiveSimPaneProps> = ({
   toastRef,
 }) => (
   <article
-    className={`hive-pane hive-pane--${pane.id}${toast ? ' hive-pane--has-toast' : ''}`}
+    className={`team-pane team-pane--${pane.id}${toast ? ' team-pane--has-toast' : ''}`}
     ref={paneRef}
   >
     <header>
-      <span className={`hive-dot${running ? ' hive-dot--running' : ''}`} />
+      <span className={`team-dot${running ? ' team-dot--running' : ''}`} />
       <strong>{pane.cli}</strong>
       <span>{pane.role}</span>
       <em>{running ? 'running' : pane.status}</em>
@@ -32,7 +32,7 @@ export const HiveSimPane: React.FC<HiveSimPaneProps> = ({
       ))}
     </pre>
     {toast ? (
-      <p className="hive-toast" ref={toastRef}>
+      <p className="team-toast" ref={toastRef}>
         {toast}
       </p>
     ) : null}

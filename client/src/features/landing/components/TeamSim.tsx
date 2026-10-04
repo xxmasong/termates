@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import { COPY, SIM_PANES, SIM_STEPS } from '../constants';
-import { useHiveSimulation, useMessagePath } from '../hooks';
-import { HiveSimPane } from './HiveSimPane';
+import { useTeamSimulation, useMessagePath } from '../hooks';
+import { TeamSimPane } from './TeamSimPane';
 import { KeeperHud } from './KeeperHud';
-interface HiveSimProps {
+interface TeamSimProps {
   children?: never;
 }
-export const HiveSim: React.FC<HiveSimProps> = () => {
-  const { step, reduced } = useHiveSimulation();
+export const TeamSim: React.FC<TeamSimProps> = () => {
+  const { step, reduced } = useTeamSimulation();
   const active = SIM_STEPS.slice(0, step + 1);
   const linesFor = (pane: (typeof SIM_PANES)[number]) => [
     ...pane.lines,
@@ -20,17 +20,17 @@ export const HiveSim: React.FC<HiveSimProps> = () => {
   const codexRef = useRef<HTMLElement>(null);
   const path = useMessagePath(gridRef, toastRef, codexRef, message);
   return (
-    <div aria-hidden="true" className="hive-sim">
-      <header className="hive-sim__chrome">
+    <div aria-hidden="true" className="team-sim">
+      <header className="team-sim__chrome">
         <i />
         <i />
         <i />
         <span>{COPY.sim.title}</span>
         <b>{COPY.sim.live}</b>
       </header>
-      <div className="hive-sim__body" ref={gridRef}>
+      <div className="team-sim__body" ref={gridRef}>
         {SIM_PANES.map((pane) => (
-          <HiveSimPane
+          <TeamSimPane
             key={pane.id}
             lines={linesFor(pane)}
             pane={pane}
@@ -42,12 +42,12 @@ export const HiveSim: React.FC<HiveSimProps> = () => {
         ))}
         {path.d ? (
           <svg
-            className="hive-message-path hive-message-path--visible"
+            className="team-message-path team-message-path--visible"
             viewBox={`0 0 ${path.width} ${path.height}`}
           >
             <defs>
               <marker
-                id="hive-arrow"
+                id="team-arrow"
                 markerHeight="5"
                 markerWidth="5"
                 orient="auto"
@@ -57,7 +57,7 @@ export const HiveSim: React.FC<HiveSimProps> = () => {
                 <path d="M0 0 5 2.5 0 5z" />
               </marker>
             </defs>
-            <path d={path.d} markerEnd="url(#hive-arrow)" />
+            <path d={path.d} markerEnd="url(#team-arrow)" />
           </svg>
         ) : null}
       </div>

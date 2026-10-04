@@ -1,6 +1,6 @@
 export * from './useDocumentTitle';
 export * from './useFaqAccordion';
-export * from './useHiveSimulation';
+export * from './useTeamSimulation';
 export * from './useMessagePath';
 export * from './usePageScroll';
 export * from './useInView';

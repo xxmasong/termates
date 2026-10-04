@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icon } from '@/components';
-import { HiveSim } from '@/features/landing';
+import { TeamSim } from '@/features/landing';
 import { AUTH_COPY } from '../constants';
 import '@/features/landing/styles.css';
 import '../styles.css';
@@ -18,7 +18,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => (
       <small>© 2026 Termates</small>
     </section>
     <aside className="auth-panel">
-      <HiveSim />
+      <TeamSim />
       <h2>{AUTH_COPY.panelTitle}</h2>
       <p>{AUTH_COPY.panelAgents}</p>
     </aside>

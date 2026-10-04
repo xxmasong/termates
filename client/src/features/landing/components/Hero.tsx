@@ -1,7 +1,7 @@
 import { ROUTES } from '@/constants';
 import { COPY } from '../constants';
 import { RingPattern } from './RingPattern';
-import { HiveSim } from './HiveSim';
+import { TeamSim } from './TeamSim';
 interface HeroProps {
   children?: never;
 }
@@ -27,7 +27,7 @@ export const Hero: React.FC<HeroProps> = () => (
       <small>{COPY.hero.micro}</small>
     </div>
     <div>
-      <HiveSim />
+      <TeamSim />
       <span className="sr-only">
         A live Termates workspace where four coding agents coordinate checkout work.
       </span>
