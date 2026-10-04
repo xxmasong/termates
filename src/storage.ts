@@ -378,7 +378,7 @@ export function deleteContent(projectId: string, filename: string): boolean {
 const WIKI_SCHEMA = `# Project Wiki Schema
 
 ## Purpose
-This is the project's persistent knowledge base, maintained by AI agents via Termhive.
+This is the project's persistent knowledge base, maintained by AI agents via Termates.
 It accumulates and organizes knowledge over time — architecture decisions, API specs,
 progress tracking, and cross-referenced documentation.
 

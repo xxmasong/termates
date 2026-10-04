@@ -465,6 +465,6 @@ wss.on('connection', (ws) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Termhive web server running on http://localhost:${PORT}`);
+  console.log(`Termates web server running on http://localhost:${PORT}`);
   console.log(`[server] daemon: ${daemon.isConnected() ? 'connected' : 'connecting…'}`);
 });

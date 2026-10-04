@@ -1,5 +1,5 @@
 /**
- * termhive-daemon — owns every agent PTY process and outlives the web server.
+ * termates-daemon — owns every agent PTY process and outlives the web server.
  *
  * Two interfaces on one port (127.0.0.1:3210):
  *   - WebSocket  — the web server connects here (see protocol.ts)
@@ -561,7 +561,7 @@ wss.on('connection', (ws) => {
 });
 
 httpServer.listen(DAEMON_PORT, DAEMON_HOST, () => {
-  console.log(`[daemon] termhive-daemon listening on ${DAEMON_HOST}:${DAEMON_PORT} (pid ${process.pid})`);
+  console.log(`[daemon] termates-daemon listening on ${DAEMON_HOST}:${DAEMON_PORT} (pid ${process.pid})`);
   console.log(`[daemon]   ws://${DAEMON_HOST}:${DAEMON_PORT}  — web client`);
   console.log(`[daemon]   http://${DAEMON_HOST}:${DAEMON_PORT}/hook/:agentId/:event  — lifecycle hooks`);
 });

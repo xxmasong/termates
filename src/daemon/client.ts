@@ -1,5 +1,5 @@
 /**
- * DaemonClient — used by the web server to talk to termhive-daemon.
+ * DaemonClient — used by the web server to talk to termates-daemon.
  *
  * Handles connect + auto-reconnect, RPC request/response correlation, and
  * fan-out of streaming events (terminal output, agent status) to listeners.

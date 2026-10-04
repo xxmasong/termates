@@ -8,8 +8,8 @@ import { getEvents, pushEvent } from '../src/activity.js';
 
 describe('activity history', () => {
   const saved = process.env.HOME;
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-activity-'));
-  const other = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-activity-other-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-activity-'));
+  const other = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-activity-other-'));
 
   after(() => {
     process.env.HOME = saved;

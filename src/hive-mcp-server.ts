@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Termhive Hive Orchestrator MCP Server
+ * Termates Hive Orchestrator MCP Server
  *
  * Gives the orchestrator brain ("The Keeper") org-level tools to see and
  * command the whole hive. Spawned as a stdio MCP server by the brain's CLI
- * process; forwards every tool call to the termhive-daemon over HTTP.
+ * process; forwards every tool call to the termates-daemon over HTTP.
  *
  * Unlike the per-agent `mcp-server.ts` (agent-to-agent messaging), this server
  * is loaded only by the brain and exposes cross-project tools.
  *
  * Args:
- *   --daemon <url>   termhive-daemon HTTP base (default http://127.0.0.1:3210)
+ *   --daemon <url>   termates-daemon HTTP base (default http://127.0.0.1:3210)
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -181,7 +181,7 @@ async function main() {
   const args = parseArgs();
 
   const server = new Server(
-    { name: 'termhive-hive', version: '0.1.0' },
+    { name: 'termates-hive', version: '0.1.0' },
     { capabilities: { tools: {} } },
   );
 

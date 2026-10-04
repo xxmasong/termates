@@ -41,7 +41,7 @@ const GEMINI_FILES = ['oauth_creds.json', 'google_accounts.json'];
 
 /** A scratch HOME whose Gemini settings select Google login. */
 function prepareGemini(): string {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-gemini-login-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-gemini-login-'));
   fs.mkdirSync(path.join(home, '.gemini'), { recursive: true });
   fs.writeFileSync(
     path.join(home, '.gemini', 'settings.json'),

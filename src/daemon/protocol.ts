@@ -1,5 +1,5 @@
 /**
- * Wire protocol between the Termhive web server and the termhive-daemon.
+ * Wire protocol between the Termates web server and the termates-daemon.
  *
  * The daemon owns all PTY/agent processes and outlives the web server, so the
  * web server can restart freely without killing agents. They talk over a

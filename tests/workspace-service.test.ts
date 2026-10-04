@@ -46,7 +46,7 @@ describe('WorkspaceService + REST adapter', () => {
   const { daemon, calls } = fakeDaemon(running);
 
   before(async () => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-service-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-service-'));
     process.env.HOME = home;
     delete process.env.TERMATES_MAX_PROJECTS;
     delete process.env.TERMATES_MAX_AGENTS;

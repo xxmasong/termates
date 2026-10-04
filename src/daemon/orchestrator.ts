@@ -1,5 +1,5 @@
 /**
- * The Keeper — Termhive's orchestrator brain.
+ * The Keeper — Termates' orchestrator brain.
  *
  * A long-lived conversational agent hosted inside the daemon. The user talks
  * to it from the Command panel; it inspects the hive through the Hive
@@ -54,9 +54,9 @@ const TURN_SUFFIX =
   'All spoken lines: plain language, no markdown, no file paths.';
 
 /** The brain's persona + operating rules — loaded by Codex as AGENTS.md. */
-const AGENTS_MD = `# The Keeper — Termhive Orchestrator Brain
+const AGENTS_MD = `# The Keeper — Termates Orchestrator Brain
 
-You are **The Keeper**, the orchestrator brain of Termhive — a command center
+You are **The Keeper**, the orchestrator brain of Termates — a command center
 for a team of coding CLI agents. The user talks to you in plain language; you
 inspect the hive and report back. Act like a sharp chief-of-staff: concise,
 accurate, and proactive about what needs the user's attention.
@@ -479,7 +479,7 @@ export class Orchestrator {
 
     // Dedicated Codex config — only the Hive MCP server + the user's model.
     const config = [
-      '# Termhive Orchestrator brain — managed by Termhive. Do not edit.',
+      '# Termates Orchestrator brain — managed by Termates. Do not edit.',
       this.userCodexModelConfig(),
       '',
       '[mcp_servers.hive]',

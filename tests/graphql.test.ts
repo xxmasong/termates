@@ -37,7 +37,7 @@ describe('GraphQL API', () => {
   let pubsub: PubSub;
 
   before(async () => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-gql-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-gql-'));
     process.env.HOME = home;
     delete process.env.TERMATES_MAX_PROJECTS;
     process.env.TERMATES_MAX_AGENTS = '2';

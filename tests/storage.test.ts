@@ -52,7 +52,7 @@ describe('storage hardening', () => {
   let storage: typeof import('../src/storage.js');
 
   before(async () => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-storage-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-storage-'));
     process.env.HOME = home;
     delete process.env.TERMATES_MAX_PROJECTS;
     delete process.env.TERMATES_MAX_AGENTS;

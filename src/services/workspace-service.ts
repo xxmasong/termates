@@ -2,7 +2,7 @@
  * workspace-service.ts — the workspace's business logic, independent of
  * transport. REST (routes.ts) and GraphQL (graphql/) are thin adapters over it.
  *
- * Agent runtime operations (start/stop/status/inject) go to termhive-daemon,
+ * Agent runtime operations (start/stop/status/inject) go to termates-daemon,
  * which owns every PTY.
  */
 

@@ -95,7 +95,7 @@ describe('storage enforcement', () => {
   let storage: typeof import('../src/storage.js');
 
   before(async () => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-limits-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-limits-'));
     process.env.HOME = home;
     process.env.TERMATES_MAX_PROJECTS = '2';
     process.env.TERMATES_MAX_AGENTS = '3';
@@ -136,8 +136,8 @@ describe('assertCwdAllowed', () => {
   let outside = '';
 
   before(() => {
-    home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-home-')));
-    outside = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-outside-')));
+    home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termates-home-')));
+    outside = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'termates-outside-')));
     fs.mkdirSync(path.join(home, 'code'));
     fs.symlinkSync(outside, path.join(home, 'escape'));
   });
