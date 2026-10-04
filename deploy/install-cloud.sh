@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install / refresh Termates Cloud host files. Idempotent; run as root from
 # /opt/termates after `npm ci && npm run build`. Does not (re)start
-# services — see docs/CLOUD_BRIEF.md §6 for the order.
+# services: start the control plane first, then the workspaces.
 set -eu
 cd "$(dirname "$0")/.."
 
