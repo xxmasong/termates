@@ -109,8 +109,10 @@ describe('Orchestrator engines', () => {
       ['claude answer', 'claude answer', 'gemini answer'],
     );
 
-    // Back on claude: its session still exists, so no recap and a resume.
-    keeper.setSettings('claude', 'haiku');
+    // Back on claude: its session still exists, so no recap and a resume, and
+    // its saved model comes back without being sent again.
+    keeper.setSettings('claude');
+    assert.equal(keeper.getState().model, 'haiku');
     await keeper.send('fourth');
     const fourth = calls()[3];
     assert.equal(flag(fourth.args, '--resume'), session);

@@ -3,6 +3,7 @@ export const WS_CLIENT_MESSAGE_TYPES = {
   BRAIN_DELETE: 'brain:delete',
   BRAIN_NEW: 'brain:new',
   BRAIN_SEND: 'brain:send',
+  BRAIN_SETTINGS: 'brain:settings',
   BRAIN_SWITCH: 'brain:switch',
   LOGIN_INPUT: 'login:input',
   LOGIN_RESIZE: 'login:resize',

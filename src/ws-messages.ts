@@ -51,7 +51,9 @@ function parse(raw: Raw): WSClientMessage | null {
         ? { type: raw.type, message: raw.message }
         : null;
     case 'brain:settings':
-      return isEngine(raw.engine) && typeof raw.model === 'string' && isValidModel(raw.model)
+      if (!isEngine(raw.engine)) return null;
+      if (raw.model === undefined) return { type: raw.type, engine: raw.engine };
+      return typeof raw.model === 'string' && isValidModel(raw.model)
         ? { type: raw.type, engine: raw.engine, model: raw.model }
         : null;
     case 'brain:new':

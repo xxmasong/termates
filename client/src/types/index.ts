@@ -89,6 +89,14 @@ export interface BrainMessage {
 
 export type BrainStatus = 'idle' | 'thinking';
 
+export type KeeperEngine = 'codex' | 'claude' | 'gemini';
+
+export interface KeeperEngineInfo {
+  id: KeeperEngine;
+  label: string;
+  available: boolean;
+}
+
 export interface BrainConversationMeta {
   id: string;
   title: string;
@@ -99,7 +107,10 @@ export interface BrainConversationMeta {
 export interface BrainState {
   messages: BrainMessage[];
   status: BrainStatus;
-  engine: 'codex' | 'claude';
+  engine: KeeperEngine;
+  /** '' is the engine's own default model. */
+  model: string;
+  engines: KeeperEngineInfo[];
   currentId: string;
   conversations: BrainConversationMeta[];
 }
@@ -137,6 +148,7 @@ export type WSClientMessage =
   | { type: 'brain:abort' }
   | { type: 'brain:switch'; conversationId: string }
   | { type: 'brain:delete'; conversationId: string }
+  | { type: 'brain:settings'; engine: KeeperEngine; model?: string }
   | { type: 'login:start'; cli: string; cols: number; rows: number }
   | { type: 'login:input'; data: string }
   | { type: 'login:resize'; cols: number; rows: number }

@@ -140,7 +140,8 @@ export type DaemonRequest =
   | { op: 'brain:abort' }
   | { op: 'brain:switch'; conversationId: string }
   | { op: 'brain:delete'; conversationId: string }
-  | { op: 'brain:settings'; engine: KeeperEngine; model: string };
+  /** `model` omitted keeps the engine's saved model. */
+  | { op: 'brain:settings'; engine: KeeperEngine; model?: string };
 
 /** Daemon → Web. */
 export type DaemonMessage =

@@ -5,6 +5,7 @@ import { Button, EmptyState, Icon, Textarea } from '@/components';
 import { useBrainActions, useBrainState } from '../hooks';
 import { BrainConversationSwitcher } from './BrainConversationSwitcher';
 import { BrainMessageRow } from './BrainMessageRow';
+import { KeeperEngineBar } from './KeeperEngineBar';
 
 export interface BrainPanelProps {
   children?: never;
@@ -99,6 +100,7 @@ export const BrainPanel: React.FC<BrainPanelProps> = () => {
           />
         </div>
       </header>
+      <KeeperEngineBar />
 
       {showConversations ? (
         <BrainConversationSwitcher

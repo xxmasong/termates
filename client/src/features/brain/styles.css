@@ -45,6 +45,20 @@
   white-space: nowrap;
 }
 
+.keeper-engine-bar {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.keeper-engine-bar .agent-model-bar__select {
+  flex: 1;
+  max-width: none;
+  min-width: 0;
+}
+
 .brain-panel__actions {
   display: flex;
   gap: 4px;

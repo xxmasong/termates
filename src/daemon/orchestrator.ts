@@ -216,12 +216,12 @@ export class Orchestrator {
     };
   }
 
-  /** Choose the engine (and its model) for the next turns. */
-  setSettings(engine: KeeperEngine, model: string): void {
-    if (!isEngine(engine) || !isValidModel(model)) return;
+  /** Choose the engine for the next turns; `model` omitted keeps its saved one. */
+  setSettings(engine: KeeperEngine, model?: string): void {
+    if (!isEngine(engine) || (model !== undefined && !isValidModel(model))) return;
     this.settings = {
       engine,
-      models: { ...this.settings.models, [engine]: model },
+      models: model === undefined ? this.settings.models : { ...this.settings.models, [engine]: model },
     };
     this.save();
     this.emitState();

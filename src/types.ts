@@ -72,7 +72,7 @@ export type WSClientMessage =
   | { type: 'brain:abort' }
   | { type: 'brain:switch'; conversationId: string }
   | { type: 'brain:delete'; conversationId: string }
-  | { type: 'brain:settings'; engine: KeeperEngine; model: string }
+  | { type: 'brain:settings'; engine: KeeperEngine; model?: string }
   | { type: 'login:start'; cli: string; cols: number; rows: number }
   | { type: 'login:input'; data: string }
   | { type: 'login:resize'; cols: number; rows: number }

@@ -210,7 +210,7 @@ export class DaemonClient {
     this.command({ op: 'brain:switch', conversationId });
   }
   /** Choose the Keeper's engine and model. */
-  setBrainSettings(engine: KeeperEngine, model: string): void {
+  setBrainSettings(engine: KeeperEngine, model?: string): void {
     this.command({ op: 'brain:settings', engine, model });
   }
   /** Delete a brain conversation. */

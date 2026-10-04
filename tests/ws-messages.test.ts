@@ -61,10 +61,14 @@ describe('parseClientMessage', () => {
       engine: 'gemini',
       model: '',
     });
+    assert.deepEqual(parseClientMessage('{"type":"brain:settings","engine":"claude"}'), {
+      type: 'brain:settings',
+      engine: 'claude',
+    });
     for (const bad of [
+      { type: 'brain:settings', engine: 'claude', model: 7 },
       { type: 'brain:settings', engine: 'bash', model: '' },
       { type: 'brain:settings', engine: 'codex', model: '--dangerously-bypass-approvals-and-sandbox' },
-      { type: 'brain:settings', engine: 'claude' },
     ]) {
       assert.equal(parseClientMessage(JSON.stringify(bad)), null, JSON.stringify(bad));
     }

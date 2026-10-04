@@ -4,7 +4,7 @@ import { useRecoilState } from 'recoil';
 
 import { WS_CLIENT_MESSAGE_TYPES } from '@/constants';
 import { useWsSend, useWsSubscribe } from '@/lib/ws';
-import type { BrainEvent, BrainState } from '@/types';
+import type { BrainEvent, BrainState, KeeperEngine } from '@/types';
 
 import { brainKeys, getBrainState } from '../api';
 import { brainStateAtom } from '../state';
@@ -85,5 +85,13 @@ export const useBrainActions = () => {
     [send],
   );
 
-  return { abort, deleteConversation, sendMessage, startNew, switchConversation };
+  /** `model` omitted keeps the engine's saved model. */
+  const setSettings = useCallback(
+    (engine: KeeperEngine, model?: string) => {
+      send({ engine, model, type: WS_CLIENT_MESSAGE_TYPES.BRAIN_SETTINGS });
+    },
+    [send],
+  );
+
+  return { abort, deleteConversation, sendMessage, setSettings, startNew, switchConversation };
 };
