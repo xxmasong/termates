@@ -122,7 +122,7 @@ export function createAuthRouter({ db, config, accounts, provisioner, keys }: Au
     }),
   );
 
-  // One-time login link minted by `termhive-admin login-link`.
+  // One-time login link minted by `termates-admin login-link`.
   router.get('/link', (req, res) => {
     const ip = clientIp(req);
     if (!limiter.take(ip)) {

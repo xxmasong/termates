@@ -1,18 +1,18 @@
 /**
- * termhive-admin — operate TermHive Cloud from a root shell on the host.
+ * termates-admin — operate Termates Cloud from a root shell on the host.
  *
- *   termhive-admin users
- *   termhive-admin set-plan <email> <free|pro|pro-plus>
- *   termhive-admin invite create [--uses N] [--days D]
- *   termhive-admin invite list
- *   termhive-admin suspend <email>
- *   termhive-admin activate <email>
- *   termhive-admin sync-firewall
- *   termhive-admin create-admin <email>
- *   termhive-admin login-link <email> [--minutes N]
- *   termhive-admin dev-session <email> [--plan P]   (needs TERMATES_DEV_SESSIONS=1)
+ *   termates-admin users
+ *   termates-admin set-plan <email> <free|pro|pro-plus>
+ *   termates-admin invite create [--uses N] [--days D]
+ *   termates-admin invite list
+ *   termates-admin suspend <email>
+ *   termates-admin activate <email>
+ *   termates-admin sync-firewall
+ *   termates-admin create-admin <email>
+ *   termates-admin login-link <email> [--minutes N]
+ *   termates-admin dev-session <email> [--plan P]   (needs TERMATES_DEV_SESSIONS=1)
  *
- * Reads the same /etc/termhive/cloud.env as the service.
+ * Reads the same /etc/termates/cloud.env as the service.
  */
 
 import dotenv from 'dotenv';
@@ -25,23 +25,23 @@ import { CloudDb, type UserRow } from './db.js';
 import { newUnixUser, nextPortBase, Provisioner } from './provisioner.js';
 import { createSession, hashToken } from './sessions.js';
 
-const ENV_FILE = process.env.CLOUD_ENV_FILE || '/etc/termhive/cloud.env';
+const ENV_FILE = process.env.CLOUD_ENV_FILE || '/etc/termates/cloud.env';
 const DEV_UID_PREFIX = 'dev:';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 class UsageError extends Error {}
 
 const USAGE = `usage:
-  termhive-admin users
-  termhive-admin set-plan <email> <free|pro|pro-plus>
-  termhive-admin invite create [--uses N] [--days D]
-  termhive-admin invite list
-  termhive-admin suspend <email>
-  termhive-admin activate <email>
-  termhive-admin sync-firewall
-  termhive-admin create-admin <email>
-  termhive-admin login-link <email> [--minutes N]
-  termhive-admin dev-session <email> [--plan P]   (TERMATES_DEV_SESSIONS=1 only)`;
+  termates-admin users
+  termates-admin set-plan <email> <free|pro|pro-plus>
+  termates-admin invite create [--uses N] [--days D]
+  termates-admin invite list
+  termates-admin suspend <email>
+  termates-admin activate <email>
+  termates-admin sync-firewall
+  termates-admin create-admin <email>
+  termates-admin login-link <email> [--minutes N]
+  termates-admin dev-session <email> [--plan P]   (TERMATES_DEV_SESSIONS=1 only)`;
 
 function option(args: string[], name: string): string | undefined {
   const index = args.indexOf(name);
@@ -217,7 +217,7 @@ async function main(argv: string[]): Promise<void> {
         await provisioner.provision(user);
         const ws = db.workspaceByUser(user.id);
         const { token } = createSession(db, user.id, {
-          ip: 'termhive-admin',
+          ip: 'termates-admin',
           userAgent: 'dev-session',
         });
         db.audit(user.id, 'session.created', { provider: 'dev' });
@@ -236,7 +236,7 @@ async function main(argv: string[]): Promise<void> {
 
 main(process.argv.slice(2)).catch((err) => {
   if (err instanceof UsageError) {
-    console.error(`termhive-admin: ${err.message}\n\n${USAGE}`);
+    console.error(`termates-admin: ${err.message}\n\n${USAGE}`);
     process.exit(2);
   }
   console.error(err);

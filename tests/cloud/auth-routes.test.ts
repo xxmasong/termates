@@ -12,7 +12,7 @@ import { CloudDb } from '../../src/cloud/db.js';
 import { KeyStore } from '../../src/cloud/firebase-token.js';
 import type { Provisioner } from '../../src/cloud/provisioner.js';
 
-const PROJECT = 'termhive-test';
+const PROJECT = 'termates-test';
 const ORIGIN = 'https://th.example';
 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
 const publicPem = publicKey.export({ type: 'spki', format: 'pem' }).toString();

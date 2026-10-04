@@ -1,6 +1,6 @@
 /**
  * config.ts — control-plane settings, all from the environment
- * (termhive-cloud.service loads /etc/termhive/cloud.env).
+ * (termates-cloud.service loads /etc/termates/cloud.env).
  */
 
 export type PlanId = 'free' | 'pro' | 'pro-plus';
@@ -47,15 +47,15 @@ export interface CloudConfig {
   /** Root-owned, world-readable plan limits per workspace (TERMATES_LIMITS_FILE). */
   wsLimitsDir: string;
   repoDir: string;
-  /** Allows `termhive-admin dev-session`. Never on in production. */
+  /** Allows `termates-admin dev-session`. Never on in production. */
   devSessions: boolean;
 }
 
-/** The existing root workspace (termhive2.service) the first admin inherits. */
+/** The existing root workspace (termates.service) the first admin inherits. */
 export const ROOT_WORKSPACE = {
   unixUser: 'root',
   portBase: 4000,
-  unit: 'termhive2.service',
+  unit: 'termates.service',
 } as const;
 export const PORT_STEP = 10;
 export const PORT_BASE_MIN = 4010;
@@ -75,7 +75,7 @@ export const SESSION_TOUCH_MS = 10 * 60 * 1000;
 export const SESSION_COOKIE = '__Host-th_session';
 /** Pre-prefix name, still accepted and cleared; used over plain HTTP in tests. */
 export const LEGACY_SESSION_COOKIE = 'th_session';
-/** firebase_uid of users created by `termhive-admin create-admin` before Firebase exists. */
+/** firebase_uid of users created by `termates-admin create-admin` before Firebase exists. */
 export const LOCAL_UID_PREFIX = 'local:';
 export const LOGIN_LINK_TTL_MS = 15 * 60 * 1000;
 
@@ -96,16 +96,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): CloudConfig {
   return {
     host: env.CLOUD_HOST || '127.0.0.1',
     port: Number(env.CLOUD_PORT || 3200),
-    dbPath: env.CLOUD_DB_PATH || '/var/lib/termhive-cloud/cloud.db',
-    clientDist: env.CLOUD_CLIENT_DIST || '/opt/termhive-v2/dist/client',
+    dbPath: env.CLOUD_DB_PATH || '/var/lib/termates-cloud/cloud.db',
+    clientDist: env.CLOUD_CLIENT_DIST || '/opt/termates/dist/client',
     allowedOrigins: list(env.CLOUD_ORIGINS || 'https://sg1-termhive2.tailfa2e0b.ts.net'),
     cookieSecure: env.CLOUD_COOKIE_SECURE !== '0',
     signupMode: env.SIGNUP_MODE === 'invite' ? 'invite' : 'open',
     adminEmails: list(env.ADMIN_EMAILS).map((email) => email.toLowerCase()),
     firebase,
-    wsEnvDir: env.CLOUD_WS_ENV_DIR || '/etc/termhive/ws',
-    wsLimitsDir: env.CLOUD_WS_LIMITS_DIR || '/etc/termhive-limits',
-    repoDir: env.CLOUD_REPO_DIR || '/opt/termhive-v2',
+    wsEnvDir: env.CLOUD_WS_ENV_DIR || '/etc/termates/ws',
+    wsLimitsDir: env.CLOUD_WS_LIMITS_DIR || '/etc/termates-limits',
+    repoDir: env.CLOUD_REPO_DIR || '/opt/termates',
     devSessions: env.TERMATES_DEV_SESSIONS === '1',
   };
 }

@@ -3,12 +3,12 @@ import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-// This exists because TermHive's hard-coded CLI option lists have drifted from
+// This exists because Termates' hard-coded CLI option lists have drifted from
 // reality multiple times. CLI --help output also understates some real accepted
 // values, so the values are verified against the CLIs/APIs themselves.
 
 const CONSTANTS_PATH = path.resolve('client/src/features/agents/constants.ts');
-const GEMINI_ENV_PATH = '/etc/termhive2/gemini.env';
+const GEMINI_ENV_PATH = '/etc/termates/gemini.env';
 const CHECK_TIMEOUT_MS = 40_000;
 const CONCURRENCY = 3;
 const OUTPUT_LIMIT = 16_000;

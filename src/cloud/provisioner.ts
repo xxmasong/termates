@@ -42,13 +42,13 @@ export const execRunner: Runner = (command, args) =>
 
 const READY_TIMEOUT_MS = 90_000;
 const READY_POLL_MS = 1_000;
-const NFT_TABLE = 'inet termhive';
+const NFT_TABLE = 'inet termates';
 const NFT_ALLOW_CHAIN = 'ws_allow';
 
 export const unitFor = (ws: Pick<WorkspaceRow, 'unix_user'>): string =>
   ws.unix_user === ROOT_WORKSPACE.unixUser
     ? ROOT_WORKSPACE.unit
-    : `termhive-ws@${ws.unix_user}.service`;
+    : `termates-ws@${ws.unix_user}.service`;
 
 export const isRootWorkspace = (ws: Pick<WorkspaceRow, 'unix_user'>): boolean =>
   ws.unix_user === ROOT_WORKSPACE.unixUser;
@@ -75,7 +75,7 @@ export function workspaceEnv(
   const limits = PLANS[plan];
   const home = `/home/${ws.unix_user}`;
   const lines = [
-    '# Managed by termhive-cloud — rewritten on plan changes.',
+    '# Managed by termates-cloud — rewritten on plan changes.',
     `HOME=${home}`,
     `USER=${ws.unix_user}`,
     'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
@@ -244,7 +244,7 @@ export class Provisioner {
   /**
    * Rebuild the per-user loopback allow rules: each workspace user may reach
    * its own three ports and nothing else in 3210/3300/4000-4999 (the base
-   * ruleset in /etc/nftables.d/termhive.nft drops the rest).
+   * ruleset in /etc/nftables.d/termates.nft drops the rest).
    */
   async syncFirewall(): Promise<void> {
     const rules = [`flush chain ${NFT_TABLE} ${NFT_ALLOW_CHAIN}`];
@@ -265,7 +265,7 @@ export class Provisioner {
       }
     }
     // nft -f refuses pipes ("Not a regular file"), so go through a temp file.
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-nft-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-nft-'));
     const file = path.join(dir, 'ws_allow.nft');
     try {
       fs.writeFileSync(file, `${rules.join('\n')}\n`, { mode: 0o600 });

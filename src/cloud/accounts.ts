@@ -1,5 +1,5 @@
 /**
- * accounts.ts — turn verified Firebase claims into a TermHive account.
+ * accounts.ts — turn verified Firebase claims into a Termates account.
  *
  * First sign-in creates the user (subject to SIGNUP_MODE / invites) and its
  * workspace row; provisioning then runs in the background while the client
@@ -133,7 +133,7 @@ export class Accounts {
 
   /**
    * Create an admin before Firebase is configured, linked to the existing root
-   * workspace, so they can get in with `termhive-admin login-link`.
+   * workspace, so they can get in with `termates-admin login-link`.
    */
   createLocalAdmin(email: string): UserRow {
     const normalized = email.trim().toLowerCase();
@@ -159,7 +159,7 @@ export class Accounts {
   }
 
   /**
-   * An admin bootstrapped with `termhive-admin create-admin` (uid `local:<email>`)
+   * An admin bootstrapped with `termates-admin create-admin` (uid `local:<email>`)
    * becomes the Firebase account with the same verified admin email on its
    * first sign-in, keeping its workspace.
    */

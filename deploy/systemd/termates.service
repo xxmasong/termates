@@ -1,0 +1,20 @@
+[Unit]
+Description=Termates admin workspace (root)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/termates
+Environment=HOME=/root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=NODE_ENV=production
+Environment=PORT=3200
+Environment=TERMATES_AGENT_MODEL=claude-haiku-4-5-20251001
+Environment=TERMATES_AGENT_ALLOW=Read,Write,Edit,Glob,Grep,mcp__termates__message_agent,mcp__termates__list_teammates
+Environment=TERMATES_AGENT_DENY=SendMessage,ListAgents
+ExecStart=/usr/local/bin/npm run start:all
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

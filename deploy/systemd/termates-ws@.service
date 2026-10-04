@@ -1,5 +1,5 @@
 [Unit]
-Description=TermHive workspace for %i
+Description=Termates workspace for %i
 After=network-online.target nftables.service
 Wants=network-online.target
 
@@ -7,8 +7,8 @@ Wants=network-online.target
 Type=simple
 User=%i
 Group=%i
-EnvironmentFile=/etc/termhive/ws/%i.env
-WorkingDirectory=/opt/termhive-v2
+EnvironmentFile=/etc/termates/ws/%i.env
+WorkingDirectory=/opt/termates
 ExecStart=/usr/local/bin/npm run start:all
 Restart=always
 RestartSec=5

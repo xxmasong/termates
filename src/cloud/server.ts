@@ -1,5 +1,5 @@
 /**
- * TermHive Cloud control plane (termhive-cloud.service, root, :3200).
+ * Termates Cloud control plane (termates-cloud.service, root, :3200).
  *
  * Serves the built client (landing, auth pages, /app shell), the /auth API,
  * and proxies everything else — /api, /ws, /claude-chat — to the signed-in

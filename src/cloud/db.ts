@@ -366,7 +366,7 @@ export class CloudDb {
     return row ? row.user_id : null;
   }
 
-  /** Attach a Firebase uid to a user created locally (termhive-admin create-admin). */
+  /** Attach a Firebase uid to a user created locally (termates-admin create-admin). */
   setFirebaseUid(userId: number, uid: string): void {
     this.raw.prepare('UPDATE users SET firebase_uid = ? WHERE id = ?').run(uid, userId);
   }

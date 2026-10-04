@@ -48,8 +48,8 @@ describe('provisioner', () => {
   });
 
   it('names units', () => {
-    assert.equal(unitFor({ unix_user: 'root' }), 'termhive2.service');
-    assert.equal(unitFor({ unix_user: 'th-1a2b3c4d' }), 'termhive-ws@th-1a2b3c4d.service');
+    assert.equal(unitFor({ unix_user: 'root' }), 'termates.service');
+    assert.equal(unitFor({ unix_user: 'th-1a2b3c4d' }), 'termates-ws@th-1a2b3c4d.service');
   });
 
   it('writes plan limits, ports and confinement into the env', () => {
@@ -105,9 +105,9 @@ describe('provisioner', () => {
     assert.equal(fs.existsSync(nft?.args[1] ?? ''), false);
     assert.equal(
       nft?.input,
-      'flush chain inet termhive ws_allow\n' +
-        'add rule inet termhive ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "th-b"\n' +
-        'add rule inet termhive ws_allow meta skuid 20001 tcp sport 4010-4012 accept comment "th-b"\n',
+      'flush chain inet termates ws_allow\n' +
+        'add rule inet termates ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "th-b"\n' +
+        'add rule inet termates ws_allow meta skuid 20001 tcp sport 4010-4012 accept comment "th-b"\n',
     );
   });
 });

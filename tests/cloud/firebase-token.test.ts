@@ -13,7 +13,7 @@ import {
   type KeySet,
 } from '../../src/cloud/firebase-token.js';
 
-const PROJECT = 'termhive-test';
+const PROJECT = 'termates-test';
 const NOW = Date.UTC(2026, 8, 25, 12, 0, 0);
 const NOW_S = NOW / 1000;
 
@@ -44,7 +44,7 @@ const goodClaims = (overrides: Record<string, unknown> = {}) => ({
 
 /** A self-signed x509 cert, the format Google publishes, made with openssl. */
 const makeCert = (): { cert: string; privateKey: crypto.KeyObject } => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termhive-jwt-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'termates-jwt-'));
   try {
     const keyFile = path.join(dir, 'key.pem');
     const certFile = path.join(dir, 'cert.pem');

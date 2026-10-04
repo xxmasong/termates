@@ -1,0 +1,4 @@
+#!/bin/sh
+# Installed as /usr/local/bin/termates-admin on the Termates Cloud host.
+exec /usr/local/bin/node --disable-warning=ExperimentalWarning \
+  /opt/termates/dist/cloud/admin-cli.js "$@"
