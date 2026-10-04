@@ -4,7 +4,7 @@ export default defineConfig({
   entry: [
     'src/server.ts',
     'src/mcp-server.ts',
-    'src/hive-mcp-server.ts',
+    'src/keeper-mcp-server.ts',
     'src/daemon/daemon.ts',
     'src/cloud/server.ts',
     'src/cloud/admin-cli.ts',

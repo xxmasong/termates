@@ -8,7 +8,7 @@
  * transcript rather than a terminal; it now uses its interactive TUI like the
  * others, so all three panes look and behave the same.
  *
- * The daemon and the Hive dispatch layer talk only to this module, so they
+ * The daemon and the Keeper dispatch layer talk only to this module, so they
  * never branch on CLI themselves.
  */
 

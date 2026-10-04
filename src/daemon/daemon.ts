@@ -32,7 +32,7 @@ import {
   createAgentDispatch,
   stopAgentDispatch,
   KEEPER_SENDER,
-} from './hive.js';
+} from './keeper-dispatch.js';
 import {
   DAEMON_HOST,
   DAEMON_PORT,
@@ -269,8 +269,8 @@ async function handleRequest(ws: WebSocket, req: DaemonRequest): Promise<void> {
 // ─────────────────────────── HTTP endpoints ───────────────────────────
 // Two HTTP surfaces on the daemon port:
 //   POST /hook/:agentId/:event   — Claude lifecycle hooks → status engine
-//   GET  /org/snapshot           — Hive MCP: whole-hive view
-//   POST /org/ask-agent          — Hive MCP: dispatch a message to an agent
+//   GET  /org/snapshot           — Keeper MCP: whole-workspace view
+//   POST /org/ask-agent          — Keeper MCP: dispatch a message to an agent
 //   GET  /health
 
 /** Collect a request body (capped to guard against runaway uploads). */

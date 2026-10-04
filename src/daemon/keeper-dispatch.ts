@@ -1,5 +1,5 @@
 /**
- * Hive dispatch — the org-level operations behind the Keeper's MCP.
+ * Keeper dispatch — the org-level operations behind the Keeper's MCP.
  *
  *  - `orgSnapshot`  builds the projects + agents + live-status view the brain
  *    reads through `list_projects` / `list_agents` / `get_agent_status`.
@@ -49,7 +49,7 @@ export interface OrgSnapshot {
 }
 
 /**
- * Full hive view. `liveStatus` resolves the daemon's fine-grained status for
+ * Full workspace view. `liveStatus` resolves the daemon's fine-grained status for
  * an agent id (the daemon owns the status engine, so it injects this).
  */
 export function orgSnapshot(liveStatus: (agentId: string) => string): OrgSnapshot {

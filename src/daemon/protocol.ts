@@ -9,7 +9,7 @@
 export const DAEMON_HOST = '127.0.0.1';
 export const DAEMON_PORT = parseInt(process.env.TERMATES_DAEMON_PORT || '3210', 10);
 export const DAEMON_URL = `ws://${DAEMON_HOST}:${DAEMON_PORT}`;
-/** HTTP base — the daemon serves hook callbacks and the Hive org API here. */
+/** HTTP base — the daemon serves hook callbacks and the Keeper org API here. */
 export const DAEMON_HTTP_URL = `http://${DAEMON_HOST}:${DAEMON_PORT}`;
 
 // ─────────────────────────── Orchestrator brain ───────────────────────────
@@ -21,7 +21,7 @@ export interface BrainMessage {
   role: 'user' | 'assistant' | 'tool' | 'reasoning' | 'system' | 'error';
   text: string;
   ts: string;
-  /** For role === 'tool': the tool name (e.g. "hive/ask_agent"). */
+  /** For role === 'tool': the tool name (e.g. "keeper/ask_agent"). */
   tool?: string;
 }
 

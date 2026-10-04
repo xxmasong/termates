@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Termates Keeper MCP Server (the `hive` toolset)
+ * Termates Keeper MCP Server
  *
  * Gives the orchestrator brain ("The Keeper") org-level tools to see and
  * command the whole workspace. Spawned as a stdio MCP server by the brain's CLI
@@ -181,7 +181,7 @@ async function main() {
   const args = parseArgs();
 
   const server = new Server(
-    { name: 'termates-hive', version: '0.1.0' },
+    { name: 'termates-keeper', version: '0.1.0' },
     { capabilities: { tools: {} } },
   );
 
@@ -740,10 +740,10 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`[hive-mcp] connected — daemon ${args.daemonUrl}`);
+  console.error(`[keeper-mcp] connected — daemon ${args.daemonUrl}`);
 }
 
 main().catch((e) => {
-  console.error('[hive-mcp] fatal:', e);
+  console.error('[keeper-mcp] fatal:', e);
   process.exit(1);
 });
