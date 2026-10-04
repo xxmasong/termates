@@ -2,7 +2,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from '@/app/App';
+import { migrateLegacyStorage } from '@/lib/utils';
 import '@/styles/global.css';
+
+migrateLegacyStorage();
 
 const rootElement = document.getElementById('root');
 

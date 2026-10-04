@@ -41,4 +41,4 @@ export const ERROR_BOUNDARY_COPY = {
 } as const;
 
 /** Set once per tab so a stale-chunk reload can never loop. */
-export const STALE_CHUNK_RELOAD_KEY = 'termhive:stale-chunk-reloaded';
+export const STALE_CHUNK_RELOAD_KEY = 'termates:stale-chunk-reloaded';

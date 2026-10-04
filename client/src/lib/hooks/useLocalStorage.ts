@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 type SetValue<T> = T | ((current: T) => T);
 
-const LOCAL_STORAGE_EVENT = 'termhive:local-storage';
+const LOCAL_STORAGE_EVENT = 'termates:local-storage';
 
 const readStorageValue = <T>(key: string, initialValue: T): T => {
   if (typeof window === 'undefined') {

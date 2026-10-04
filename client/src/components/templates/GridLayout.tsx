@@ -7,7 +7,7 @@ import { useLocalStorage } from '@/lib/hooks';
 import { classNames } from '@/lib/utils';
 
 export type GridLayoutMode = 'single' | '2up' | '3up' | 'grid' | 'canvas';
-export const GRID_LAYOUT_DRAG_MIME = 'application/x-termhive-pane';
+export const GRID_LAYOUT_DRAG_MIME = 'application/x-termates-pane';
 
 export interface GridLayoutPane {
   id: string;
@@ -600,7 +600,7 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
   mode,
   focusedId,
   onFocus,
-  storageKeyPrefix = 'termhive:grid-layout',
+  storageKeyPrefix = 'termates:grid-layout',
   emptyTitle = 'No panes',
 }) => {
   const ids = useMemo(() => paneIds(panes), [panes]);

@@ -21,13 +21,13 @@ const clampSidebarWidth = (width: number): number =>
 export const SidebarShell: React.FC<SidebarShellProps> = ({
   children,
   collapsed,
-  storageKeyPrefix = 'termhive',
+  storageKeyPrefix = 'termates',
   className,
   defaultWidth = SIDEBAR_WIDTH.DEFAULT,
   onLayoutChange,
 }) => {
   const widthKey =
-    storageKeyPrefix === 'termhive'
+    storageKeyPrefix === 'termates'
       ? STORAGE_KEYS.SIDEBAR_WIDTH
       : `${storageKeyPrefix}:sidebar-width`;
   const [width, setWidth] = useLocalStorage(widthKey, defaultWidth);
