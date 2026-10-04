@@ -1,6 +1,6 @@
 /**
  * Writes MCP server configuration for each agent so the CLI tools auto-spawn
- * the Termhive MCP server when they start.
+ * the Termates MCP server when they start.
  *
  * - Claude Code: writes a session-scoped JSON config to
  *   ~/.termates/mcp-configs/<agentId>.json and expects the CLI to be invoked
@@ -10,7 +10,7 @@
  *   (Codex does not support a per-session MCP flag, so we use a unique key
  *    per agent to avoid collisions.)
  *
- * All writes are idempotent and only touch the Termhive-owned keys.
+ * All writes are idempotent and only touch the Termates-owned keys.
  */
 import fs from 'fs';
 import os from 'os';
@@ -40,7 +40,7 @@ export interface McpWriteContext {
  * Claude Code is per-project scope so we use a single key.
  */
 export function mcpServerKeyForCodex(agentId: string): string {
-  return `termhive_${agentId.slice(0, 8)}`;
+  return `termates_${agentId.slice(0, 8)}`;
 }
 
 /**
@@ -61,7 +61,7 @@ export function buildInvocation(ctx: McpWriteContext): { command: string; args: 
 
 /**
  * Write a session-scoped MCP config JSON for a Claude agent. The file is
- * passed to Claude Code via `--mcp-config <path>` so the Termhive MCP server
+ * passed to Claude Code via `--mcp-config <path>` so the Termates MCP server
  * is only loaded for this specific session (and is cleanly removed when the
  * file is deleted). Does not touch the user's global ~/.claude.json.
  */
@@ -73,7 +73,7 @@ export function writeClaudeMcpConfig(ctx: McpWriteContext): string {
   const configPath = getClaudeMcpConfigPath(ctx.agent.id);
   const config = {
     mcpServers: {
-      termhive: {
+      termates: {
         type: 'stdio',
         command: invocation.command,
         args: invocation.args,
@@ -85,7 +85,7 @@ export function writeClaudeMcpConfig(ctx: McpWriteContext): string {
 }
 
 /**
- * Write Termhive MCP config into Codex CLI's ~/.codex/config.toml.
+ * Write Termates MCP config into Codex CLI's ~/.codex/config.toml.
  * Codex MCP config is global (not per-project), so we use a per-agent key
  * to avoid collisions across multiple agents.
  */
@@ -112,19 +112,19 @@ export function writeCodexMcpConfig(ctx: McpWriteContext): boolean {
     existing = fs.readFileSync(configPath, 'utf-8');
   }
 
-  // Remove any existing Termhive-owned section for this agent, then append
+  // Remove any existing Termates-owned section for this agent, then append
   const sectionRegex = new RegExp(
     `(?:^|\\n)\\[mcp_servers\\.${escapeRegex(key)}\\][\\s\\S]*?(?=\\n\\[|$)`,
     'g'
   );
   const cleaned = existing.replace(sectionRegex, '').trimEnd();
 
-  const header = '# Termhive MCP servers — managed by Termhive, do not edit this section manually\n';
-  const hasTermhiveHeader = cleaned.includes('# Termhive MCP servers');
+  const header = '# Termates MCP servers — managed by Termates, do not edit this section manually\n';
+  const hasHeader = cleaned.includes('# Termates MCP servers');
 
   const newContent =
     (cleaned.length > 0 ? cleaned + '\n\n' : '') +
-    (hasTermhiveHeader ? '' : header) +
+    (hasHeader ? '' : header) +
     section;
 
   if (existing === newContent) return false;
@@ -133,7 +133,7 @@ export function writeCodexMcpConfig(ctx: McpWriteContext): boolean {
 }
 
 /**
- * Remove Termhive MCP config for a Claude agent. Just deletes the per-agent
+ * Remove Termates MCP config for a Claude agent. Just deletes the per-agent
  * JSON file; ~/.claude.json is never touched.
  */
 export function removeClaudeMcpConfig(agentId: string): void {
@@ -158,15 +158,15 @@ export function removeCodexMcpConfig(agentId: string): void {
 }
 
 /**
- * Remove stale Termhive-managed `[mcp_servers.termhive_*]` sections from the
+ * Remove stale Termates-managed `[mcp_servers.termates_*]` sections from the
  * global ~/.codex/config.toml.
  *
  * v2.2: Codex agents moved to `codex app-server`, which loads its MCP servers
- * from this global file. Termhive-owned sections for deleted agents can produce
+ * from this global file. Termates-owned sections for deleted agents can produce
  * startup-failure noise, but live Codex agents still need their section. Only
- * `termhive_`-prefixed sections whose agent no longer exists are touched; the
- * user's own config is left exactly as-is. Returns the number of sections
- * removed.
+ * `termates_`-prefixed sections whose agent no longer exists, and every
+ * pre-rename `termhive_` one, are touched; the user's own config is left
+ * exactly as-is. Returns the number of sections removed.
  */
 export function cleanStaleCodexMcp(activeAgentIds: Iterable<string>): number {
   const configPath = path.join(os.homedir(), '.codex', 'config.toml');
@@ -179,9 +179,10 @@ export function cleanStaleCodexMcp(activeAgentIds: Iterable<string>): number {
   let removed = 0;
 
   let out = before
-    // each [mcp_servers.termhive_*] section, up to the next section or EOF
+    // each [mcp_servers.termates_*] section (or a pre-rename termhive_* one,
+    // which is never active), up to the next section, comment line or EOF
     .replace(
-      /(?:^|\n)\[mcp_servers\.(termhive_[^\]\n]*)\][\s\S]*?(?=\n\[|$)/g,
+      /(?:^|\n)\[mcp_servers\.((?:termates|termhive)_[^\]\n]*)\][\s\S]*?(?=\n\[|\n#|$)/g,
       (section, key) => {
         if (activeKeys.has(key)) return section;
         removed += 1;
@@ -190,9 +191,11 @@ export function cleanStaleCodexMcp(activeAgentIds: Iterable<string>): number {
     );
   if (removed === 0) return 0;
 
-  const hasTermhiveSections = /\[mcp_servers\.termhive_[^\]\n]*\]/.test(out);
-  if (!hasTermhiveSections) {
-    out = out.replace(/\n*#[^\n]*Termhive MCP servers[^\n]*\n/g, '\n');
+  // The pre-rename header always goes; ours only once its sections are gone.
+  out = out.replace(/\n*#[^\n]*Termhive MCP servers[^\n]*\n/g, '\n');
+  const hasOwnSections = /\[mcp_servers\.termates_[^\]\n]*\]/.test(out);
+  if (!hasOwnSections) {
+    out = out.replace(/\n*#[^\n]*Termates MCP servers[^\n]*\n/g, '\n');
   }
 
   out = out
