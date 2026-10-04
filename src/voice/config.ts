@@ -1,18 +1,19 @@
 /**
  * Voice settings persistence — provider/model/voice selections live in
- * ~/.termhive/voice.json so they survive across daemon/web restarts. API keys
+ * ~/.termates/voice.json so they survive across daemon/web restarts. API keys
  * never live here — those go in .env.
  */
 
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 
-const VOICE_DIR = path.join(os.homedir(), '.termhive');
+import { appHomeDir } from '../app-home.js';
+
+const VOICE_DIR = appHomeDir();
 const VOICE_PATH = path.join(VOICE_DIR, 'voice.json');
 /**
  * API keys live in a SEPARATE file so settings (safe to share / paste) stay
- * cleanly apart from secrets. Both files live under ~/.termhive — outside any
+ * cleanly apart from secrets. Both files live under ~/.termates — outside any
  * git repo — and are never echoed back to the browser in plain text.
  */
 const KEYS_PATH = path.join(VOICE_DIR, 'api-keys.json');
@@ -22,7 +23,7 @@ export interface VoiceConfig {
     provider: 'browser' | 'openai' | 'gemini';
     model: string;
     language: string;
-    /** Save each captured clip to ~/.termhive/voice-debug/ — for diagnosing
+    /** Save each captured clip to ~/.termates/voice-debug/ — for diagnosing
      *  bad transcription / mic quality. Off by default (privacy). */
     saveRecordings: boolean;
   };

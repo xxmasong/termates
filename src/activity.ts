@@ -2,13 +2,14 @@ import { watch, type FSWatcher } from 'chokidar';
 import path from 'path';
 import fs from 'fs';
 import { randomUUID as uuid } from 'crypto';
+import { appHomePath } from './app-home.js';
 import { SHARED_CONTENT_DIR } from './storage.js';
 import type { ActivityEvent } from './types.js';
 
 /** Events kept in memory and served to the UI (the newest). */
 const MAX_EVENTS = 1000;
 /**
- * The full history is appended to ~/.termhive/activity.jsonl and survives
+ * The full history is appended to ~/.termates/activity.jsonl and survives
  * restarts. Past this size the log rotates to activity.1.jsonl (one
  * generation), so a busy workspace keeps a long history in bounded disk.
  */
@@ -19,8 +20,7 @@ const watchers = new Map<string, FSWatcher>();
 let broadcastFn: ((event: ActivityEvent) => void) | null = null;
 let loadedFrom: string | null = null;
 
-const logPath = () =>
-  path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive', 'activity.jsonl');
+const logPath = () => appHomePath('activity.jsonl');
 
 const isEvent = (value: unknown): value is ActivityEvent =>
   typeof value === 'object' &&

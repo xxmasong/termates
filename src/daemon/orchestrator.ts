@@ -10,7 +10,7 @@
  * programmatic Codex is subscription-covered (plan §3) — free.
  *
  * The brain keeps **multiple conversations** (like chat threads); each has its
- * own Codex thread. All of them persist to ~/.termhive/brain/state.json and
+ * own Codex thread. All of them persist to ~/.termates/brain/state.json and
  * survive daemon restarts.
  */
 
@@ -22,6 +22,7 @@ import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import type { BrainEvent, BrainMessage, BrainState, BrainStatus } from './protocol.js';
 import { DAEMON_HTTP_URL } from './protocol.js';
+import { appHomePath } from '../app-home.js';
 
 const __dirname_ = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,7 +31,7 @@ const MAX_HISTORY = 240;
 /** Cap how many conversations are kept (oldest dropped beyond this). */
 const MAX_CONVERSATIONS = 50;
 
-const BRAIN_DIR = path.join(os.homedir(), '.termhive', 'brain');
+const BRAIN_DIR = appHomePath('brain');
 const CODEX_HOME = path.join(BRAIN_DIR, 'codex-home');
 const STATE_PATH = path.join(BRAIN_DIR, 'state.json');
 const AGENTS_MD_PATH = path.join(BRAIN_DIR, 'AGENTS.md');

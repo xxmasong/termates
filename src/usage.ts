@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { appHomePath } from './app-home.js';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '.';
 const CLAUDE_CREDS = path.join(HOME, '.claude', '.credentials.json');
@@ -17,7 +18,7 @@ const POLL_INTERVAL = 5 * 60 * 1000;
 const RETRY_AFTER_429 = 2 * 60 * 1000;
 /** Last good readings, so a restart during a 429 window still has something
  *  to show instead of dropping the meter. */
-const USAGE_CACHE_FILE = path.join(HOME, '.termhive', 'usage-cache.json');
+const USAGE_CACHE_FILE = appHomePath('usage-cache.json');
 
 interface UsageData {
   session: { utilization: number; resetsAt: string } | null;

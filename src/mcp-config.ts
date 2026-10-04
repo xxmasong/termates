@@ -3,7 +3,7 @@
  * the Termhive MCP server when they start.
  *
  * - Claude Code: writes a session-scoped JSON config to
- *   ~/.termhive/mcp-configs/<agentId>.json and expects the CLI to be invoked
+ *   ~/.termates/mcp-configs/<agentId>.json and expects the CLI to be invoked
  *   with `--mcp-config <path>`. Does NOT touch ~/.claude.json so the user's
  *   global MCP setup stays untouched.
  * - Codex CLI: ~/.codex/config.toml, per-agent-id keyed server name
@@ -15,11 +15,12 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { appHomePath } from './app-home.js';
 import type { Agent } from './types.js';
 
 /** Directory holding per-agent Claude MCP config JSON files. */
 export function getClaudeMcpConfigDir(): string {
-  return path.join(os.homedir(), '.termhive', 'mcp-configs');
+  return appHomePath('mcp-configs');
 }
 
 /** Absolute path to the per-agent Claude MCP config JSON file. */

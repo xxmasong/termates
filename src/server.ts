@@ -1,9 +1,9 @@
 import 'dotenv/config'; // load OPENAI_API_KEY / GEMINI_API_KEY from .env
 import express from 'express';
 import fs from 'fs';
-import os from 'os';
 import { createServer, request as httpRequest } from 'http';
 import { appendTranscript } from './transcript.js';
+import { appHomePath } from './app-home.js';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -224,7 +224,7 @@ app.post(
       // STT quality. Off by default; toggled in Voice Settings.
       if (cfg.stt.saveRecordings) {
         try {
-          const dir = path.join(os.homedir(), '.termhive', 'voice-debug');
+          const dir = appHomePath('voice-debug');
           fs.mkdirSync(dir, { recursive: true });
           const ext = mime.split('/')[1]?.split(';')[0] || 'webm';
           const stamp = new Date().toISOString().replace(/[:.]/g, '-');

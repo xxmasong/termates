@@ -65,7 +65,7 @@ describe('storage hardening', () => {
     fs.rmSync(home, { recursive: true, force: true });
   });
 
-  const shared = (name: string) => path.join(home, '.termhive', 'shared_content', name);
+  const shared = (name: string) => path.join(home, '.termates', 'shared_content', name);
 
   it('refuses duplicate project names, case-insensitively', () => {
     storage.createProject('Shop', path.join(home, 'shop'));
@@ -80,7 +80,7 @@ describe('storage hardening', () => {
     );
     assert.throws(() => storage.getContent(project.id, '../../../.bashrc'), InvalidInputError);
     assert.throws(() => storage.updateWikiFile(project.id, '../x.md', 'x'), InvalidInputError);
-    assert.ok(!fs.existsSync(path.join(home, '.termhive', 'evil.md')));
+    assert.ok(!fs.existsSync(path.join(home, '.termates', 'evil.md')));
   });
 
   it('never lets an update overwrite ids', () => {
@@ -111,7 +111,7 @@ describe('storage hardening', () => {
 
   it('ignores ids that are not ids and survives a corrupt project file', () => {
     assert.equal(storage.getProjectData('../..'), null);
-    const bad = path.join(home, '.termhive', 'projects', 'broken');
+    const bad = path.join(home, '.termates', 'projects', 'broken');
     fs.mkdirSync(bad, { recursive: true });
     fs.writeFileSync(path.join(bad, 'project.json'), '{not json');
     assert.equal(storage.listProjects().length, 1);

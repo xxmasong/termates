@@ -21,7 +21,7 @@ describe('activity history', () => {
     process.env.HOME = home;
     pushEvent({ projectId: 'p1', event: 'agent:started', detail: 'a started', agentName: 'a' });
     pushEvent({ projectId: 'p2', event: 'agent:stopped', detail: 'b stopped', agentName: 'b' });
-    const log = path.join(home, '.termhive', 'activity.jsonl');
+    const log = path.join(home, '.termates', 'activity.jsonl');
     fs.appendFileSync(log, '{"id":"torn');
 
     // A different HOME, then back, reloads from disk as a fresh process would.

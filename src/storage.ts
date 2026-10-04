@@ -6,8 +6,9 @@ import { assertCanCreate, assertCwdAllowed } from './workspace-limits.js';
 import { ConflictError, InvalidInputError } from './storage-errors.js';
 import { isSafeId, resolveInside, validateProjectName } from './storage-paths.js';
 import { withStorageLock } from './storage-lock.js';
+import { appHomeDir } from './app-home.js';
 
-const BASE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.termhive');
+const BASE_DIR = appHomeDir();
 const PROJECTS_DIR = path.join(BASE_DIR, 'projects');
 
 function ensureDir(dir: string) {
@@ -269,7 +270,7 @@ export function deleteAgent(projectId: string, agentId: string): boolean {
   });
 }
 
-// --- Shared Content (stored in ~/.termhive/shared_content/[project_name]/) ---
+// --- Shared Content (stored in ~/.termates/shared_content/[project_name]/) ---
 
 export function listContent(projectId: string): SharedContent[] {
   const data = getProjectData(projectId);
@@ -372,7 +373,7 @@ export function deleteContent(projectId: string, filename: string): boolean {
   return true;
 }
 
-// --- Project Wiki (stored in ~/.termhive/memory/[project_name]/) ---
+// --- Project Wiki (stored in ~/.termates/memory/[project_name]/) ---
 
 const WIKI_SCHEMA = `# Project Wiki Schema
 

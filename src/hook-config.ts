@@ -2,7 +2,7 @@
  * Per-agent Claude Code hook configuration.
  *
  * When the daemon starts a Claude agent it writes a session-scoped settings
- * file to ~/.termhive/hook-configs/<agentId>.json and passes it via
+ * file to ~/.termates/hook-configs/<agentId>.json and passes it via
  * `claude --settings <path>`. The hooks fire on lifecycle events and POST to
  * the daemon's HTTP endpoint, which turns them into precise agent status.
  *
@@ -11,8 +11,9 @@
  */
 
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
+
+import { appHomePath } from './app-home.js';
 
 /** Lifecycle events we register hooks for. */
 export const HOOK_EVENTS = [
@@ -46,7 +47,7 @@ export function hookEventToStatus(event: string): string | null {
 }
 
 function hookConfigDir(): string {
-  return path.join(os.homedir(), '.termhive', 'hook-configs');
+  return appHomePath('hook-configs');
 }
 
 export function getHookConfigPath(agentId: string): string {
