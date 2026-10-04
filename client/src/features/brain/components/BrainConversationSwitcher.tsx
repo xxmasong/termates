@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import type { BrainConversationMeta } from '@/types';
 
 import { Button } from '@/components';
@@ -33,45 +35,74 @@ export const BrainConversationSwitcher: React.FC<BrainConversationSwitcherProps>
   onSwitch,
   onDelete,
   onNew,
-}) => (
-  <div className="brain-switcher">
-    <Button icon="plus" onClick={onNew} size="sm" variant="ghost">
-      New
-    </Button>
-    <div className="brain-switcher__list">
-      {conversations.map((conversation) => (
-        // A div row: the switch target and the delete button are siblings, since
-        // a button may not contain another button.
-        <div
-          className={
-            conversation.id === currentId
-              ? 'brain-switcher__row brain-switcher__row--active'
-              : 'brain-switcher__row'
-          }
-          key={conversation.id}
-        >
-          <button
-            aria-current={conversation.id === currentId ? 'true' : undefined}
-            className="brain-switcher__main"
-            onClick={() => onSwitch(conversation.id)}
-            type="button"
+}) => {
+  // The list sits inside the Keeper modal, so deletion is confirmed in the row
+  // rather than in a second, stacked modal.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  return (
+    <div className="brain-switcher">
+      <Button icon="plus" onClick={onNew} size="sm" variant="ghost">
+        New
+      </Button>
+      <div className="brain-switcher__list">
+        {conversations.map((conversation) => (
+          // A div row: the switch target and the delete button are siblings, since
+          // a button may not contain another button.
+          <div
+            className={
+              conversation.id === currentId
+                ? 'brain-switcher__row brain-switcher__row--active'
+                : 'brain-switcher__row'
+            }
+            key={conversation.id}
           >
-            <span>{conversation.title || 'New conversation'}</span>
-            <span>
-              {conversation.messageCount} messages · {timeLabel(conversation.updatedAt)}
-            </span>
-          </button>
-          <Button
-            aria-label="Delete conversation"
-            icon="trash"
-            iconOnly
-            onClick={() => onDelete(conversation.id)}
-            size="sm"
-            title="Delete conversation"
-            variant="ghost"
-          />
-        </div>
-      ))}
+            <button
+              aria-current={conversation.id === currentId ? 'true' : undefined}
+              className="brain-switcher__main"
+              onClick={() => onSwitch(conversation.id)}
+              type="button"
+            >
+              <span>{conversation.title || 'New conversation'}</span>
+              <span>
+                {conversation.messageCount} messages · {timeLabel(conversation.updatedAt)}
+              </span>
+            </button>
+            {pendingDeleteId === conversation.id ? (
+              <span className="brain-switcher__confirm" role="group" aria-label="Confirm delete">
+                <Button
+                  onClick={() => {
+                    setPendingDeleteId(null);
+                    onDelete(conversation.id);
+                  }}
+                  size="sm"
+                  variant="danger"
+                >
+                  Delete
+                </Button>
+                <Button
+                  autoFocus
+                  onClick={() => setPendingDeleteId(null)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+              </span>
+            ) : (
+              <Button
+                aria-label="Delete conversation"
+                icon="trash"
+                iconOnly
+                onClick={() => setPendingDeleteId(conversation.id)}
+                size="sm"
+                title="Delete conversation"
+                variant="ghost"
+              />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};

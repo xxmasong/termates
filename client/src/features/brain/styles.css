@@ -206,6 +206,11 @@
   text-align: left;
 }
 
+.brain-switcher__confirm {
+  display: flex;
+  gap: 4px;
+}
+
 .brain-switcher__main:focus-visible {
   border-radius: var(--radius-sm);
   outline: 2px solid var(--accent);
