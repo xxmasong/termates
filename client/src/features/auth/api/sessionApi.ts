@@ -17,7 +17,7 @@ export const fetchAuthConfig = async (): Promise<AuthConfig> => {
   }
 };
 
-/** POST /auth/session — trade a Firebase ID token for the th_session cookie. */
+/** POST /auth/session — trade a Firebase ID token for the tm_session cookie. */
 export const exchangeSession = async (idToken: string, pending: PendingSignup): Promise<void> => {
   const response = await fetch(AUTH_API.SESSION, {
     method: 'POST',

@@ -31,7 +31,7 @@ describe('readLimit', () => {
 });
 
 describe('readLimit from TERMATES_LIMITS_FILE', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'th-limits-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-limits-'));
   const file = path.join(dir, 'ws.json');
   after(() => fs.rmSync(dir, { recursive: true, force: true }));
 

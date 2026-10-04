@@ -1,5 +1,5 @@
 /**
- * sessions.ts — server-side sessions behind the `__Host-th_session` cookie.
+ * sessions.ts — server-side sessions behind the `__Host-tm_session` cookie.
  *
  * The cookie carries a random 256-bit token; only its SHA-256 is stored, so
  * a leaked database cannot be replayed as cookies.
@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 
 import {
-  LEGACY_SESSION_COOKIE,
+  INSECURE_SESSION_COOKIE,
   SESSION_COOKIE,
   SESSION_IDLE_MS,
   SESSION_TOUCH_MS,
@@ -36,8 +36,8 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return cookies;
 }
 
-/** `__Host-` cookies are only valid with Secure, so plain-HTTP (tests) uses the legacy name. */
-const cookieName = (secure: boolean) => (secure ? SESSION_COOKIE : LEGACY_SESSION_COOKIE);
+/** `__Host-` cookies are only valid with Secure, so plain-HTTP (tests) uses the bare name. */
+const cookieName = (secure: boolean) => (secure ? SESSION_COOKIE : INSECURE_SESSION_COOKIE);
 
 export function sessionCookie(token: string, secure: boolean, maxAgeMs = SESSION_TTL_MS): string {
   return [
@@ -50,10 +50,10 @@ export function sessionCookie(token: string, secure: boolean, maxAgeMs = SESSION
   ].join('; ');
 }
 
-/** Clears both the current and the legacy cookie name. */
+/** Clears both the secure and the plain-HTTP cookie name. */
 export const clearedSessionCookie = (secure: boolean): string[] => [
   sessionCookie('', secure, 0),
-  [`${LEGACY_SESSION_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'].join('; '),
+  [`${INSECURE_SESSION_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'].join('; '),
 ];
 
 export function createSession(
@@ -87,7 +87,7 @@ export function resolveSession(
   req: Pick<IncomingMessage, 'headers'>,
 ): ResolvedSession | null {
   const cookies = parseCookies(req.headers.cookie);
-  const token = cookies[SESSION_COOKIE] ?? cookies[LEGACY_SESSION_COOKIE];
+  const token = cookies[SESSION_COOKIE] ?? cookies[INSECURE_SESSION_COOKIE];
   if (!token) return null;
   const tokenHash = hashToken(token);
   const session = db.sessionByHash(tokenHash);

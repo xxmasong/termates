@@ -72,9 +72,9 @@ export const SESSION_IDLE_MS = 14 * 24 * 60 * 60 * 1000;
 /** last_seen_at is written at most this often, not on every request. */
 export const SESSION_TOUCH_MS = 10 * 60 * 1000;
 /** `__Host-` binds the cookie to this exact host, HTTPS and Path=/ (no Domain). */
-export const SESSION_COOKIE = '__Host-th_session';
-/** Pre-prefix name, still accepted and cleared; used over plain HTTP in tests. */
-export const LEGACY_SESSION_COOKIE = 'th_session';
+export const SESSION_COOKIE = '__Host-tm_session';
+/** Name used over plain HTTP (tests), where `__Host-` is not allowed. */
+export const INSECURE_SESSION_COOKIE = 'tm_session';
 /** firebase_uid of users created by `termates-admin create-admin` before Firebase exists. */
 export const LOCAL_UID_PREFIX = 'local:';
 export const LOGIN_LINK_TTL_MS = 15 * 60 * 1000;

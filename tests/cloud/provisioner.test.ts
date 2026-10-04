@@ -34,13 +34,13 @@ describe('provisioner', () => {
     });
     db.insertWorkspace({
       userId: addUser(db, 'b').id,
-      unixUser: 'th-b',
+      unixUser: 'tm-b',
       portBase: 4010,
       state: 'running',
     });
     db.insertWorkspace({
       userId: addUser(db, 'c').id,
-      unixUser: 'th-c',
+      unixUser: 'tm-c',
       portBase: 4030,
       state: 'running',
     });
@@ -49,13 +49,13 @@ describe('provisioner', () => {
 
   it('names units', () => {
     assert.equal(unitFor({ unix_user: 'root' }), 'termates.service');
-    assert.equal(unitFor({ unix_user: 'th-1a2b3c4d' }), 'termates-ws@th-1a2b3c4d.service');
+    assert.equal(unitFor({ unix_user: 'tm-1a2b3c4d' }), 'termates-ws@tm-1a2b3c4d.service');
   });
 
   it('writes plan limits, ports and confinement into the env', () => {
-    const free = workspaceEnv({ unix_user: 'th-x', port_base: 4020 }, 'free');
+    const free = workspaceEnv({ unix_user: 'tm-x', port_base: 4020 }, 'free');
     for (const line of [
-      'HOME=/home/th-x',
+      'HOME=/home/tm-x',
       'PORT=4020',
       'TERMATES_DAEMON_PORT=4021',
       'CLAUDE_BRIDGE_PORT=4022',
@@ -65,7 +65,7 @@ describe('provisioner', () => {
     ]) {
       assert.ok(free.split('\n').includes(line), line);
     }
-    const plus = workspaceEnv({ unix_user: 'th-x', port_base: 4020 }, 'pro-plus');
+    const plus = workspaceEnv({ unix_user: 'tm-x', port_base: 4020 }, 'pro-plus');
     assert.ok(plus.split('\n').includes('TERMATES_MAX_PROJECTS='));
     assert.ok(plus.split('\n').includes('TERMATES_MAX_AGENTS=30'));
   });
@@ -80,13 +80,13 @@ describe('provisioner', () => {
     });
     db.insertWorkspace({
       userId: addUser(db, 'b').id,
-      unixUser: 'th-b',
+      unixUser: 'tm-b',
       portBase: 4010,
       state: 'running',
     });
     db.insertWorkspace({
       userId: addUser(db, 'c').id,
-      unixUser: 'th-gone',
+      unixUser: 'tm-gone',
       portBase: 4020,
       state: 'error',
     });
@@ -95,7 +95,7 @@ describe('provisioner', () => {
       // The ruleset file is deleted after the call, so read it now.
       const input = command === 'nft' ? fs.readFileSync(args[1], 'utf-8') : undefined;
       calls.push({ command, args, input });
-      if (command === 'id' && args[1] === 'th-b') return { stdout: '20001\n' };
+      if (command === 'id' && args[1] === 'tm-b') return { stdout: '20001\n' };
       if (command === 'id') throw new Error('no such user');
       return { stdout: '' };
     };
@@ -106,8 +106,8 @@ describe('provisioner', () => {
     assert.equal(
       nft?.input,
       'flush chain inet termates ws_allow\n' +
-        'add rule inet termates ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "th-b"\n' +
-        'add rule inet termates ws_allow meta skuid 20001 tcp sport 4010-4012 accept comment "th-b"\n',
+        'add rule inet termates ws_allow meta skuid 20001 tcp dport 4010-4012 accept comment "tm-b"\n' +
+        'add rule inet termates ws_allow meta skuid 20001 tcp sport 4010-4012 accept comment "tm-b"\n',
     );
   });
 });

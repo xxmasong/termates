@@ -19,7 +19,7 @@ if (!isMainThread) {
   parentPort?.postMessage('done');
 } else {
   describe('withStorageLock', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'th-lock-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-lock-'));
     const lock = path.join(dir, '.lock');
     after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
@@ -55,7 +55,7 @@ if (!isMainThread) {
     let storage: typeof import('../src/storage.js');
 
     before(async () => {
-      home = fs.mkdtempSync(path.join(os.tmpdir(), 'th-race-'));
+      home = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-race-'));
       process.env.HOME = home;
       delete process.env.TERMATES_MAX_AGENTS;
       delete process.env.TERMATES_LIMITS_FILE;

@@ -18,14 +18,14 @@ describe('CloudDb', () => {
     assert.equal(db.maxPortBase(), null);
     db.insertWorkspace({
       userId: user.id,
-      unixUser: 'th-00000001',
+      unixUser: 'tm-00000001',
       portBase: 4010,
       state: 'provisioning',
     });
     assert.equal(db.maxPortBase(), 4010);
     db.setWorkspaceState(user.id, 'running');
     assert.equal(db.workspaceByUser(user.id)?.state, 'running');
-    assert.equal(db.listUsers()[0].unix_user, 'th-00000001');
+    assert.equal(db.listUsers()[0].unix_user, 'tm-00000001');
     db.close();
   });
 

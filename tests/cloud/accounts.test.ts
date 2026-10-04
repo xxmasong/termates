@@ -48,7 +48,7 @@ describe('Accounts.signIn', () => {
     assert.equal(result.user.plan, 'pro');
     assert.equal(result.user.role, 'user');
     assert.equal(result.workspace.port_base, 4010);
-    assert.match(result.workspace.unix_user, /^th-[0-9a-f]{8}$/);
+    assert.match(result.workspace.unix_user, /^tm-[0-9a-f]{8}$/);
     assert.equal(result.needsProvision, true);
     assert.deepEqual(accounts.me(result.user).plan, { id: 'pro', maxProjects: 3, maxAgents: 10 });
   });

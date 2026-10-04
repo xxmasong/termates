@@ -2,7 +2,7 @@
  * proxy.ts — pipe a signed-in user's traffic to their own workspace.
  *
  * Plain http/net, no proxy dependency. The Cookie header is dropped before
- * forwarding (workspaces never see th_session) and WebSocket upgrades are
+ * forwarding (workspaces never see tm_session) and WebSocket upgrades are
  * spliced at the TCP level after the handshake request is replayed.
  */
 
@@ -35,7 +35,7 @@ const STRIPPED_REQUEST_HEADERS = [
   'trailer',
   'x-forwarded-host',
 ];
-/** Workspaces never set cookies on the shared origin (they could clobber th_session). */
+/** Workspaces never set cookies on the shared origin (they could clobber tm_session). */
 const STRIPPED_RESPONSE_HEADERS = ['set-cookie', 'connection', 'keep-alive'];
 const LOGIN_PATH = '/login';
 

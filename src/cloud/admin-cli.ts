@@ -222,7 +222,7 @@ async function main(argv: string[]): Promise<void> {
         });
         db.audit(user.id, 'session.created', { provider: 'dev' });
         console.error(`workspace ${ws?.unix_user} on ${ws?.port_base}: ${ws?.state}`);
-        console.log(`th_session=${token}`);
+        console.log(`tm_session=${token}`);
         return;
       }
 

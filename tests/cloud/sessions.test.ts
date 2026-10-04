@@ -25,25 +25,25 @@ const setup = () => {
 
 describe('sessions', () => {
   it('parses cookie headers', () => {
-    assert.deepEqual(parseCookies('a=1; th_session=abc%3D; b'), { a: '1', th_session: 'abc=' });
+    assert.deepEqual(parseCookies('a=1; tm_session=abc%3D; b'), { a: '1', tm_session: 'abc=' });
     assert.deepEqual(parseCookies(undefined), {});
   });
 
   it('builds a hardened cookie', () => {
     const cookie = sessionCookie('tok', true);
-    assert.ok(cookie.startsWith('__Host-th_session=tok;'));
+    assert.ok(cookie.startsWith('__Host-tm_session=tok;'));
     assert.ok(!cookie.includes('Domain'), '__Host- cookies must not set a Domain');
     for (const part of ['HttpOnly', 'SameSite=Lax', 'Secure', 'Path=/', 'Max-Age=2592000']) {
       assert.ok(cookie.includes(part), part);
     }
     assert.ok(!sessionCookie('tok', false).includes('Secure'));
-    assert.ok(sessionCookie('tok', false).startsWith('th_session=tok;'));
+    assert.ok(sessionCookie('tok', false).startsWith('tm_session=tok;'));
   });
 
   it('accepts the __Host- cookie and still the legacy name', () => {
     const { db, user } = setup();
     const { token } = createSession(db, user.id, { ip: null, userAgent: null });
-    for (const name of ['__Host-th_session', 'th_session']) {
+    for (const name of ['__Host-tm_session', 'tm_session']) {
       assert.equal(
         resolveSession(db, { headers: { cookie: `${name}=${token}` } })?.user.id,
         user.id,
@@ -54,7 +54,7 @@ describe('sessions', () => {
   it('ends idle sessions and refreshes last_seen_at lazily', () => {
     const { db, user } = setup();
     const { token } = createSession(db, user.id, { ip: null, userAgent: null });
-    const cookie = { headers: { cookie: `__Host-th_session=${token}` } };
+    const cookie = { headers: { cookie: `__Host-tm_session=${token}` } };
     const hash = hashToken(token);
     const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
 
@@ -73,9 +73,9 @@ describe('sessions', () => {
     assert.equal(token.length, 43);
     assert.equal(db.sessionByHash(token), undefined);
     assert.ok(db.sessionByHash(hashToken(token)));
-    const resolved = resolveSession(db, { headers: { cookie: `x=1; th_session=${token}` } });
+    const resolved = resolveSession(db, { headers: { cookie: `x=1; tm_session=${token}` } });
     assert.equal(resolved?.user.id, user.id);
-    assert.equal(resolveSession(db, { headers: { cookie: 'th_session=forged' } }), null);
+    assert.equal(resolveSession(db, { headers: { cookie: 'tm_session=forged' } }), null);
   });
 
   it('drops expired sessions and suspended users', () => {
@@ -84,12 +84,12 @@ describe('sessions', () => {
     db.raw
       .prepare('UPDATE sessions SET expires_at = ?')
       .run(new Date(Date.now() - 1).toISOString());
-    assert.equal(resolveSession(db, { headers: { cookie: `th_session=${token}` } }), null);
+    assert.equal(resolveSession(db, { headers: { cookie: `tm_session=${token}` } }), null);
     assert.equal(db.sessionByHash(hashToken(token)), undefined);
 
     const second = createSession(db, user.id, { ip: null, userAgent: null });
     db.setUserStatus(user.id, 'suspended');
-    assert.equal(resolveSession(db, { headers: { cookie: `th_session=${second.token}` } }), null);
+    assert.equal(resolveSession(db, { headers: { cookie: `tm_session=${second.token}` } }), null);
   });
 });
 

@@ -36,7 +36,7 @@ describe('WorkspaceProxy', () => {
       req.on('end', () => {
         res.writeHead(200, {
           'Content-Type': 'application/json',
-          'Set-Cookie': 'th_session=evil; Path=/',
+          'Set-Cookie': 'tm_session=evil; Path=/',
         });
         res.end(JSON.stringify({ method: req.method, url: req.url, body }));
       });
@@ -55,11 +55,11 @@ describe('WorkspaceProxy', () => {
     });
     db.insertWorkspace({
       userId: user.id,
-      unixUser: 'th-a',
+      unixUser: 'tm-a',
       portBase: upstreamPort,
       state: 'running',
     });
-    cookie = `th_session=${createSession(db, user.id, { ip: null, userAgent: null }).token}`;
+    cookie = `tm_session=${createSession(db, user.id, { ip: null, userAgent: null }).token}`;
 
     const waiting = db.insertUser({
       firebaseUid: 'b',
@@ -71,11 +71,11 @@ describe('WorkspaceProxy', () => {
     });
     db.insertWorkspace({
       userId: waiting.id,
-      unixUser: 'th-b',
+      unixUser: 'tm-b',
       portBase: 4990,
       state: 'provisioning',
     });
-    pendingCookie = `th_session=${createSession(db, waiting.id, { ip: null, userAgent: null }).token}`;
+    pendingCookie = `tm_session=${createSession(db, waiting.id, { ip: null, userAgent: null }).token}`;
 
     const provisioner = { start: async () => undefined } as unknown as Provisioner;
     const proxy = new WorkspaceProxy(db, loadConfig({ CLOUD_ORIGINS: ORIGIN }), provisioner);
@@ -200,7 +200,7 @@ describe('WorkspaceProxy rate limit', () => {
     });
     db.insertWorkspace({
       userId: user.id,
-      unixUser: 'th-rl',
+      unixUser: 'tm-rl',
       portBase: upstreamPort,
       state: 'running',
     });
@@ -212,7 +212,7 @@ describe('WorkspaceProxy rate limit', () => {
 
     const statuses: number[] = [];
     for (let i = 0; i < 3; i += 1) {
-      const response = await fetch(url, { headers: { Cookie: `th_session=${token}` } });
+      const response = await fetch(url, { headers: { Cookie: `tm_session=${token}` } });
       statuses.push(response.status);
       await response.text();
     }

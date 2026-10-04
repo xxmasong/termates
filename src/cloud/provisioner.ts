@@ -53,7 +53,7 @@ export const unitFor = (ws: Pick<WorkspaceRow, 'unix_user'>): string =>
 export const isRootWorkspace = (ws: Pick<WorkspaceRow, 'unix_user'>): boolean =>
   ws.unix_user === ROOT_WORKSPACE.unixUser;
 
-export const newUnixUser = (): string => `th-${crypto.randomBytes(4).toString('hex')}`;
+export const newUnixUser = (): string => `tm-${crypto.randomBytes(4).toString('hex')}`;
 
 /** The next free port block (web, daemon, claude bridge), or null when full. */
 export function nextPortBase(db: CloudDb): number | null {
