@@ -28,7 +28,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = () => (
         <h3>Resources</h3>
         <div className="landing-footer__links">
           <a href="#faq">FAQ</a>
-          <a href="https://github.com/xxmasong/termhive-v2">GitHub</a>
+          <a href="https://github.com/xxmasong/termates">GitHub</a>
         </div>
       </nav>
       <nav>
